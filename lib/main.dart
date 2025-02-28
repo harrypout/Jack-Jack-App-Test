@@ -1,10 +1,15 @@
 import 'package:ble/utils/navigation_manager.dart';
 import 'package:ble/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+ late final SharedPreferences prefs;
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  prefs = await SharedPreferences.getInstance();
+  runApp(ProviderScope(child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {

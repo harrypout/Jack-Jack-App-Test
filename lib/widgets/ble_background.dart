@@ -4,7 +4,8 @@ import 'package:flutter_svg/svg.dart';
 
 class BLEBackground extends StatelessWidget {
   final Widget? child;
-  const BLEBackground({super.key, this.child});
+  final Widget? secondChild;
+  const BLEBackground({super.key, this.child, this.secondChild});
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +25,7 @@ class BLEBackground extends StatelessWidget {
           ],
         ),
         child ?? Container(),
+        secondChild ?? Container(),
       ],
     );
   }

@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ThemeManager {
+  static double horizontalPadding = 20;
+
   static appTheme(BuildContext context) {
     return ThemeData.light(useMaterial3: true).copyWith(
-      textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
+      textTheme: GoogleFonts.latoTextTheme(Theme.of(context).textTheme),
       colorScheme: ColorScheme.fromSeed(seedColor: ColorManager.accent),
       appBarTheme: const AppBarTheme(
         surfaceTintColor: ColorManager.transparent,
