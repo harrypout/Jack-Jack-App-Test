@@ -1,4 +1,5 @@
 import 'package:ble/screens/pairing/widgets/bluetooth_device.dart';
+import 'package:ble/screens/pairing/widgets/device_section.dart';
 import 'package:ble/screens/pairing/widgets/scanner.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/utils/theme_manager.dart';
@@ -44,7 +45,7 @@ class PairingScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                Scanner(asset: "bluetooth-search",),
+                Scanner(asset: "bluetooth-search"),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Text(
@@ -56,40 +57,18 @@ class PairingScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Paired Devices",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: ColorManager.primaryText,
-                        ),
-                      ),
-                    ],
-                  ),
+                DeviceSection(
+                  title: "Paired Devices",
+                  children: [
+                    BluetoothDevice(name: "Sound Sense 1", isPaired: true),
+                  ],
                 ),
-                BluetoothDevice(name: "Sound Sense 1", isPaired: true),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Available Devices",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: ColorManager.primaryText,
-                        ),
-                      ),
-                    ],
-                  ),
+                DeviceSection(
+                  title: "Available Devices",
+                  children: [
+                    BluetoothDevice(name: "Sound Sense 2", isPaired: false),
+                  ],
                 ),
-                BluetoothDevice(name: "Sound Sense 2", isPaired: false),
               ],
             ),
           ),
