@@ -1,4 +1,7 @@
+import 'package:ble/providers/selected_device_provider.dart';
+import 'package:ble/providers/connected_devices_provider.dart';
 import 'package:ble/screens/pairing/widgets/scanner.dart';
+import 'package:ble/utils/toast_manager.dart';
 import 'package:ble/widgets/ble_filled_button.dart';
 import 'package:ble/widgets/ble_gauge.dart';
 import 'package:ble/widgets/ble_indicator_box.dart';
@@ -9,18 +12,20 @@ import 'package:flutter/material.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/utils/theme_manager.dart';
 import 'package:ble/widgets/ble_background.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'package:flutter_svg/svg.dart';
 
-class ManualMonitoringScreen extends StatefulWidget {
+class ManualMonitoringScreen extends ConsumerStatefulWidget {
   static const String id = 'manual_monitoring_screen';
   const ManualMonitoringScreen({super.key});
 
   @override
-  State<ManualMonitoringScreen> createState() => _ManualMonitoringScreenState();
+  ConsumerState createState() => _ManualMonitoringScreenState();
 }
 
-class _ManualMonitoringScreenState extends State<ManualMonitoringScreen> {
+class _ManualMonitoringScreenState
+    extends ConsumerState<ManualMonitoringScreen> {
   final int _countdownDuration = 5;
   int _remainingTime = 5;
   Timer? _countdownTimer;
@@ -29,19 +34,24 @@ class _ManualMonitoringScreenState extends State<ManualMonitoringScreen> {
   bool _showCountdown = false;
   int _streamingDuration = 0; // Track streaming duration in seconds
 
-  void _startCountdown() {
-    setState(() {
-      _showCountdown = true;
-      _remainingTime = _countdownDuration;
-    });
+  void _startCountdown(bool isConnected) {
+    if(isConnected){
+      setState(() {
+        _showCountdown = true;
+        _remainingTime = _countdownDuration;
+      });
 
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingTime > 0) {
-        setState(() => _remainingTime--);
-      } else {
-        _startStreaming();
-      }
-    });
+      _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_remainingTime > 0) {
+          setState(() => _remainingTime--);
+        } else {
+          _startStreaming();
+        }
+      });
+    }
+    else{
+      ToastManager.show("Please connect the selected device!");
+    }
   }
 
   void _startStreaming() {
@@ -79,6 +89,8 @@ class _ManualMonitoringScreenState extends State<ManualMonitoringScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final connectedDevices = ref.watch(connectedDevicesProvider);
+    final selectedDevice = ref.watch(selectedDeviceProvider);
     return Scaffold(
       body: BLEBackground(
         child: SafeArea(
@@ -99,16 +111,21 @@ class _ManualMonitoringScreenState extends State<ManualMonitoringScreen> {
                       if (_isStreaming)
                         Column(
                           children: [
-                            const BLEGauge(selectedDevice: "Sound Sense 1",),
+                            BLEGauge(
+                              selectedDevice:
+                                  connectedDevices[selectedDevice]!
+                                      .device
+                                      .platformName,
+                              valueStream:
+                                  connectedDevices[selectedDevice]!.getSoundLevel.data,
+                            ),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 spacing: 6,
                                 children: [
-                                  BLEPill(
-                                    color: Colors.red,
-                                  ),
+                                  BLEPill(color: Colors.red),
                                   Text(
                                     "Streaming ${_formatDuration(_streamingDuration)}",
                                     style: TextStyle(
@@ -127,12 +144,12 @@ class _ManualMonitoringScreenState extends State<ManualMonitoringScreen> {
                                 children: [
                                   IndicatorBox(
                                     title: "Battery",
-                                    subtitle: "100%",
+                                    subtitle: connectedDevices[selectedDevice]!.getBattery.data.toString(),
                                     asset: "battery",
                                   ),
                                   IndicatorBox(
                                     title: "Status",
-                                    subtitle: "Connected",
+                                    subtitle: connectedDevices[selectedDevice]!.device.isConnected?"Connected":"Disconnected",
                                     asset: "status",
                                   ),
                                 ],
@@ -195,8 +212,8 @@ class _ManualMonitoringScreenState extends State<ManualMonitoringScreen> {
                     ],
                   ),
                 ),
-                _buildActionButton(),
-                SizedBox(height: 45,),
+                _buildActionButton(connectedDevices[selectedDevice]?.device.isConnected??false),
+                SizedBox(height: 45),
               ],
             ),
           ),
@@ -259,7 +276,7 @@ class _ManualMonitoringScreenState extends State<ManualMonitoringScreen> {
     );
   }
 
-  Widget _buildActionButton() {
+  Widget _buildActionButton(bool isConnected) {
     if (_showCountdown) {
       return Column(
         children: [
@@ -276,7 +293,9 @@ class _ManualMonitoringScreenState extends State<ManualMonitoringScreen> {
 
     return BLEFilledButton(
       data: _isStreaming ? "Stop Streaming" : "Start Streaming",
-      onPressed: _isStreaming ? _stopStreaming : _startCountdown,
+      onPressed: (){
+        _isStreaming ? _stopStreaming() : _startCountdown(isConnected);
+      },
       icon: SvgPicture.asset(
         "assets/svgs/${_isStreaming ? "stop" : "play"}.svg",
       ),

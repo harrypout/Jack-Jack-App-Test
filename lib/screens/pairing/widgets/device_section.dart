@@ -22,6 +22,7 @@ class DeviceSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              if(children.isNotEmpty)
               Text(
                 title,
                 style: TextStyle(

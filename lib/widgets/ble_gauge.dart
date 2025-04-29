@@ -1,34 +1,80 @@
+import 'dart:async';
 import 'package:ble/utils/color_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
-class BLEGauge extends StatefulWidget {
+class BLEGauge extends ConsumerStatefulWidget {
   final String selectedDevice;
-  const BLEGauge({super.key, required this.selectedDevice});
+  final Stream<int>? valueStream;
+
+  const BLEGauge({super.key, required this.selectedDevice, this.valueStream});
 
   @override
-  State<BLEGauge> createState() => _BLEGaugeState();
+  ConsumerState createState() => _BLEGaugeState();
 }
 
-class _BLEGaugeState extends State<BLEGauge> with TickerProviderStateMixin {
+class _BLEGaugeState extends ConsumerState<BLEGauge>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  int selectedValue = 90;
+  double _currentValue = 0.0; // Current gauge value
+  StreamSubscription<int>? _streamSubscription;
+  int selectedValue = 0;
   double gaugeRangeWidth = 10;
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize the animation controller and animation
     _controller = AnimationController(
       duration: const Duration(seconds: 4),
       vsync: this,
-    )..repeat(reverse: true);
-
+    );
     _animation = Tween<double>(begin: 0, end: 120).animate(_controller);
+
+    // Always start the animation controller for consistent rendering
+    _controller.repeat(reverse: true);
+
+    // Listen to the stream if provided
+    if (widget.valueStream != null) {
+      _setupStreamListener();
+    }
+  }
+
+  void _setupStreamListener() {
+    _streamSubscription?.cancel();
+
+    if (widget.valueStream != null) {
+      // Don't create a new broadcast stream here
+      try {
+        _streamSubscription = widget.valueStream!.listen((value) {
+          if (mounted) {
+            setState(() {
+              _currentValue = value.toDouble();
+            });
+          }
+        });
+      } catch (e) {
+        print("Stream listening error: $e");
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(BLEGauge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only update stream listener if the stream has actually changed
+    if (oldWidget.valueStream != widget.valueStream &&
+        widget.valueStream != null) {
+      _setupStreamListener();
+    }
   }
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -39,8 +85,13 @@ class _BLEGaugeState extends State<BLEGauge> with TickerProviderStateMixin {
       height: 210,
       width: 210,
       child: AnimatedBuilder(
-        animation: _animation,
+        animation:
+            _controller, // Always listen to the animation controller for rebuilds
         builder: (context, child) {
+          // Use stream value if available, otherwise use animation value
+          final displayValue =
+              widget.valueStream != null ? _currentValue : _animation.value;
+
           return SfRadialGauge(
             axes: <RadialAxis>[
               RadialAxis(
@@ -58,7 +109,7 @@ class _BLEGaugeState extends State<BLEGauge> with TickerProviderStateMixin {
                 ranges: <GaugeRange>[
                   GaugeRange(
                     startValue: 0,
-                    endValue: _animation.value,
+                    endValue: displayValue,
                     color: ColorManager.inactiveGauge,
                     gradient: SweepGradient(
                       colors: <Color>[
@@ -71,7 +122,7 @@ class _BLEGaugeState extends State<BLEGauge> with TickerProviderStateMixin {
                     endWidth: gaugeRangeWidth,
                   ),
                   GaugeRange(
-                    startValue: _animation.value,
+                    startValue: displayValue,
                     endValue: 120.1,
                     color: ColorManager.inactiveGauge,
                     startWidth: gaugeRangeWidth,
@@ -80,7 +131,7 @@ class _BLEGaugeState extends State<BLEGauge> with TickerProviderStateMixin {
                 ],
                 pointers: <GaugePointer>[
                   NeedlePointer(
-                    value: _animation.value,
+                    value: displayValue,
                     needleColor: ColorManager.accent,
                     needleLength: 0.5,
                     needleStartWidth: 0,
@@ -102,7 +153,7 @@ class _BLEGaugeState extends State<BLEGauge> with TickerProviderStateMixin {
                 annotations: <GaugeAnnotation>[
                   GaugeAnnotation(
                     widget: Text(
-                      "${_animation.value.toStringAsFixed(0)} dB",
+                      "${displayValue.toStringAsFixed(0)} dB",
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,

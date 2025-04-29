@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ble/main.dart';
 part 'onboarding_status_provider.g.dart';
 
 @riverpod
@@ -15,7 +15,7 @@ class OnboardingStatus extends _$OnboardingStatus {
       state = state + 1;
       return false;
     } else {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
       prefs.setBool('onboarding_status', true);
       return true;
     }

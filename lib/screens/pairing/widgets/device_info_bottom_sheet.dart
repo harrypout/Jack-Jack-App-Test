@@ -1,29 +1,31 @@
+import 'package:ble/providers/device_threshold_provider.dart';
+import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:ble/screens/pairing/pods/available_devices.dart';
+import 'package:ble/screens/pairing/pods/paired_devices.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/widgets/ble_bottom_sheet.dart';
 import 'package:ble/widgets/ble_filled_button.dart';
 import 'package:ble/widgets/ble_outlined_button.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PairedInfoBottomSheet extends StatelessWidget {
-  final String name;
-  final bool isConnected;
-  final int threshold;
-  const PairedInfoBottomSheet({
-    super.key,
-    required this.name,
-    required this.isConnected,
-    required this.threshold,
-  });
+import '../../../main.dart';
+
+class PairedInfoBottomSheet extends ConsumerWidget {
+  final BluetoothDevice device;
+  const PairedInfoBottomSheet({super.key, required this.device});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final threshold = ref.watch(deviceThresholdProvider(device.remoteId.str));
     return BLEBottomSheet(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            name,
+            device.platformName ?? "Unknown Device",
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
@@ -38,10 +40,9 @@ class PairedInfoBottomSheet extends StatelessWidget {
               color: ColorManager.secondaryText,
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Container(
             width: double.maxFinite,
-            // height: 74,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             clipBehavior: Clip.antiAlias,
             decoration: ShapeDecoration(
@@ -68,7 +69,7 @@ class PairedInfoBottomSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        name,
+                        device.platformName ?? "Unknown Device",
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
@@ -84,7 +85,7 @@ class PairedInfoBottomSheet extends StatelessWidget {
                   color: ColorManager.containerBorder,
                 ),
                 Padding(
-                   padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -97,7 +98,7 @@ class PairedInfoBottomSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        isConnected ? "Connected" : "Disconnected",
+                        device.isConnected ? "Connected" : "Disconnected",
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
@@ -106,13 +107,14 @@ class PairedInfoBottomSheet extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),Container(
+                ),
+                Container(
                   height: 1,
                   width: MediaQuery.of(context).size.width * 0.8,
                   color: ColorManager.containerBorder,
                 ),
                 Padding(
-                   padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -125,7 +127,7 @@ class PairedInfoBottomSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "$threshold Db",
+                        "$threshold dB",
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
@@ -138,7 +140,7 @@ class PairedInfoBottomSheet extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           SizedBox(
             height: 50,
             child: Row(
@@ -157,7 +159,18 @@ class PairedInfoBottomSheet extends StatelessWidget {
                 Expanded(
                   child: BLEFilledButton(
                     data: "Forget Device",
-                    onPressed: () {},
+                    onPressed: () async {
+                      List<String> list =
+                          prefs.getStringList('pairedDevicesUUID') ?? [];
+                      list.remove(device.remoteId.str);
+                      await prefs.setStringList('pairedDevicesUUID', list);
+                      await device.removeBond();
+                      await device.disconnect();
+                      ref.invalidate(availableDevicesProvider);
+                      ref.invalidate(pairedDevicesProvider);
+                      ref.invalidate(connectedDevicesProvider);
+                      Navigator.pop(context);
+                    },
                     maxButton: true,
                   ),
                 ),

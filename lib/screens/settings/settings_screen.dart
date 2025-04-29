@@ -7,9 +7,26 @@ import 'package:ble/widgets/ble_background.dart';
 import 'package:ble/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
 
-class SettingsScreen extends StatelessWidget {
+import '../../main.dart';
+
+class SettingsScreen extends StatefulWidget {
   static const String id = 'settings_screen';
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool autoConnect = false;
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      autoConnect = prefs.getBool("autoConnect") ?? false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +49,22 @@ class SettingsScreen extends StatelessWidget {
                         SettingsItem(
                           assetName: "bluetooth",
                           title: "BLE Auto Connect",
-                          trailing: BLEToggle(value: true, onChanged: (value) {}),
-                          onTap: () {},
+                          trailing: BLEToggle(
+                            value: autoConnect,
+                            onChanged: (value) {
+                              setState(() {
+                                autoConnect = value;
+                              });
+                              prefs.setBool("autoConnect", value);
+                            },
+                          ),
+                          onTap: () {
+                            bool value = !autoConnect;
+                            setState(() {
+                              autoConnect = value;
+                            });
+                            prefs.setBool("autoConnect", value);
+                          },
                         ),
                       ],
                     ),
@@ -44,7 +75,8 @@ class SettingsScreen extends StatelessWidget {
                           assetName: "help",
                           title: "Help",
                           onTap: () {
-                        Navigator.pushNamed(context, FAQScreen.id);},
+                            Navigator.pushNamed(context, FAQScreen.id);
+                          },
                         ),
                         SettingsItem(
                           assetName: "contact-us",

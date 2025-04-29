@@ -1,42 +1,43 @@
+import 'package:ble/models/ble_device.dart';
+import 'package:ble/providers/device_threshold_provider.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/widgets/ble_pill.dart';
 import 'package:ble/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ThresholdItem extends StatefulWidget {
-  final String title;
-  final String subtitle;
-  final int threshold;
-  const ThresholdItem({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    required this.threshold,
-  });
+import '../../../main.dart';
+
+class ThresholdItem extends ConsumerStatefulWidget {
+  final BLEDevice device;
+  const ThresholdItem({super.key, required this.device});
 
   @override
-  State<ThresholdItem> createState() => _ThresholdItemState();
+  ConsumerState createState() => _ThresholdItemState();
 }
 
-class _ThresholdItemState extends State<ThresholdItem> {
-  double threshold = 0;
+class _ThresholdItemState extends ConsumerState<ThresholdItem> {
   bool sound = false;
   bool vibration = false;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     setState(() {
-      threshold = widget.threshold.toDouble();
+      sound = prefs.getBool("${widget.device.device.remoteId.str}s") ?? false;
+      vibration =
+          prefs.getBool("${widget.device.device.remoteId.str}v") ?? false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final threshold = ref.watch(
+      deviceThresholdProvider(widget.device.device.remoteId.str),
+    );
     return ExpansionTile(
       title: Text(
-        widget.title,
+        widget.device.device.platformName,
         style: const TextStyle(
           color: ColorManager.primaryText,
           fontSize: 16,
@@ -46,15 +47,16 @@ class _ThresholdItemState extends State<ThresholdItem> {
       subtitle: Row(
         spacing: 6,
         children: [
+          if (sound || vibration)
           Text(
-            widget.subtitle,
+            "${sound ? "Sound" : ""}${sound && vibration ? " & " : ""}${vibration ? "Vibration" : ""}${sound || vibration ? " Alert" : ""}",
             style: const TextStyle(
               color: ColorManager.tertiaryText,
               fontSize: 12,
               fontWeight: FontWeight.w400,
             ),
           ),
-          BLEPill(),
+          if (sound || vibration) BLEPill(),
           Text(
             "${threshold.toInt()} DB",
             style: TextStyle(
@@ -66,15 +68,15 @@ class _ThresholdItemState extends State<ThresholdItem> {
         ],
       ),
       backgroundColor: ColorManager.white,
-    collapsedBackgroundColor: ColorManager.white,
-    shape: RoundedRectangleBorder(
-      side: BorderSide(width: 1, color: ColorManager.containerBorder),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    collapsedShape: RoundedRectangleBorder(
-      side: BorderSide(width: 1, color: ColorManager.containerBorder),
-      borderRadius: BorderRadius.circular(8),
-    ),
+      collapsedBackgroundColor: ColorManager.white,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(width: 1, color: ColorManager.containerBorder),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      collapsedShape: RoundedRectangleBorder(
+        side: BorderSide(width: 1, color: ColorManager.containerBorder),
+        borderRadius: BorderRadius.circular(8),
+      ),
       childrenPadding: EdgeInsets.all(16),
       expandedCrossAxisAlignment: CrossAxisAlignment.start,
       expandedAlignment: Alignment.topLeft,
@@ -99,14 +101,21 @@ class _ThresholdItemState extends State<ThresholdItem> {
               ),
             ),
             Slider(
-              value: threshold,
+              value: threshold.toDouble(),
               max: 120,
               min: 0,
               activeColor: ColorManager.accent,
               onChanged: (value) {
-                setState(() {
-                  threshold = value;
-                });
+                ref
+                    .read(
+                      deviceThresholdProvider(
+                        widget.device.device.remoteId.str,
+                      ).notifier,
+                    )
+                    .saveToDevice(
+                      widget.device.device.remoteId.str,
+                      value.toInt(),
+                    );
               },
             ),
             Row(
@@ -126,6 +135,10 @@ class _ThresholdItemState extends State<ThresholdItem> {
                     setState(() {
                       sound = value;
                     });
+                    prefs.setBool(
+                      "${widget.device.device.remoteId.str}s",
+                      value,
+                    );
                   },
                 ),
               ],
@@ -147,6 +160,10 @@ class _ThresholdItemState extends State<ThresholdItem> {
                     setState(() {
                       vibration = value;
                     });
+                    prefs.setBool(
+                      "${widget.device.device.remoteId.str}v",
+                      value,
+                    );
                   },
                 ),
               ],

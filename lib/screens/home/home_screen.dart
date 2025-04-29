@@ -1,9 +1,12 @@
+import 'package:ble/providers/notifications_provider.dart';
+import 'package:ble/providers/selected_device_provider.dart';
+import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:ble/screens/home/widgets/selected_device_widget.dart';
 import 'package:ble/screens/notifications/notification_screen.dart';
+import 'package:ble/screens/pairing/pods/paired_devices.dart';
 import 'package:ble/utils/theme_manager.dart';
 import 'package:ble/widgets/ble_background.dart';
-import 'package:ble/widgets/ble_gauge.dart';
 import 'package:ble/widgets/ble_home_screen_device.dart';
-import 'package:ble/widgets/ble_indicator_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,105 +21,113 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final connectedDevices = ref.watch(connectedDevicesProvider);
+    final pairedDevice = ref.watch(pairedDevicesProvider);
+    final selectedDevice = ref.watch(selectedDeviceProvider);
     return Scaffold(
       body: BLEBackground(
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: ThemeManager.horizontalPadding,
-            ),
-            child: Column(
-              spacing: 12,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: pairedDevice.when(
+          error: (error, stackTrace) {
+            print("$error\n$stackTrace");
+            return Container();
+          },
+          loading: () => Center(child: CircularProgressIndicator()),
+          data: (devices) {
+            if (devices.isNotEmpty) {
+              Future.microtask(
+                () => ref
+                    .read(selectedDeviceProvider.notifier)
+                    .setSelectedDevice(devices.first.remoteId.str),
+              );
+            }
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ThemeManager.horizontalPadding,
+                ),
+                child: Column(
+                  spacing: 12,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Welcome",
-                          style: const TextStyle(
-                            color: Color(0xFF121521),
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Welcome",
+                              style: const TextStyle(
+                                color: Color(0xFF121521),
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text("Good Morning!"),
+                          ],
+                        ),
+                        Badge(
+                          isLabelVisible: ref.watch(notificationsProvider).isNotEmpty
+                                  ? true
+                                  : false,
+                          label:
+                              ref.watch(notificationsProvider).isNotEmpty
+                                  ? Container()
+                                  : null,
+                          offset: Offset(-4, 4),
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                context,
+                                NotificationScreen.id,
+                              );
+                            },
+                            style: ButtonStyle(
+                              padding: WidgetStatePropertyAll(
+                                EdgeInsets.all(8),
+                              ),
+                              minimumSize: WidgetStatePropertyAll(Size.zero),
+                            ),
+                            child: Icon(Icons.notifications),
                           ),
                         ),
-                        Text("Good Morning!"),
                       ],
                     ),
-                    OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, NotificationScreen.id);
-                      },
-                      style: ButtonStyle(
-                        padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                        minimumSize: WidgetStatePropertyAll(Size.zero),
+                    Expanded(
+                      flex: 7,
+                      child: SelectedDeviceHomeWidget(
+                        device: connectedDevices[selectedDevice],
                       ),
-                      child: Icon(Icons.notifications),
                     ),
-                  ],
-                ),
-                BLEGauge(selectedDevice: "Sound Sense 1",),
-                SizedBox(
-                  height: 80,
-                  child: Row(
-                    spacing: 16,
-                    children: [
-                      IndicatorBox(
-                        title: "Battery",
-                        subtitle: "100%",
-                        asset: "battery",
-                      ),
-                      IndicatorBox(
-                        title: "Status",
-                        subtitle: "Connected",
-                        asset: "status",
-                      ),
-                    ],
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Other Devices"),
-                    TextButton(onPressed: () {}, child: Text("View All")),
-                  ],
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      spacing: 12,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        HomeScreenDevice(
-                          deviceName: "Sound Sense 1",
-                          battery: "100%",
-                          threshold: 90,
-                          isSelected: true,
-                          isConnected: true,
-                        ),
-                        HomeScreenDevice(
-                          deviceName: "Sound Sense 2",
-                          battery: "99%",
-                          threshold: 80,
-                          isSelected: false,
-                          isConnected: true,
-                        ),
-                        HomeScreenDevice(
-                          deviceName: "Sound Sense 3",
-                          battery: "98%",
-                          threshold: 70,
-                          isSelected: false,
-                          isConnected: false,
-                        ),
-                        SizedBox(height: 45),
+                        Text("Other Devices"),
+                        TextButton(onPressed: () {}, child: Text("View All")),
                       ],
                     ),
-                  ),
+                    Expanded(
+                      flex: 8,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          spacing: 12,
+                          children: [
+                            ...connectedDevices.keys.map(
+                              (id) => HomeScreenDevice(
+                                device: connectedDevices[id]!,
+                                isSelected: selectedDevice == id,
+                              ),
+                            ),
+                            SizedBox(height: 45),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

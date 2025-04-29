@@ -1,3 +1,4 @@
+import 'package:ble/models/notification_sf.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/widgets/ble_pill.dart';
 import 'package:flutter/material.dart';
@@ -5,18 +6,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class NotificationItem extends StatelessWidget {
-  final String title;
-  final String desc;
-  final DateTime time;
-  final bool unread;
+  final NotificationSF item;
+  final DateTime readTime;
 
-  const NotificationItem({
-    super.key,
-    required this.title,
-    required this.desc,
-    required this.time,
-    this.unread = false,
-  });
+  const NotificationItem({super.key, required this.item,
+    required this.readTime,});
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +56,7 @@ class NotificationItem extends StatelessWidget {
                         spacing: 8,
                         children: [
                           Text(
-                            title,
+                            "Threshold Exceeded!",
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -70,12 +64,14 @@ class NotificationItem extends StatelessWidget {
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          BLEPill(color: Colors.red),
+                          if (readTime.isBefore(item.createdAt))
+                            BLEPill(color: Colors.red),
+
                         ],
                       ),
                     ),
                     Text(
-                      timeago.format(time),
+                      timeago.format(item.createdAt),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
@@ -86,7 +82,7 @@ class NotificationItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  desc,
+                  "Current Sound Level: ${item.value} dB, Detected by ${item.device} ",
                   style: TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 12,

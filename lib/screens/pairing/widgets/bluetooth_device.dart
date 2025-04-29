@@ -1,23 +1,29 @@
+import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:ble/screens/pairing/pods/available_devices.dart';
+import 'package:ble/screens/pairing/pods/paired_devices.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/widgets/ble_bottom_sheet.dart';
-import 'package:ble/widgets/device_info_bottom_sheet.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:ble/screens/pairing/widgets/device_info_bottom_sheet.dart';
 
-class BluetoothDevice extends StatelessWidget {
-  final String name;
+class BluetoothDeviceWidget extends ConsumerWidget {
+  final BluetoothDevice device;
   final bool isPaired;
-  const BluetoothDevice({
+  final void Function(BluetoothDevice device)? onConnect;
+  const BluetoothDeviceWidget({
     super.key,
-    required this.name,
+    required this.device,
     required this.isPaired,
+     this.onConnect,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       width: double.maxFinite,
-      // height: 74,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
@@ -31,11 +37,11 @@ class BluetoothDevice extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            spacing: 12,
             children: [
               SvgPicture.asset("assets/svgs/device.svg"),
+              const SizedBox(width: 12),
               Text(
-                name,
+                device.platformName ?? "Unknown Device",
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -47,7 +53,12 @@ class BluetoothDevice extends StatelessWidget {
           isPaired
               ? IconButton(
                 onPressed: () {
-                  BLEBottomSheet.openSheet(context, PairedInfoBottomSheet(name: name, isConnected: true, threshold: 80));
+                  BLEBottomSheet.openSheet(
+                    context,
+                    PairedInfoBottomSheet(
+                      device: device,
+                    ),
+                  );
                 },
                 icon: SvgPicture.asset(
                   "assets/svgs/app-info.svg",
@@ -55,9 +66,13 @@ class BluetoothDevice extends StatelessWidget {
                 ),
               )
               : TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  if(onConnect != null) {
+                    onConnect!(device);
+                  }
+                },
                 child: Text(
-                  "Pair",
+                  "Connect",
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
