@@ -1,6 +1,4 @@
-import 'package:ble/providers/connected_devices_provider.dart';
-import 'package:ble/screens/pairing/pods/available_devices.dart';
-import 'package:ble/screens/pairing/pods/paired_devices.dart';
+import 'package:ble/providers/loading_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -8,20 +6,25 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/widgets/ble_bottom_sheet.dart';
 import 'package:ble/screens/pairing/widgets/device_info_bottom_sheet.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class BluetoothDeviceWidget extends ConsumerWidget {
   final BluetoothDevice device;
   final bool isPaired;
-  final void Function(BluetoothDevice device)? onConnect;
+  final bool loader;
+  final Future<void> Function(BluetoothDevice device)? onConnect;
   const BluetoothDeviceWidget({
     super.key,
     required this.device,
     required this.isPaired,
-     this.onConnect,
+    this.onConnect,
+    this.loader = false,
   });
+  // bool isConnecting = false;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isLoading = ref.watch(loadingProvider(device.remoteId.str));
     return Container(
       width: double.maxFinite,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -41,7 +44,7 @@ class BluetoothDeviceWidget extends ConsumerWidget {
               SvgPicture.asset("assets/svgs/device.svg"),
               const SizedBox(width: 12),
               Text(
-                device.platformName ?? "Unknown Device",
+                loader ? "Device Name" : device.platformName,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -50,36 +53,63 @@ class BluetoothDeviceWidget extends ConsumerWidget {
               ),
             ],
           ),
-          isPaired
-              ? IconButton(
-                onPressed: () {
-                  BLEBottomSheet.openSheet(
-                    context,
-                    PairedInfoBottomSheet(
-                      device: device,
+          Skeletonizer(
+            enabled: isLoading,
+            child:
+                isPaired
+                    ? IconButton(
+                      onPressed:
+                          loader
+                              ? null
+                              : () {
+                                BLEBottomSheet.openSheet(
+                                  context,
+                                  PairedInfoBottomSheet(device: device),
+                                );
+                              },
+                      icon: SvgPicture.asset(
+                        "assets/svgs/app-info.svg",
+                        colorFilter: ColorFilter.mode(
+                          Colors.blue,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    )
+                    : TextButton(
+                      onPressed:
+                          loader
+                              ? null
+                              : () async {
+                                if (onConnect != null) {
+                                  if (!isLoading) {
+                                    ref
+                                        .read(
+                                          loadingProvider(
+                                            device.remoteId.str,
+                                          ).notifier,
+                                        )
+                                        .toggle(true);
+                                    await onConnect!(device);
+                                    ref
+                                        .read(
+                                          loadingProvider(
+                                            device.remoteId.str,
+                                          ).notifier,
+                                        )
+                                        .toggle(false);
+                                  }
+                                }
+                              },
+                      child: Text(
+                        "Connect",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: ColorManager.accent,
+                        ),
+                      ),
                     ),
-                  );
-                },
-                icon: SvgPicture.asset(
-                  "assets/svgs/app-info.svg",
-                  colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-                ),
-              )
-              : TextButton(
-                onPressed: () {
-                  if(onConnect != null) {
-                    onConnect!(device);
-                  }
-                },
-                child: Text(
-                  "Connect",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: ColorManager.accent,
-                  ),
-                ),
-              ),
+          ),
         ],
       ),
     );

@@ -58,7 +58,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
           ),
           if (sound || vibration) BLEPill(),
           Text(
-            "${threshold.toInt()} DB",
+            "${threshold?.toInt()} DB",
             style: TextStyle(
               fontWeight: FontWeight.w400,
               fontSize: 12,
@@ -93,7 +93,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              "${threshold.toInt()} DB",
+              "${threshold?.toInt()} DB",
               style: TextStyle(
                 fontWeight: FontWeight.w400,
                 fontSize: 14,
@@ -101,9 +101,9 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
               ),
             ),
             Slider(
-              value: threshold.toDouble(),
+              value: threshold!.toDouble(),
               max: 120,
-              min: 0,
+              min: 30,
               activeColor: ColorManager.accent,
               onChanged: (value) {
                 ref

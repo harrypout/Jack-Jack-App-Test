@@ -1,5 +1,6 @@
 import 'package:ble/models/ble_device.dart';
 import 'package:ble/providers/device_threshold_provider.dart';
+import 'package:ble/providers/loading_provider.dart';
 import 'package:ble/providers/selected_device_provider.dart';
 import 'package:ble/providers/connected_devices_provider.dart';
 import 'package:ble/utils/color_manager.dart';
@@ -7,6 +8,7 @@ import 'package:ble/widgets/ble_pill.dart';
 import 'package:ble/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class HomeScreenDevice extends ConsumerStatefulWidget {
   final BLEDevice device;
@@ -39,6 +41,9 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
     final threshold = ref.watch(
       deviceThresholdProvider(widget.device.device.remoteId.str),
     );
+    final isLoading = ref.watch(
+      loadingProvider(widget.device.device.remoteId.str),
+    );
     return InkWell(
       onTap: () {
         ref
@@ -66,89 +71,105 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  spacing: 12,
-                  children: [
-                    Text(
-                      widget.device.device.platformName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: ColorManager.primaryText,
+        child:
+        // isLoading
+        //     ?
+        Skeletonizer(
+          enabled: isLoading,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    spacing: 12,
+                    children: [
+                      Text(
+                        widget.device.device.platformName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: ColorManager.primaryText,
+                        ),
                       ),
-                    ),
-                    if (widget.isSelected)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        spacing: 4,
-                        children: [
-                          BLEPill(color: Colors.green),
-                          Text(
-                            "Current",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                              color: ColorManager.secondaryText,
+                      if (widget.isSelected)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          spacing: 4,
+                          children: [
+                            BLEPill(color: Colors.green),
+                            Text(
+                              "Current",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                                color: ColorManager.secondaryText,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 4,
+                    children: [
+                      Text(
+                        "${widget.device.getBattery.data}%",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          color: ColorManager.tertiaryText,
+                        ),
                       ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  spacing: 4,
-                  children: [
-                    Text(
-                      widget.device!.getBattery.data.toString() + "%",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                        color: ColorManager.tertiaryText,
+                      BLEPill(),
+                      Text(
+                        on ? "Connected" : "Disconnected",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          color: ColorManager.tertiaryText,
+                        ),
                       ),
-                    ),
-                    BLEPill(),
-                    Text(
-                      on ? "Connected" : "Disconnected",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                        color: ColorManager.tertiaryText,
+                      BLEPill(),
+                      Text(
+                        "$threshold DB",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          color: ColorManager.tertiaryText,
+                        ),
                       ),
-                    ),
-                    BLEPill(),
-                    Text(
-                      "$threshold DB",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                        color: ColorManager.tertiaryText,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            BLEToggle(
-              value: on,
-              onChanged: (value) async {
-                print("onToggle: $value");
-                await ref
-                    .read(connectedDevicesProvider.notifier)
-                    .connect(widget.device.device, shouldConnect: value);
-                setState(() {
-                  on = value;
-                });
-              },
-            ),
-          ],
+                    ],
+                  ),
+                ],
+              ),
+              BLEToggle(
+                value: on,
+                onChanged:
+                    isLoading
+                        ? (v) {}
+                        : (value) async {
+                          print("onToggle: $value");
+                          await ref
+                              .read(connectedDevicesProvider.notifier)
+                              .connect(
+                                widget.device.device,
+                                shouldConnect: value,
+                              );
+                          setState(() {
+                            on = value;
+                          });
+                        },
+              ),
+            ],
+          ),
         ),
+        // : BleHomeScreenDeviceComponents(
+        //   device: widget.device,
+        //   isSelected: widget.isSelected,
+        // ),
       ),
     );
   }

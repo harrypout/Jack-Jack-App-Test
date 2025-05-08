@@ -63,7 +63,7 @@ class Notifications extends _$Notifications {
         // return 0;
       }();
       groups[index].notifications.add(notification);
-      print(groups[index]);
+      // print(groups[index]);
       // group.notifications.add(Notification.fromJson(notification.data()));
       i++;
     }

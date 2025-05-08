@@ -1,6 +1,6 @@
-import 'package:ble/providers/paired_devices.dart';
 import 'package:ble/providers/threshold_alert_provider.dart';
 import 'package:ble/utils/env_manager.dart';
+import 'package:ble/utils/permission_manager.dart';
 import 'package:ble/utils/navigation_manager.dart';
 import 'package:ble/utils/notification_manager.dart';
 import 'package:ble/utils/theme_manager.dart';
@@ -8,19 +8,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:geolocator/geolocator.dart';
 
 late final SharedPreferences prefs;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EnvManager.getInstance();
-  print(configs.uuids);
+  print("env");
   prefs = await SharedPreferences.getInstance();
-  await PairedDevicesUUID.loadFromPrefs();
+  print("prefs");
   await NotificationManager.instance.initialize();
-  await checkLocationPremission();
+  print("notif");
+  await PermissionManager.check();
+  print("location");
   await FlutterBluePlus.turnOn();
+  print("bton");
+  FlutterBluePlus.startScan(
+    timeout: const Duration(seconds: 10),
+    withServices: [
+      Guid(configs.setThresholdUUIDS.service),
+      // ...configs.uuids.map((uuid)=> Guid(uuid.service))
+    ],
+  );
+  print("scan");
   runApp(ProviderScope(child: const BLE()));
 }
 
@@ -29,9 +39,6 @@ class BLE extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Future.microtask(() => ref
-    //     .read(pairedDevicesUUIDProvider.notifier)
-    //     .loadFromPrefs());
     ref.read(thresholdAlertProvider.notifier).setupAlerts();
     return AnnotatedRegion(
       value: ThemeManager.statusBar,
@@ -44,43 +51,4 @@ class BLE extends ConsumerWidget {
       ),
     );
   }
-}
-
-
-
-Future<Position> checkLocationPremission() async {
-  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  LocationPermission permission = await Geolocator.checkPermission();
-  if (!serviceEnabled) {
-    // do what you want
-  }
-
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
-      // toast('Please location permission');
-      // logger.w("get User LocationPosition()");
-      await Geolocator.openAppSettings();
-
-      // throw '${language.lblLocationPermissionDenied}';
-    }
-  }
-
-  if (permission == LocationPermission.deniedForever) {
-    throw "language lbl Location Permission Denied Permanently, please enable it from setting";
-  }
-
-  return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).then((value) {
-    return value;
-  }).catchError((e) async {
-    return await Geolocator.getLastKnownPosition().then((value) async {
-      if (value != null) {
-        return value;
-      } else {
-        throw "lbl Enable Location";
-      }
-    }).catchError((e) {
-      print(e.toString());
-    });
-  });
 }

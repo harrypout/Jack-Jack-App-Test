@@ -25,7 +25,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            device.platformName ?? "Unknown Device",
+            device.platformName,
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
@@ -69,7 +69,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        device.platformName ?? "Unknown Device",
+                        device.platformName,
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
@@ -127,7 +127,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        "$threshold dB",
+                        threshold!= null?"$threshold dB":"Not Available",
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
@@ -166,7 +166,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                       await prefs.setStringList('pairedDevicesUUID', list);
                       await device.removeBond();
                       await device.disconnect();
-                      ref.invalidate(availableDevicesProvider);
+                      ref.read(availableDevicesProvider.notifier).refresh();
                       ref.invalidate(pairedDevicesProvider);
                       ref.invalidate(connectedDevicesProvider);
                       Navigator.pop(context);

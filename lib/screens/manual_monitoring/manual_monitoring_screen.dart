@@ -202,7 +202,7 @@ class _ManualMonitoringScreenState
                       else
                         Column(
                           children: [
-                            Scanner(asset: "microphone"),
+                            Scanner(asset: "microphone", animate: false,),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 20),
                               child: _buildMainText(),

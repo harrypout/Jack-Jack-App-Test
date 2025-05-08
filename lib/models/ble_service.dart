@@ -1,5 +1,5 @@
-
 import 'package:ble/models/ble_uuids.dart';
+import 'package:ble/utils/toast_manager.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 enum BLEServiceType { getInt, setInt, stream }
@@ -36,35 +36,46 @@ class BLEService {
   static Future<BLEService> getService(
     List<BluetoothService> services,
     BLEUUIDS targetService,
-    BLEServiceType serviceType,
-  ) async {
+    BLEServiceType serviceType, {
+    required String deviceName,
+        required bool shouldConnect,
+  }) async {
     BLEService newService = BLEService(
       uuid: targetService,
       type: serviceType,
       data: serviceType == BLEServiceType.stream ? Stream.value(0) : 0,
     );
     try {
-      print(services);
       BluetoothCharacteristic? soundCharacteristic;
-      print("${targetService.name} service");
-      BluetoothService service = services.firstWhere(
-        (s) => s.uuid.toString() == targetService.service,
-        orElse: () => throw Exception("Service not found"),
-      );
-      print("${targetService.name} characteristic");
-      // Find the characteristic
-      soundCharacteristic = service.characteristics.firstWhere(
-        (c) => c.uuid.toString() == targetService.characteristic,
-        orElse: () => throw Exception("Characteristic not found"),
-      );
+      BluetoothService? service;
+      if(shouldConnect){
+        service = services.firstWhere(
+          (s) => s.uuid.toString() == targetService.service,
+          orElse: () => throw 0,
+        );
+        soundCharacteristic = service.characteristics.firstWhere(
+          (c) => c.uuid.toString() == targetService.characteristic,
+          orElse: () => throw 1,
+        );
+      }
 
       newService = newService.copyWith(
         service: service,
-        characteristic: soundCharacteristic!,
+        characteristic: soundCharacteristic,
       );
       await newService.getValue();
-    } catch (e, s) {
-      print("$e\n$s");
+    } catch (e) {
+      if (e is int && (e == 0 || e == 1)) {
+        print(
+          "$deviceName: ${e == 0 ? "Service" : "Characteristic"} ${targetService.name} not found",
+        );
+        ToastManager.show(
+          "$deviceName: ${e == 0 ? "Service" : "Characteristic"} ${targetService.name} not found",
+        );
+      } else {
+        print("$deviceName: $e");
+        ToastManager.show("$deviceName: $e");
+      }
     }
     return newService;
   }
@@ -95,13 +106,10 @@ class BLEService {
       }
     } else if (type == BLEServiceType.getInt) {
       print("get ${uuid.name} int");
-      List<int> byteData = await characteristic!.read();
-      byteData.forEach((element) {
-        print("byteData: $element");
-      });
-      String textData = String.fromCharCodes(byteData);
-      print("Received text: $textData");
-      data = byteData.isNotEmpty ? byteData[0] : 0;
+      if(characteristic!=null){
+        List<int> byteData = await characteristic!.read();
+        data = byteData.isNotEmpty ? byteData[0] : 0;
+      }
     }
   }
 

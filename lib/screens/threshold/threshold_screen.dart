@@ -19,16 +19,52 @@ class ThresholdScreen extends ConsumerWidget {
           child: Column(
             children: [
               BLEAppBar(title: "Threshold Settings"),
-              ...connectedDevices.keys.map(
-                (id) => Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: ThemeManager.horizontalPadding,
-                  ),
-                  child: ThresholdItem(
-                    device: connectedDevices[id]!,
-                  ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount:
+                      connectedDevices.keys
+                          .where(
+                            (id) =>
+                                connectedDevices[id] != null
+                                    ? (connectedDevices[id]
+                                            ?.device
+                                            .isConnected ??
+                                        false)
+                                    : false,
+                          )
+                          .length,
+                  itemBuilder: (context, index) {
+                    final id = connectedDevices.keys
+                        .where(
+                          (id) =>
+                              connectedDevices[id] != null
+                                  ? (connectedDevices[id]?.device.isConnected ??
+                                      false)
+                                  : false,
+                        )
+                        .elementAt(index);
+                    return Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: ThemeManager.horizontalPadding,
+                      ),
+                      child: ThresholdItem(device: connectedDevices[id]!),
+                    );
+                  },
                 ),
               ),
+
+              // ...connectedDevices.keys
+              //     .where(
+              //       (id) => connectedDevices[id]?.device.isConnected ?? false,
+              //     )
+              //     .map(
+              //       (id) => Padding(
+              //         padding: EdgeInsets.symmetric(
+              //           horizontal: ThemeManager.horizontalPadding,
+              //         ),
+              //         child: ThresholdItem(device: connectedDevices[id]!),
+              //       ),
+              //     ),
             ],
           ),
         ),

@@ -33,11 +33,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
           loading: () => Center(child: CircularProgressIndicator()),
           data: (devices) {
-            if (devices.isNotEmpty) {
+            if (devices.isNotEmpty && selectedDevice == null) {
               Future.microtask(
                 () => ref
                     .read(selectedDeviceProvider.notifier)
-                    .setSelectedDevice(devices.first.remoteId.str),
+                    .setSelectedDevice(connectedDevices.keys.first),
               );
             }
             return SafeArea(
@@ -67,7 +67,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ],
                         ),
                         Badge(
-                          isLabelVisible: ref.watch(notificationsProvider).isNotEmpty
+                          isLabelVisible:
+                              ref.watch(notificationsProvider).isNotEmpty
                                   ? true
                                   : false,
                           label:
@@ -108,20 +109,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     Expanded(
                       flex: 8,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          spacing: 12,
-                          children: [
-                            ...connectedDevices.keys.map(
-                              (id) => HomeScreenDevice(
-                                device: connectedDevices[id]!,
-                                isSelected: selectedDevice == id,
-                              ),
+                      child: ListView.builder(
+                        itemCount: connectedDevices.length,
+                        itemBuilder: (context, index) {
+                          final id = connectedDevices.keys.elementAt(index);
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: id == connectedDevices.keys.last ? 45 : 0),
+                            child: HomeScreenDevice(
+                              device: connectedDevices[id]!,
+                              isSelected: selectedDevice == id,
                             ),
-                            SizedBox(height: 45),
-                          ],
-                        ),
+                          );
+                        },
                       ),
+                      // SingleChildScrollView(
+                      //   child: Column(
+                      //     spacing: 12,
+                      //     children: [
+                      //       ListView.builder(
+                      //         itemCount: connectedDevices.length,
+                      //         itemBuilder: (context, index) {
+                      //           final id = connectedDevices.keys.elementAt(
+                      //             index,
+                      //           );
+                      //           return HomeScreenDevice(
+                      //             device: connectedDevices[id]!,
+                      //             isSelected: selectedDevice == id,
+                      //           );
+                      //         },
+                      //       ),
+                      //       // ...connectedDevices.keys.map(
+                      //       //   (id) => HomeScreenDevice(
+                      //       //     device: connectedDevices[id]!,
+                      //       //     isSelected: selectedDevice == id,
+                      //       //   ),
+                      //       // ),
+                      //       SizedBox(height: 45),
+                      //     ],
+                      //   ),
+                      // ),
                     ),
                   ],
                 ),
