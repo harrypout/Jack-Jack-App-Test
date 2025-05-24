@@ -3,6 +3,7 @@ import 'package:ble/providers/device_threshold_provider.dart';
 import 'package:ble/providers/loading_provider.dart';
 import 'package:ble/providers/selected_device_provider.dart';
 import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/widgets/ble_pill.dart';
 import 'package:ble/widgets/ble_toggle.dart';
@@ -31,24 +32,24 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
   void initState() {
     super.initState();
     setState(() {
-      on = widget.device.device.isConnected;
+      on = ref
+          .read(connectedDevicesTrackerProvider.notifier)
+          .isDeviceConnected(widget.device.device.id);
     });
-    print(widget.device.device.remoteId.str);
+    debugPrint(widget.device.device.id);
   }
 
   @override
   Widget build(BuildContext context) {
     final threshold = ref.watch(
-      deviceThresholdProvider(widget.device.device.remoteId.str),
+      deviceThresholdProvider(widget.device.device.id),
     );
-    final isLoading = ref.watch(
-      loadingProvider(widget.device.device.remoteId.str),
-    );
+    final isLoading = ref.watch(loadingProvider(widget.device.device.id));
     return InkWell(
       onTap: () {
         ref
             .read(selectedDeviceProvider.notifier)
-            .setSelectedDevice(widget.device.device.remoteId.str);
+            .setSelectedDevice(widget.device.device.id);
       },
       child: Container(
         width: double.maxFinite,
@@ -86,7 +87,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                     spacing: 12,
                     children: [
                       Text(
-                        widget.device.device.platformName,
+                        widget.device.device.name,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -151,7 +152,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                     isLoading
                         ? (v) {}
                         : (value) async {
-                          print("onToggle: $value");
+                          debugPrint("onToggle: $value");
                           await ref
                               .read(connectedDevicesProvider.notifier)
                               .connect(

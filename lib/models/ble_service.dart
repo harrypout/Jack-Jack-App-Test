@@ -1,79 +1,80 @@
+import 'package:flutter/material.dart';
 import 'package:ble/models/ble_uuids.dart';
 import 'package:ble/utils/toast_manager.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 enum BLEServiceType { getInt, setInt, stream }
 
 class BLEService {
-  BluetoothService? service;
-  BluetoothCharacteristic? characteristic;
+  String deviceId;
+  QualifiedCharacteristic? qualifiedCharacteristic;
   BLEServiceType type;
   BLEUUIDS uuid;
   dynamic data;
   BLEService({
-    this.service,
-    this.characteristic,
+    required this.deviceId,
+    this.qualifiedCharacteristic,
     required this.uuid,
     required this.type,
     this.data,
   });
   BLEService copyWith({
-    BluetoothService? service,
-    BluetoothCharacteristic? characteristic,
+    String? deviceId,
+    QualifiedCharacteristic? qualifiedCharacteristic,
     BLEUUIDS? uuid,
     BLEServiceType? type,
     dynamic data,
   }) {
     return BLEService(
-      service: service ?? this.service,
-      characteristic: characteristic ?? this.characteristic,
+      deviceId: deviceId ?? this.deviceId,
+      qualifiedCharacteristic:
+          qualifiedCharacteristic ?? this.qualifiedCharacteristic,
       uuid: uuid ?? this.uuid,
       type: type ?? this.type,
       data: data ?? this.data,
     );
   }
 
+  @override
+  String toString() =>
+      'BLEService(deviceId: $deviceId, qualifiedCharacteristic: $qualifiedCharacteristic, uuid: $uuid, type: $type, data: $data)';
+
   static Future<BLEService> getService(
-    List<BluetoothService> services,
     BLEUUIDS targetService,
     BLEServiceType serviceType, {
+    required String deviceId,
     required String deviceName,
-        required bool shouldConnect,
+    required bool shouldConnect,
   }) async {
+    debugPrint("Getting service: ${targetService.name}");
+    debugPrint("Service: ${targetService.service}");
+    debugPrint("Characteristic: ${targetService.characteristic}");
     BLEService newService = BLEService(
+      deviceId: deviceId,
+      qualifiedCharacteristic:
+          shouldConnect
+              ? QualifiedCharacteristic(
+                serviceId: Uuid.parse(targetService.service),
+                characteristicId: Uuid.parse(targetService.characteristic),
+                deviceId: deviceId,
+              )
+              : null,
       uuid: targetService,
       type: serviceType,
       data: serviceType == BLEServiceType.stream ? Stream.value(0) : 0,
     );
     try {
-      BluetoothCharacteristic? soundCharacteristic;
-      BluetoothService? service;
-      if(shouldConnect){
-        service = services.firstWhere(
-          (s) => s.uuid.toString() == targetService.service,
-          orElse: () => throw 0,
-        );
-        soundCharacteristic = service.characteristics.firstWhere(
-          (c) => c.uuid.toString() == targetService.characteristic,
-          orElse: () => throw 1,
-        );
-      }
-
-      newService = newService.copyWith(
-        service: service,
-        characteristic: soundCharacteristic,
-      );
       await newService.getValue();
-    } catch (e) {
+    } catch (e,s) {
       if (e is int && (e == 0 || e == 1)) {
-        print(
+        debugPrint(
           "$deviceName: ${e == 0 ? "Service" : "Characteristic"} ${targetService.name} not found",
         );
         ToastManager.show(
           "$deviceName: ${e == 0 ? "Service" : "Characteristic"} ${targetService.name} not found",
         );
       } else {
-        print("$deviceName: $e");
+        debugPrint("Get Service: $deviceName: $e\n$s");
         ToastManager.show("$deviceName: $e");
       }
     }
@@ -81,16 +82,16 @@ class BLEService {
   }
 
   Future<void> getValue() async {
+    debugPrint("Get Value: ${toString()}");
     if (type == BLEServiceType.stream) {
-      if (data == null && characteristic == null) {
+      if (qualifiedCharacteristic == null) {
         data = Stream.value(0).asBroadcastStream();
       } else {
-        if (characteristic == null) {
-          data = Stream.value(0).asBroadcastStream();
-        } else {
-          await characteristic!.setNotifyValue(true);
+        // Create notification stream using flutter_reactive_ble
+        try {
           var newData =
-              characteristic!.lastValueStream
+              FlutterReactiveBle()
+                  .subscribeToCharacteristic(qualifiedCharacteristic!)
                   .map((List<int> values) => values.isNotEmpty ? values[0] : 0)
                   .asBroadcastStream();
 
@@ -101,24 +102,51 @@ class BLEService {
           } else {
             data = newData;
           }
-          print("streamset");
+        } catch (e) {
+          debugPrint("Notification subscription error: $e");
+          data = Stream.value(0).asBroadcastStream();
         }
       }
     } else if (type == BLEServiceType.getInt) {
-      print("get ${uuid.name} int");
-      if(characteristic!=null){
-        List<int> byteData = await characteristic!.read();
-        data = byteData.isNotEmpty ? byteData[0] : 0;
+      if (qualifiedCharacteristic != null) {
+        try {
+          List<int> byteData = await FlutterReactiveBle().readCharacteristic(
+            qualifiedCharacteristic!,
+          );
+          for (var byte in byteData) {
+            debugPrint(byte.toString());
+          }
+          data = byteData.isNotEmpty ? byteData[0] : 0;
+        } catch (e) {
+          debugPrint("Read error: $e");
+          data = 0;
+        }
       }
     }
+    debugPrint(data.toString());
   }
 
   Future<void> setValue(int value) async {
-    print(type);
+    final FlutterReactiveBle ble = FlutterReactiveBle();
+    debugPrint("Setting value: $type");
     if (type == BLEServiceType.setInt) {
-      print("Setting");
-      print("set ${uuid.name} int");
-      await characteristic!.write([value]);
+      debugPrint("Setting");
+      debugPrint("set ${uuid.name} int");
+
+      if (qualifiedCharacteristic != null) {
+        try {
+          await ble.writeCharacteristicWithResponse(
+            qualifiedCharacteristic!,
+            value: [value],
+          );
+          debugPrint("Write successful");
+        } catch (e) {
+          debugPrint("Write error: $e");
+          throw e;
+        }
+      } else {
+        debugPrint("Cannot write: characteristic is null");
+      }
     }
   }
 }

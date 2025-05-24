@@ -70,7 +70,7 @@ class PermissionManager {
 //                 }
 //               })
 //               .catchError((e) {
-//                 print(e.toString());
+//                 debugPrint(e.toString());
 //               });
 //         });
 //   }

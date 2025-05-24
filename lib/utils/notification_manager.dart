@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../main.dart';
@@ -79,7 +80,7 @@ class NotificationManager {
   }) async {
     final hasSound = prefs.getBool("${deviceId}s") ?? false;
     final hasVibration = prefs.getBool("${deviceId}v") ?? false;
-    print(
+    debugPrint(
         "Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId");
     await showNotification(
       title: 'Sound Alert',

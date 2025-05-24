@@ -41,7 +41,7 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
           }
         });
       } catch (e) {
-        print("Stream listening error: $e");
+        debugPrint("Stream listening error: $e");
       }
     }
   }

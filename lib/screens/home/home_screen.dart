@@ -3,7 +3,6 @@ import 'package:ble/providers/selected_device_provider.dart';
 import 'package:ble/providers/connected_devices_provider.dart';
 import 'package:ble/screens/home/widgets/selected_device_widget.dart';
 import 'package:ble/screens/notifications/notification_screen.dart';
-import 'package:ble/screens/pairing/pods/paired_devices.dart';
 import 'package:ble/utils/theme_manager.dart';
 import 'package:ble/widgets/ble_background.dart';
 import 'package:ble/widgets/ble_home_screen_device.dart';
@@ -22,139 +21,114 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final connectedDevices = ref.watch(connectedDevicesProvider);
-    final pairedDevice = ref.watch(pairedDevicesProvider);
     final selectedDevice = ref.watch(selectedDeviceProvider);
+    if (connectedDevices.isNotEmpty && selectedDevice == null) {
+      Future.microtask(
+        () => ref
+            .read(selectedDeviceProvider.notifier)
+            .setSelectedDevice(connectedDevices.keys.first),
+      );
+    }
     return Scaffold(
       body: BLEBackground(
-        child: pairedDevice.when(
-          error: (error, stackTrace) {
-            print("$error\n$stackTrace");
-            return Container();
-          },
-          loading: () => Center(child: CircularProgressIndicator()),
-          data: (devices) {
-            if (devices.isNotEmpty && selectedDevice == null) {
-              Future.microtask(
-                () => ref
-                    .read(selectedDeviceProvider.notifier)
-                    .setSelectedDevice(connectedDevices.keys.first),
-              );
-            }
-            return SafeArea(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: ThemeManager.horizontalPadding,
-                ),
-                child: Column(
-                  spacing: 12,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child:
+            connectedDevices.isEmpty
+                ? Container()
+                : SafeArea(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: ThemeManager.horizontalPadding,
+                    ),
+                    child: Column(
+                      spacing: 12,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              "Welcome",
-                              style: const TextStyle(
-                                color: Color(0xFF121521),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Welcome",
+                                  style: const TextStyle(
+                                    color: Color(0xFF121521),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text("Good Morning!"),
+                              ],
+                            ),
+                            Badge(
+                              isLabelVisible:
+                                  ref.watch(notificationsProvider).isNotEmpty
+                                      ? true
+                                      : false,
+                              label:
+                                  ref.watch(notificationsProvider).isNotEmpty
+                                      ? Container()
+                                      : null,
+                              offset: Offset(-4, 4),
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    NotificationScreen.id,
+                                  );
+                                },
+                                style: ButtonStyle(
+                                  padding: WidgetStatePropertyAll(
+                                    EdgeInsets.all(8),
+                                  ),
+                                  minimumSize: WidgetStatePropertyAll(
+                                    Size.zero,
+                                  ),
+                                ),
+                                child: Icon(Icons.notifications),
                               ),
                             ),
-                            Text("Good Morning!"),
                           ],
                         ),
-                        Badge(
-                          isLabelVisible:
-                              ref.watch(notificationsProvider).isNotEmpty
-                                  ? true
-                                  : false,
-                          label:
-                              ref.watch(notificationsProvider).isNotEmpty
-                                  ? Container()
-                                  : null,
-                          offset: Offset(-4, 4),
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                NotificationScreen.id,
+                        Expanded(
+                          flex: 7,
+                          child: SelectedDeviceHomeWidget(
+                            device: connectedDevices[selectedDevice],
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Other Devices"),
+                            TextButton(
+                              onPressed: () {},
+                              child: Text("View All"),
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          flex: 8,
+                          child: ListView.builder(
+                            itemCount: connectedDevices.length,
+                            itemBuilder: (context, index) {
+                              final id = connectedDevices.keys.elementAt(index);
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom:
+                                      id == connectedDevices.keys.last ? 45 : 0,
+                                ),
+                                child: HomeScreenDevice(
+                                  device: connectedDevices[id]!,
+                                  isSelected: selectedDevice == id,
+                                ),
                               );
                             },
-                            style: ButtonStyle(
-                              padding: WidgetStatePropertyAll(
-                                EdgeInsets.all(8),
-                              ),
-                              minimumSize: WidgetStatePropertyAll(Size.zero),
-                            ),
-                            child: Icon(Icons.notifications),
                           ),
                         ),
                       ],
                     ),
-                    Expanded(
-                      flex: 7,
-                      child: SelectedDeviceHomeWidget(
-                        device: connectedDevices[selectedDevice],
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Other Devices"),
-                        TextButton(onPressed: () {}, child: Text("View All")),
-                      ],
-                    ),
-                    Expanded(
-                      flex: 8,
-                      child: ListView.builder(
-                        itemCount: connectedDevices.length,
-                        itemBuilder: (context, index) {
-                          final id = connectedDevices.keys.elementAt(index);
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: id == connectedDevices.keys.last ? 45 : 0),
-                            child: HomeScreenDevice(
-                              device: connectedDevices[id]!,
-                              isSelected: selectedDevice == id,
-                            ),
-                          );
-                        },
-                      ),
-                      // SingleChildScrollView(
-                      //   child: Column(
-                      //     spacing: 12,
-                      //     children: [
-                      //       ListView.builder(
-                      //         itemCount: connectedDevices.length,
-                      //         itemBuilder: (context, index) {
-                      //           final id = connectedDevices.keys.elementAt(
-                      //             index,
-                      //           );
-                      //           return HomeScreenDevice(
-                      //             device: connectedDevices[id]!,
-                      //             isSelected: selectedDevice == id,
-                      //           );
-                      //         },
-                      //       ),
-                      //       // ...connectedDevices.keys.map(
-                      //       //   (id) => HomeScreenDevice(
-                      //       //     device: connectedDevices[id]!,
-                      //       //     isSelected: selectedDevice == id,
-                      //       //   ),
-                      //       // ),
-                      //       SizedBox(height: 45),
-                      //     ],
-                      //   ),
-                      // ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
       ),
     );
   }

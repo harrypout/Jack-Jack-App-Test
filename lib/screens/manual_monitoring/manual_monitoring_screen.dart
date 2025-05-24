@@ -1,5 +1,6 @@
 import 'package:ble/providers/selected_device_provider.dart';
 import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:ble/screens/pairing/widgets/scanner.dart';
 import 'package:ble/utils/toast_manager.dart';
 import 'package:ble/widgets/ble_filled_button.dart';
@@ -35,7 +36,7 @@ class _ManualMonitoringScreenState
   int _streamingDuration = 0; // Track streaming duration in seconds
 
   void _startCountdown(bool isConnected) {
-    if(isConnected){
+    if (isConnected) {
       setState(() {
         _showCountdown = true;
         _remainingTime = _countdownDuration;
@@ -48,8 +49,7 @@ class _ManualMonitoringScreenState
           _startStreaming();
         }
       });
-    }
-    else{
+    } else {
       ToastManager.show("Please connect the selected device!");
     }
   }
@@ -113,11 +113,11 @@ class _ManualMonitoringScreenState
                           children: [
                             BLEGauge(
                               selectedDevice:
-                                  connectedDevices[selectedDevice]!
-                                      .device
-                                      .platformName,
+                                  connectedDevices[selectedDevice]!.device.name,
                               valueStream:
-                                  connectedDevices[selectedDevice]!.getSoundLevel.data,
+                                  connectedDevices[selectedDevice]!
+                                      .getSoundLevel
+                                      .data,
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -144,12 +144,28 @@ class _ManualMonitoringScreenState
                                 children: [
                                   IndicatorBox(
                                     title: "Battery",
-                                    subtitle: connectedDevices[selectedDevice]!.getBattery.data.toString(),
+                                    subtitle:
+                                        connectedDevices[selectedDevice]!
+                                            .getBattery
+                                            .data
+                                            .toString(),
                                     asset: "battery",
                                   ),
                                   IndicatorBox(
                                     title: "Status",
-                                    subtitle: connectedDevices[selectedDevice]!.device.isConnected?"Connected":"Disconnected",
+                                    subtitle:
+                                        ref
+                                                .read(
+                                                  connectedDevicesTrackerProvider
+                                                      .notifier,
+                                                )
+                                                .isDeviceConnected(
+                                                  connectedDevices[selectedDevice]!
+                                                      .device
+                                                      .id,
+                                                )
+                                            ? "Connected"
+                                            : "Disconnected",
                                     asset: "status",
                                   ),
                                 ],
@@ -202,7 +218,7 @@ class _ManualMonitoringScreenState
                       else
                         Column(
                           children: [
-                            Scanner(asset: "microphone", animate: false,),
+                            Scanner(asset: "microphone", animate: false),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 20),
                               child: _buildMainText(),
@@ -212,7 +228,14 @@ class _ManualMonitoringScreenState
                     ],
                   ),
                 ),
-                _buildActionButton(connectedDevices[selectedDevice]?.device.isConnected??false),
+                _buildActionButton(
+                  ref
+                          .read(connectedDevicesTrackerProvider.notifier)
+                          .isDeviceConnected(
+                            connectedDevices[selectedDevice]?.device.id,
+                          ) ??
+                      false,
+                ),
                 SizedBox(height: 45),
               ],
             ),
@@ -293,7 +316,7 @@ class _ManualMonitoringScreenState
 
     return BLEFilledButton(
       data: _isStreaming ? "Stop Streaming" : "Start Streaming",
-      onPressed: (){
+      onPressed: () {
         _isStreaming ? _stopStreaming() : _startCountdown(isConnected);
       },
       icon: SvgPicture.asset(

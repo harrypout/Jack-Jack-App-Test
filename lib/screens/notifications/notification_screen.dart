@@ -1,6 +1,5 @@
 import 'package:ble/main.dart';
 import 'package:ble/providers/notifications_provider.dart';
-import 'package:ble/screens/notifications/widgets/notification_group_item.dart';
 import 'package:ble/screens/notifications/widgets/notification_item.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/utils/theme_manager.dart';

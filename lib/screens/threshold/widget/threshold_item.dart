@@ -24,20 +24,20 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
   void initState() {
     super.initState();
     setState(() {
-      sound = prefs.getBool("${widget.device.device.remoteId.str}s") ?? false;
+      sound = prefs.getBool("${widget.device.device.id}s") ?? false;
       vibration =
-          prefs.getBool("${widget.device.device.remoteId.str}v") ?? false;
+          prefs.getBool("${widget.device.device.id}v") ?? false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final threshold = ref.watch(
-      deviceThresholdProvider(widget.device.device.remoteId.str),
+      deviceThresholdProvider(widget.device.device.id),
     );
     return ExpansionTile(
       title: Text(
-        widget.device.device.platformName,
+        widget.device.device.name,
         style: const TextStyle(
           color: ColorManager.primaryText,
           fontSize: 16,
@@ -109,11 +109,11 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
                 ref
                     .read(
                       deviceThresholdProvider(
-                        widget.device.device.remoteId.str,
+                        widget.device.device.id,
                       ).notifier,
                     )
                     .saveToDevice(
-                      widget.device.device.remoteId.str,
+                      widget.device.device.id,
                       value.toInt(),
                     );
               },
@@ -136,7 +136,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
                       sound = value;
                     });
                     prefs.setBool(
-                      "${widget.device.device.remoteId.str}s",
+                      "${widget.device.device.id}s",
                       value,
                     );
                   },
@@ -161,7 +161,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
                       vibration = value;
                     });
                     prefs.setBool(
-                      "${widget.device.device.remoteId.str}v",
+                      "${widget.device.device.id}v",
                       value,
                     );
                   },

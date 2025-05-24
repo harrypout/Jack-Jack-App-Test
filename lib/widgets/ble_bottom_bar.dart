@@ -226,7 +226,7 @@ class MyCustomPainter extends CustomPainter {
           ..style = PaintingStyle.fill
           ..invertColors = false;
 
-    // print(size.width);
+    // debugPrint(size.width);
     // 392.72727272727275
 
     Rect box = Rect.fromLTRB(0, 110, size.width, 35);

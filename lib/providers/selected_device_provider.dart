@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:ble/providers/connected_devices_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -28,7 +29,7 @@ class SelectedDevice extends _$SelectedDevice {
           ?.getSoundLevel
           .getValue();
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
     state = deviceId;
   }

@@ -1,4 +1,5 @@
 import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:ble/screens/threshold/widget/threshold_item.dart';
 import 'package:ble/utils/theme_manager.dart';
 import 'package:ble/widgets/ble_app_bar.dart';
@@ -26,9 +27,14 @@ class ThresholdScreen extends ConsumerWidget {
                           .where(
                             (id) =>
                                 connectedDevices[id] != null
-                                    ? (connectedDevices[id]
-                                            ?.device
-                                            .isConnected ??
+                                    ? (ref
+                                            .read(
+                                              connectedDevicesTrackerProvider
+                                                  .notifier,
+                                            )
+                                            .isDeviceConnected(
+                                              connectedDevices[id]!.device.id,
+                                            ) ??
                                         false)
                                     : false,
                           )
@@ -38,7 +44,14 @@ class ThresholdScreen extends ConsumerWidget {
                         .where(
                           (id) =>
                               connectedDevices[id] != null
-                                  ? (connectedDevices[id]?.device.isConnected ??
+                                  ? (ref
+                                          .read(
+                                            connectedDevicesTrackerProvider
+                                                .notifier,
+                                          )
+                                          .isDeviceConnected(
+                                            connectedDevices[id]!.device.id,
+                                          ) ??
                                       false)
                                   : false,
                         )

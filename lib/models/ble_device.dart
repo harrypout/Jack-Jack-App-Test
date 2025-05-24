@@ -1,9 +1,8 @@
-
 import 'package:ble/models/ble_service.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 class BLEDevice {
-  BluetoothDevice device;
+  DiscoveredDevice device;
   BLEService getThreshold;
   BLEService setThreshold;
   BLEService getBattery;

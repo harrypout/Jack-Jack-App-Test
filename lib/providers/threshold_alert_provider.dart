@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:ble/models/ble_device.dart';
 import 'package:ble/models/notification_sf.dart';
 import 'package:ble/providers/notifications_provider.dart';
@@ -45,20 +46,20 @@ class ThresholdAlert extends _$ThresholdAlert {
   }
 
   void setupDeviceAlert(String deviceId, BLEDevice device) {
-    print("creating alert for $deviceId");
+    debugPrint("creating alert for $deviceId");
     if (_subscriptions.containsKey(deviceId)) {
       _subscriptions[deviceId]?.cancel();
       _subscriptions.remove(deviceId);
     }
 
     if (device.thresholdAlert.data != null &&
-        device.thresholdAlert.characteristic != null) {
+        device.thresholdAlert.qualifiedCharacteristic != null) {
       final subscription = (device.thresholdAlert.data as Stream<int>)
           .asBroadcastStream()
           .listen((value) {
-            print("value: $value");
+            debugPrint("value: $value");
             if (value > 0 && device.getThreshold.data> 0) {
-              final deviceName = device.device.platformName;
+              final deviceName = device.device.name;
               NotificationManager.instance.showThresholdAlert(
                 deviceId: deviceId,
                 deviceName: deviceName,

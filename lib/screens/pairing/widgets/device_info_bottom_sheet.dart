@@ -1,31 +1,32 @@
 import 'package:ble/providers/device_threshold_provider.dart';
-import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:ble/providers/paired_devices.dart';
 import 'package:ble/screens/pairing/pods/available_devices.dart';
-import 'package:ble/screens/pairing/pods/paired_devices.dart';
+import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:ble/utils/color_manager.dart';
 import 'package:ble/widgets/ble_bottom_sheet.dart';
 import 'package:ble/widgets/ble_filled_button.dart';
 import 'package:ble/widgets/ble_outlined_button.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../main.dart';
-
 class PairedInfoBottomSheet extends ConsumerWidget {
-  final BluetoothDevice device;
+  final DiscoveredDevice device;
   const PairedInfoBottomSheet({super.key, required this.device});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final threshold = ref.watch(deviceThresholdProvider(device.remoteId.str));
+    final threshold = ref.watch(deviceThresholdProvider(device.id));
+    final isConnected = ref
+        .watch(connectedDevicesTrackerProvider.notifier)
+        .isDeviceConnected(device?.id);
     return BLEBottomSheet(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            device.platformName,
+            device.name,
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
@@ -69,7 +70,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        device.platformName,
+                        device.name,
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
@@ -98,7 +99,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        device.isConnected ? "Connected" : "Disconnected",
+                        isConnected ? "Connected" : "Disconnected",
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
@@ -127,7 +128,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        threshold!= null?"$threshold dB":"Not Available",
+                        threshold != null ? "$threshold dB" : "Not Available",
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
@@ -160,15 +161,14 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                   child: BLEFilledButton(
                     data: "Forget Device",
                     onPressed: () async {
-                      List<String> list =
-                          prefs.getStringList('pairedDevicesUUID') ?? [];
-                      list.remove(device.remoteId.str);
-                      await prefs.setStringList('pairedDevicesUUID', list);
-                      await device.removeBond();
-                      await device.disconnect();
-                      ref.read(availableDevicesProvider.notifier).refresh();
-                      ref.invalidate(pairedDevicesProvider);
-                      ref.invalidate(connectedDevicesProvider);
+                      await ref
+                          .read(connectedDevicesTrackerProvider.notifier)
+                          .disconnectDevice(device.id);
+                      await PairedDevicesUUID.removeFromPrefs(device.id);
+
+                      ref
+                          .read(deviceManagerProvider.notifier)
+                          .updateDeviceStreams();
                       Navigator.pop(context);
                     },
                     maxButton: true,
