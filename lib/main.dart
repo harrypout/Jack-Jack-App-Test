@@ -29,10 +29,8 @@ class BLE extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.read(thresholdAlertProvider.notifier).setupAlerts();
-    // ignore: unused_local_variable
-    final connects= ref.watch(connectedDevicesTrackerProvider);
-    // ignore: unused_local_variable
-    final bleDevices = ref.watch(deviceManagerProvider);
+    ref.watch(connectedDevicesTrackerProvider);
+    ref.watch(deviceManagerProvider);
     return AnnotatedRegion(
       value: ThemeManager.statusBar,
       child: MaterialApp(
