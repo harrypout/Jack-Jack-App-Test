@@ -31,7 +31,7 @@ class FAQScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: ThemeManager.horizontalPadding),
                 child: FAQItem(
                   question: "My device won’t connect, what should I do?",
-                  answer: "Rorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.Rorem ipsum dolor sit amet, consectetur adipiscing elit. ",
+                  answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.Rorem ipsum dolor sit amet, consectetur adipiscing elit. ",
                 ),
               ),
             ],

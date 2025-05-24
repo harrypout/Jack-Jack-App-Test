@@ -15,7 +15,7 @@ class NotificationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity, // Ensure it takes full width
+      width: double.infinity,
       height: 75,
       padding: const EdgeInsets.all(14),
       clipBehavior: Clip.antiAlias,
@@ -42,7 +42,7 @@ class NotificationItem extends StatelessWidget {
           ),
           const SizedBox(
             width: 12,
-          ), // Add spacing instead of `spacing` property
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

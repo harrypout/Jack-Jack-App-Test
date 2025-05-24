@@ -15,7 +15,7 @@ class BLEGauge extends ConsumerStatefulWidget {
 }
 
 class _BLEGaugeState extends ConsumerState<BLEGauge> {
-  double _currentValue = 0.0; // Current gauge value
+  double _currentValue = 0.0;
   StreamSubscription<int>? _streamSubscription;
   int selectedValue = 0;
   double gaugeRangeWidth = 10;

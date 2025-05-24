@@ -53,7 +53,6 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
       },
       child: Container(
         width: double.maxFinite,
-        // height: 74,
         padding: const EdgeInsets.all(14),
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
@@ -73,8 +72,6 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
           ),
         ),
         child:
-        // isLoading
-        //     ?
         Skeletonizer(
           enabled: isLoading,
           child: Row(
@@ -167,10 +164,6 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
             ],
           ),
         ),
-        // : BleHomeScreenDeviceComponents(
-        //   device: widget.device,
-        //   isSelected: widget.isSelected,
-        // ),
       ),
     );
   }

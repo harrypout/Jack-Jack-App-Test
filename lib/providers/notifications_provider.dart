@@ -60,11 +60,8 @@ class Notifications extends _$Notifications {
         },
       );
         return groups.indexWhere((indexedGroup) => indexedGroup == group);
-        // return 0;
       }();
       groups[index].notifications.add(notification);
-      // debugPrint(groups[index]);
-      // group.notifications.add(Notification.fromJson(notification.data()));
       i++;
     }
 
@@ -72,9 +69,6 @@ class Notifications extends _$Notifications {
   }
 
   void addNotification(NotificationSF notification) {
-
-    // state = [notification, ...state];
-
     List<String> notificationStrings =
         prefs.getStringList("notifications") ?? [];
     notificationStrings.add(notification.toString());

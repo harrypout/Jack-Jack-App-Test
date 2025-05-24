@@ -32,12 +32,10 @@ class BLEAppBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 IconButton(
-                  // padding: EdgeInsets.zero,
-                  //   alignment: Alignment.centerLeft,
+
                   onPressed: leading != null ? onLeadingTap : null,
                   icon: leading ?? Container(),
                 ),
-                // GestureDetector(onTap: leading!=null?onLeadingTap:null,child: leading ?? Container(),),
               ],
             ),
             Row(
@@ -73,10 +71,6 @@ class BLEAppBar extends StatelessWidget {
                       icon: trailing ?? Container(),
                     )
                     : Container(),
-                // GestureDetector(
-                //   onTap: trailing != null ? onTrailingTap : null,
-                //   child: trailing ?? Container(),
-                // ),
               ],
             ),
           ],

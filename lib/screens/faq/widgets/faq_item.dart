@@ -12,7 +12,6 @@ class FAQItem extends StatelessWidget {
       title: Text(
         question,
         style: const TextStyle(
-          // color: ColorManager.primaryText,
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),

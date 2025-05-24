@@ -20,8 +20,6 @@ class NotificationScreen extends ConsumerWidget {
     );
     prefs.setString("notificationsOpened", DateTime.now().toIso8601String());
     final notificationGroups = ref.watch(notificationsProvider);
-
-    // Flatten the groups and notifications into a single list
     final flattenedItems = _flattenNotifications(notificationGroups);
 
     return Scaffold(
@@ -111,13 +109,10 @@ class NotificationScreen extends ConsumerWidget {
     List<NotificationListItem> items = [];
 
     for (int i = 0; i < groups.length; i++) {
-      // Add header
       items.add(NotificationHeaderItem(
         groupType: groups[i].type,
         showClearAll: i == 0,
       ));
-
-      // Add notifications
       for (var notification in groups[i].notifications) {
         items.add(NotificationContentItem(notification: notification));
       }
@@ -127,7 +122,6 @@ class NotificationScreen extends ConsumerWidget {
   }
 }
 
-// Helper classes to represent flattened list items
 abstract class NotificationListItem {}
 
 class NotificationHeaderItem extends NotificationListItem {
@@ -138,7 +132,6 @@ class NotificationHeaderItem extends NotificationListItem {
 }
 
 class NotificationContentItem extends NotificationListItem {
-  final dynamic notification; // Replace with your actual notification type
-
+  final dynamic notification;
   NotificationContentItem({required this.notification});
 }

@@ -8,7 +8,7 @@ class PermissionManager {
     Map<Permission, PermissionStatus> statuses;
 
     if (Platform.isAndroid) {
-      if (await _getAndroidVersion() >= 31) { // Android 12+
+      if (await _getAndroidVersion() >= 31) {
         statuses = await [
           Permission.bluetoothScan,
           Permission.bluetoothConnect,

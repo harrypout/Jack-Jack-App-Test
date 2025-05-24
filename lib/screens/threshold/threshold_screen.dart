@@ -65,19 +65,6 @@ class ThresholdScreen extends ConsumerWidget {
                   },
                 ),
               ),
-
-              // ...connectedDevices.keys
-              //     .where(
-              //       (id) => connectedDevices[id]?.device.isConnected ?? false,
-              //     )
-              //     .map(
-              //       (id) => Padding(
-              //         padding: EdgeInsets.symmetric(
-              //           horizontal: ThemeManager.horizontalPadding,
-              //         ),
-              //         child: ThresholdItem(device: connectedDevices[id]!),
-              //       ),
-              //     ),
             ],
           ),
         ),

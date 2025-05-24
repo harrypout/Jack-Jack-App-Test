@@ -14,7 +14,6 @@ class NotificationManager {
   NotificationManager._();
 
   Future<void> initialize() async {
-    // Request notification permissions
     await Permission.notification.request();
 
     // Initialize notifications
@@ -66,7 +65,7 @@ class NotificationManager {
     );
 
     await _notificationsPlugin.show(
-      DateTime.now().millisecond, // Unique ID
+      DateTime.now().millisecond,
       title,
       body,
       platformDetails,
