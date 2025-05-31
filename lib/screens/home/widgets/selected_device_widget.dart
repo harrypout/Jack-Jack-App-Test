@@ -21,23 +21,20 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
           selectedDevice: device?.device.name ?? "No Device Selected",
           valueStream: device?.getSoundLevel.data,
         ),
-        SizedBox(
-          height: 80,
-          child: Row(
-            spacing: 16,
-            children: [
-              IndicatorBox(
-                title: "Battery",
-                subtitle: "${device?.getBattery.data ?? "0"} %",
-                asset: "battery",
-              ),
-              IndicatorBox(
-                title: "Status",
-                subtitle: isConnected ? "Connected" : "Disconnected",
-                asset: "status",
-              ),
-            ],
-          ),
+        Row(
+          spacing: 16,
+          children: [
+            IndicatorBox(
+              title: "Battery",
+              subtitle: "${device?.getBattery.data ?? "0"} %",
+              asset: "battery",
+            ),
+            IndicatorBox(
+              title: "Status",
+              subtitle: isConnected ? "Connected" : "Disconnected",
+              asset: "status",
+            ),
+          ],
         ),
       ],
     );

@@ -80,11 +80,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ],
                 ),
-                Expanded(
-                  flex: 7,
-                  child: SelectedDeviceHomeWidget(
-                    device: connectedDevices[selectedDevice],
-                  ),
+                SelectedDeviceHomeWidget(
+                  device: connectedDevices[selectedDevice],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -94,7 +91,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
                 Expanded(
-                  flex: 8,
                   child: ListView.builder(
                     itemCount: connectedDevices.length,
                     itemBuilder: (context, index) {
