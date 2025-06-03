@@ -1,3 +1,4 @@
+import 'package:ble/screens/faq/faqs.dart';
 import 'package:ble/screens/faq/widgets/faq_item.dart';
 import 'package:ble/utils/theme_manager.dart';
 import 'package:ble/widgets/ble_app_bar.dart';
@@ -16,7 +17,8 @@ class FAQScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              BLEAppBar(title: "Help",
+              BLEAppBar(
+                title: "Help",
                 leading: SvgPicture.asset(
                   "assets/svgs/arrow-left.svg",
                   width: 24,
@@ -27,11 +29,27 @@ class FAQScreen extends StatelessWidget {
                   Navigator.pop(context);
                 },
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: ThemeManager.horizontalPadding),
-                child: FAQItem(
-                  question: "My device won’t connect, what should I do?",
-                  answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.Rorem ipsum dolor sit amet, consectetur adipiscing elit. ",
+              Expanded(
+                child: ListView.builder(
+                  itemCount: faqs.length,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  addAutomaticKeepAlives: false,
+                  addRepaintBoundaries: true,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ThemeManager.horizontalPadding,
+                  ),
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 8,
+                        top: index == 0 ? 8 : 0,
+                      ),
+                      child: FAQItem(
+                        key: ObjectKey(faqs[index]),
+                        faq: faqs[index],
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
