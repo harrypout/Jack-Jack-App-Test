@@ -11,41 +11,24 @@ class PeriodicTaskService extends _$PeriodicTaskService {
 
   @override
   void build() {
-    startPeriodicTask();
+    stopPeriodicTask();
+
+    _periodicTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      final connectedDevices = ref.read(connectedDevicesProvider);
+      final connectedDeviveTracker =
+          ref.read(connectedDevicesTrackerProvider.notifier).connectedDevices;
+      connectedDevices.keys
+          .where((id) => connectedDeviveTracker.contains(id))
+          .map((id) => connectedDevices[id]?.getBattery.getValue());
+    });
 
     ref.onDispose(() {
       stopPeriodicTask();
     });
   }
 
-  void startPeriodicTask() {
-    stopPeriodicTask();
-
-    _periodicTimer = Timer.periodic(
-      const Duration(minutes: 5),
-      (_) => _performPeriodicTask(),
-    );
-  }
-
   void stopPeriodicTask() {
     _periodicTimer?.cancel();
     _periodicTimer = null;
-  }
-
-  void _performPeriodicTask() {
-    final connectedDevices = ref.read(connectedDevicesProvider);
-    final connectedDeviveTracker =
-        ref.read(connectedDevicesTrackerProvider.notifier).connectedDevices;
-    connectedDevices.keys
-        .where((id) => connectedDeviveTracker.contains(id))
-        .map((id) => connectedDevices[id]?.getBattery.getValue());
-  }
-
-  void restartPeriodicTask() {
-    startPeriodicTask();
-  }
-
-  void pausePeriodicTask() {
-    stopPeriodicTask();
   }
 }
