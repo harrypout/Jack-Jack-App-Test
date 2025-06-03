@@ -1,4 +1,5 @@
 import 'package:ble/providers/paired_devices.dart';
+import 'package:ble/providers/periodic_task_provider.dart';
 import 'package:ble/providers/threshold_alert_provider.dart';
 import 'package:ble/screens/pairing/pods/available_devices.dart';
 import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
@@ -31,6 +32,7 @@ class BLE extends ConsumerWidget {
     ref.read(thresholdAlertProvider.notifier).setupAlerts();
     ref.watch(connectedDevicesTrackerProvider);
     ref.watch(deviceManagerProvider);
+    ref.watch(periodicTaskServiceProvider);
     return AnnotatedRegion(
       value: ThemeManager.statusBar,
       child: MaterialApp(

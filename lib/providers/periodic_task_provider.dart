@@ -1,0 +1,51 @@
+import 'dart:async';
+import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:ble/providers/connected_devices_provider.dart';
+
+part 'periodic_task_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+class PeriodicTaskService extends _$PeriodicTaskService {
+  Timer? _periodicTimer;
+
+  @override
+  void build() {
+    startPeriodicTask();
+
+    ref.onDispose(() {
+      stopPeriodicTask();
+    });
+  }
+
+  void startPeriodicTask() {
+    stopPeriodicTask();
+
+    _periodicTimer = Timer.periodic(
+      const Duration(minutes: 5),
+      (_) => _performPeriodicTask(),
+    );
+  }
+
+  void stopPeriodicTask() {
+    _periodicTimer?.cancel();
+    _periodicTimer = null;
+  }
+
+  void _performPeriodicTask() {
+    final connectedDevices = ref.read(connectedDevicesProvider);
+    final connectedDeviveTracker =
+        ref.read(connectedDevicesTrackerProvider.notifier).connectedDevices;
+    connectedDevices.keys
+        .where((id) => connectedDeviveTracker.contains(id))
+        .map((id) => connectedDevices[id]?.getBattery.getValue());
+  }
+
+  void restartPeriodicTask() {
+    startPeriodicTask();
+  }
+
+  void pausePeriodicTask() {
+    stopPeriodicTask();
+  }
+}
