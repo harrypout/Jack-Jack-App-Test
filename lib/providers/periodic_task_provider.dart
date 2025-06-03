@@ -15,10 +15,10 @@ class PeriodicTaskService extends _$PeriodicTaskService {
 
     _periodicTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       final connectedDevices = ref.read(connectedDevicesProvider);
-      final connectedDeviveTracker =
+      final connectedDeviceTracker =
           ref.read(connectedDevicesTrackerProvider.notifier).connectedDevices;
       connectedDevices.keys
-          .where((id) => connectedDeviveTracker.contains(id))
+          .where((id) => connectedDeviceTracker.contains(id))
           .map((id) => connectedDevices[id]?.getBattery.getValue());
     });
 
