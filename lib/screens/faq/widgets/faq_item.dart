@@ -1,5 +1,5 @@
-import 'package:ble/models/faq.dart';
-import 'package:ble/utils/color_manager.dart';
+import 'package:jackjack/models/faq.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 
 class FAQItem extends StatelessWidget {

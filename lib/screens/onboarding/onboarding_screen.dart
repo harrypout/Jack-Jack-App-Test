@@ -1,12 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:ble/screens/onboarding/pods/onboarding_status_provider.dart';
-import 'package:ble/screens/onboarding/widgets/onboarding_overlay_clipper.dart';
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/widgets/ble_background.dart';
-import 'package:ble/widgets/ble_bottom_bar.dart';
-import 'package:ble/widgets/ble_filled_button.dart';
-import 'package:ble/widgets/ble_outlined_button.dart';
+import 'package:jackjack/screens/onboarding/pods/onboarding_status_provider.dart';
+import 'package:jackjack/screens/onboarding/widgets/onboarding_overlay_clipper.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_background.dart';
+import 'package:jackjack/widgets/ble_bottom_bar.dart';
+import 'package:jackjack/widgets/ble_filled_button.dart';
+import 'package:jackjack/widgets/ble_outlined_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

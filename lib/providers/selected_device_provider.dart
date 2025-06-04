@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'selected_device_provider.g.dart';

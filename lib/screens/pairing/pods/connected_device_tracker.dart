@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:ble/screens/pairing/pods/available_devices.dart';
+import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

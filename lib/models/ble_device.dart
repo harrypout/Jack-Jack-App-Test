@@ -1,4 +1,4 @@
-import 'package:ble/models/ble_service.dart';
+import 'package:jackjack/models/ble_service.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 class BLEDevice {

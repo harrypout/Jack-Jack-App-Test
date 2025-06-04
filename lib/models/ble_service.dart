@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ble/models/ble_uuids.dart';
-import 'package:ble/utils/toast_manager.dart';
+import 'package:jackjack/models/ble_uuids.dart';
+import 'package:jackjack/utils/toast_manager.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 enum BLEServiceType { getInt, setInt, stream }

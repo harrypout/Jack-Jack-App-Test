@@ -1,12 +1,12 @@
-import 'package:ble/providers/loading_provider.dart';
+import 'package:jackjack/providers/loading_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 // import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/widgets/ble_bottom_sheet.dart';
-import 'package:ble/screens/pairing/widgets/device_info_bottom_sheet.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_bottom_sheet.dart';
+import 'package:jackjack/screens/pairing/widgets/device_info_bottom_sheet.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class BluetoothDeviceWidget extends ConsumerWidget {

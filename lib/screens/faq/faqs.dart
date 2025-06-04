@@ -1,4 +1,4 @@
-import 'package:ble/models/faq.dart';
+import 'package:jackjack/models/faq.dart';
 
 List<FAQ> faqs = [
   // Getting Started

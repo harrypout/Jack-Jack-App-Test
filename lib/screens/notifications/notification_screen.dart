@@ -1,10 +1,10 @@
-import 'package:ble/main.dart';
-import 'package:ble/providers/notifications_provider.dart';
-import 'package:ble/screens/notifications/widgets/notification_item.dart';
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/utils/theme_manager.dart';
-import 'package:ble/widgets/ble_app_bar.dart';
-import 'package:ble/widgets/ble_background.dart';
+import 'package:jackjack/main.dart';
+import 'package:jackjack/providers/notifications_provider.dart';
+import 'package:jackjack/screens/notifications/widgets/notification_item.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
+import 'package:jackjack/widgets/ble_app_bar.dart';
+import 'package:jackjack/widgets/ble_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';

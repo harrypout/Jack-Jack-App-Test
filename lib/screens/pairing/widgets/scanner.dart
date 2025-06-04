@@ -1,5 +1,5 @@
-import 'package:ble/screens/pairing/widgets/circles_animation_painter.dart';
-import 'package:ble/utils/color_manager.dart';
+import 'package:jackjack/screens/pairing/widgets/circles_animation_painter.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 

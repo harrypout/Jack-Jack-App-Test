@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:ble/main.dart';
+import 'package:jackjack/main.dart';
 part 'onboarding_status_provider.g.dart';
 
 @riverpod

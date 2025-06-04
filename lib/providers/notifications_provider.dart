@@ -1,5 +1,5 @@
-import 'package:ble/main.dart';
-import 'package:ble/models/notification_sf.dart';
+import 'package:jackjack/main.dart';
+import 'package:jackjack/models/notification_sf.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'notifications_provider.g.dart';
 

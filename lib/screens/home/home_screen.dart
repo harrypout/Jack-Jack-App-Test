@@ -1,11 +1,11 @@
-import 'package:ble/providers/notifications_provider.dart';
-import 'package:ble/providers/selected_device_provider.dart';
-import 'package:ble/providers/connected_devices_provider.dart';
-import 'package:ble/screens/home/widgets/selected_device_widget.dart';
-import 'package:ble/screens/notifications/notification_screen.dart';
-import 'package:ble/utils/theme_manager.dart';
-import 'package:ble/widgets/ble_background.dart';
-import 'package:ble/widgets/ble_home_screen_device.dart';
+import 'package:jackjack/providers/notifications_provider.dart';
+import 'package:jackjack/providers/selected_device_provider.dart';
+import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/screens/home/widgets/selected_device_widget.dart';
+import 'package:jackjack/screens/notifications/notification_screen.dart';
+import 'package:jackjack/utils/theme_manager.dart';
+import 'package:jackjack/widgets/ble_background.dart';
+import 'package:jackjack/widgets/ble_home_screen_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

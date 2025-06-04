@@ -1,11 +1,11 @@
-import 'package:ble/screens/pairing/pods/available_devices.dart';
+import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:flutter/material.dart';
-import 'package:ble/screens/pairing/widgets/bluetooth_device.dart';
-import 'package:ble/screens/pairing/widgets/device_section.dart';
-import 'package:ble/screens/pairing/widgets/scanner.dart';
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/utils/theme_manager.dart';
-import 'package:ble/widgets/ble_background.dart';
+import 'package:jackjack/screens/pairing/widgets/bluetooth_device.dart';
+import 'package:jackjack/screens/pairing/widgets/device_section.dart';
+import 'package:jackjack/screens/pairing/widgets/scanner.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
+import 'package:jackjack/widgets/ble_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/connected_devices_provider.dart';

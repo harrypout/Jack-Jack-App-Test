@@ -1,8 +1,8 @@
-import 'package:ble/screens/faq/faqs.dart';
-import 'package:ble/screens/faq/widgets/faq_item.dart';
-import 'package:ble/utils/theme_manager.dart';
-import 'package:ble/widgets/ble_app_bar.dart';
-import 'package:ble/widgets/ble_background.dart';
+import 'package:jackjack/screens/faq/faqs.dart';
+import 'package:jackjack/screens/faq/widgets/faq_item.dart';
+import 'package:jackjack/utils/theme_manager.dart';
+import 'package:jackjack/widgets/ble_app_bar.dart';
+import 'package:jackjack/widgets/ble_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 

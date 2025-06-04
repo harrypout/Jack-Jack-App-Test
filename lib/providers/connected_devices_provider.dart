@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:ble/models/ble_device.dart';
-import 'package:ble/models/ble_service.dart';
-import 'package:ble/providers/loading_provider.dart';
-import 'package:ble/providers/paired_devices.dart';
-import 'package:ble/screens/pairing/pods/available_devices.dart';
-import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
-import 'package:ble/utils/env_manager.dart';
-import 'package:ble/utils/toast_manager.dart';
+import 'package:jackjack/models/ble_device.dart';
+import 'package:jackjack/models/ble_service.dart';
+import 'package:jackjack/providers/loading_provider.dart';
+import 'package:jackjack/providers/paired_devices.dart';
+import 'package:jackjack/screens/pairing/pods/available_devices.dart';
+import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
+import 'package:jackjack/utils/env_manager.dart';
+import 'package:jackjack/utils/toast_manager.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:ble/providers/threshold_alert_provider.dart';
+import 'package:jackjack/providers/threshold_alert_provider.dart';
 
 part 'connected_devices_provider.g.dart';
 

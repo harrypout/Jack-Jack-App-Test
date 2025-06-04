@@ -1,10 +1,10 @@
-import 'package:ble/screens/faq/faq_screen.dart';
-import 'package:ble/screens/settings/widgets/settings_item.dart';
-import 'package:ble/screens/settings/widgets/settings_section.dart';
-import 'package:ble/utils/theme_manager.dart';
-import 'package:ble/widgets/ble_app_bar.dart';
-import 'package:ble/widgets/ble_background.dart';
-import 'package:ble/widgets/ble_toggle.dart';
+import 'package:jackjack/screens/faq/faq_screen.dart';
+import 'package:jackjack/screens/settings/widgets/settings_item.dart';
+import 'package:jackjack/screens/settings/widgets/settings_section.dart';
+import 'package:jackjack/utils/theme_manager.dart';
+import 'package:jackjack/widgets/ble_app_bar.dart';
+import 'package:jackjack/widgets/ble_background.dart';
+import 'package:jackjack/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
 
 import '../../main.dart';

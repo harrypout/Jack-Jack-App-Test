@@ -1,12 +1,12 @@
-import 'package:ble/providers/device_threshold_provider.dart';
-import 'package:ble/providers/paired_devices.dart';
-import 'package:ble/screens/pairing/pods/available_devices.dart';
-import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
+import 'package:jackjack/providers/device_threshold_provider.dart';
+import 'package:jackjack/providers/paired_devices.dart';
+import 'package:jackjack/screens/pairing/pods/available_devices.dart';
+import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:flutter/material.dart';
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/widgets/ble_bottom_sheet.dart';
-import 'package:ble/widgets/ble_filled_button.dart';
-import 'package:ble/widgets/ble_outlined_button.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_bottom_sheet.dart';
+import 'package:jackjack/widgets/ble_filled_button.dart';
+import 'package:jackjack/widgets/ble_outlined_button.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

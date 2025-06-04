@@ -1,7 +1,7 @@
-import 'package:ble/models/ble_device.dart';
-import 'package:ble/screens/pairing/pods/connected_device_tracker.dart';
-import 'package:ble/widgets/ble_gauge.dart';
-import 'package:ble/widgets/ble_indicator_box.dart';
+import 'package:jackjack/models/ble_device.dart';
+import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
+import 'package:jackjack/widgets/ble_gauge.dart';
+import 'package:jackjack/widgets/ble_indicator_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:ble/models/ble_device.dart';
-import 'package:ble/models/notification_sf.dart';
-import 'package:ble/providers/notifications_provider.dart';
-import 'package:ble/providers/connected_devices_provider.dart';
-import 'package:ble/utils/notification_manager.dart';
+import 'package:jackjack/models/ble_device.dart';
+import 'package:jackjack/models/notification_sf.dart';
+import 'package:jackjack/providers/notifications_provider.dart';
+import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/utils/notification_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'threshold_alert_provider.g.dart';
 

@@ -1,4 +1,4 @@
-import 'package:ble/providers/connected_devices_provider.dart';
+import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'device_threshold_provider.g.dart';
 

@@ -1,6 +1,6 @@
-import 'package:ble/models/notification_sf.dart';
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/widgets/ble_pill.dart';
+import 'package:jackjack/models/notification_sf.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:timeago/timeago.dart' as timeago;

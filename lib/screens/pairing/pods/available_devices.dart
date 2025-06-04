@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:ble/main.dart';
-import 'package:ble/providers/connected_devices_provider.dart';
-import 'package:ble/providers/paired_devices.dart';
-import 'package:ble/utils/env_manager.dart';
+import 'package:jackjack/main.dart';
+import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/providers/paired_devices.dart';
+import 'package:jackjack/utils/env_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

@@ -1,8 +1,8 @@
-import 'package:ble/models/ble_device.dart';
-import 'package:ble/providers/device_threshold_provider.dart';
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/widgets/ble_pill.dart';
-import 'package:ble/widgets/ble_toggle.dart';
+import 'package:jackjack/models/ble_device.dart';
+import 'package:jackjack/providers/device_threshold_provider.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_pill.dart';
+import 'package:jackjack/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
