@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:jackjack/main.dart';
 import 'package:jackjack/screens/onboarding/pods/onboarding_status_provider.dart';
 import 'package:jackjack/screens/onboarding/widgets/onboarding_overlay_clipper.dart';
 import 'package:jackjack/utils/color_manager.dart';
@@ -165,13 +166,13 @@ class OnboardingScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           if (selectedPage < 2)
-                            BLEOutlinedButton(data: 'Skip', onPressed: () async {
-                              if (await ref
-                                    .read(onboardingStatusProvider.notifier)
-                                    .next(skip: true)) {
-                                  Navigator.pushNamed(context, BLEBottomBar.id);
-                                }
-                            }),
+                            BLEOutlinedButton(
+                              data: 'Skip',
+                              onPressed: () async {
+                                Navigator.pushNamed(context, BLEBottomBar.id);
+                                prefs.setBool('onboarding_status', true);
+                              },
+                            ),
                           SizedBox(
                             width:
                                 selectedPage > 1

@@ -15,7 +15,6 @@ class OnboardingStatus extends _$OnboardingStatus {
       state = state + 1;
       return false;
     } else {
-
       prefs.setBool('onboarding_status', true);
       return true;
     }
