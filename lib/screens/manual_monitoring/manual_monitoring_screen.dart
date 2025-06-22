@@ -1,8 +1,8 @@
 import 'package:jackjack/providers/selected_device_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/screens/manual_monitoring/providers/manual_monitoring_provider.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:jackjack/screens/pairing/widgets/scanner.dart';
-import 'package:jackjack/utils/toast_manager.dart';
 import 'package:jackjack/widgets/ble_filled_button.dart';
 import 'package:jackjack/widgets/ble_gauge.dart';
 import 'package:jackjack/widgets/ble_indicator_box.dart';
@@ -14,7 +14,6 @@ import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:async';
 import 'package:flutter_svg/svg.dart';
 
 class ManualMonitoringScreen extends ConsumerStatefulWidget {
@@ -27,70 +26,11 @@ class ManualMonitoringScreen extends ConsumerStatefulWidget {
 
 class _ManualMonitoringScreenState
     extends ConsumerState<ManualMonitoringScreen> {
-  final int _countdownDuration = 5;
-  int _remainingTime = 5;
-  Timer? _countdownTimer;
-  Timer? _streamingTimer;
-  bool _isStreaming = false;
-  bool _showCountdown = false;
-  int _streamingDuration = 0; // Track streaming duration in seconds
-
-  void _startCountdown(bool isConnected) {
-    if (isConnected) {
-      setState(() {
-        _showCountdown = true;
-        _remainingTime = _countdownDuration;
-      });
-
-      _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (_remainingTime > 0) {
-          setState(() => _remainingTime--);
-        } else {
-          _startStreaming();
-        }
-      });
-    } else {
-      ToastManager.show("Please connect the selected device!");
-    }
-  }
-
-  void _startStreaming() {
-    _countdownTimer?.cancel();
-    setState(() {
-      _showCountdown = false;
-      _isStreaming = true;
-      _streamingDuration = 0;
-    });
-
-    // Start the streaming timer
-    _streamingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _streamingDuration++;
-      });
-    });
-  }
-
-  void _stopStreaming() {
-    setState(() {
-      _isStreaming = false;
-      _showCountdown = false;
-      _streamingDuration = 0;
-    });
-
-    _streamingTimer?.cancel(); // Stop the timer
-  }
-
-  @override
-  void dispose() {
-    _countdownTimer?.cancel();
-    _streamingTimer?.cancel();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final connectedDevices = ref.watch(connectedDevicesProvider);
     final selectedDevice = ref.watch(selectedDeviceProvider);
+    final manualMonitoringPod = ref.watch(manualMonitoringProvider);
     return Scaffold(
       body: BLEBackground(
         child: SafeArea(
@@ -104,19 +44,22 @@ class _ManualMonitoringScreenState
                 Expanded(
                   child: Column(
                     mainAxisAlignment:
-                        _isStreaming
+                        manualMonitoringPod.isStreaming
                             ? MainAxisAlignment.start
                             : MainAxisAlignment.center,
                     children: [
-                      if (_isStreaming)
+                      if (manualMonitoringPod.isStreaming)
                         Column(
                           children: [
                             BLEGauge(
                               selectedDevice:
-                                  connectedDevices[selectedDevice]!.device.name,
+                                  connectedDevices[selectedDevice]
+                                      ?.device
+                                      .name ??
+                                  "No Device Selected",
                               valueStream:
-                                  connectedDevices[selectedDevice]!
-                                      .getSoundLevel
+                                  connectedDevices[selectedDevice]
+                                      ?.getSoundLevel
                                       .data,
                             ),
                             Padding(
@@ -127,7 +70,7 @@ class _ManualMonitoringScreenState
                                 children: [
                                   BLEPill(color: Colors.red),
                                   Text(
-                                    "Streaming ${_formatDuration(_streamingDuration)}",
+                                    "Streaming ${_formatDuration(manualMonitoringPod.streamingDuration)}",
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,
@@ -145,10 +88,7 @@ class _ManualMonitoringScreenState
                                   IndicatorBox(
                                     title: "Battery",
                                     subtitle:
-                                        connectedDevices[selectedDevice]!
-                                            .getBattery
-                                            .data
-                                            .toString(),
+                                        "${connectedDevices[selectedDevice]?.getBattery.data ?? "0"} %",
                                     asset: "battery",
                                   ),
                                   IndicatorBox(
@@ -160,8 +100,8 @@ class _ManualMonitoringScreenState
                                                       .notifier,
                                                 )
                                                 .isDeviceConnected(
-                                                  connectedDevices[selectedDevice]!
-                                                      .device
+                                                  connectedDevices[selectedDevice]
+                                                      ?.device
                                                       .id,
                                                 )
                                             ? "Connected"
@@ -221,7 +161,7 @@ class _ManualMonitoringScreenState
                             Scanner(asset: "microphone", animate: false),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 20),
-                              child: _buildMainText(),
+                              child: _buildMainText(ref),
                             ),
                           ],
                         ),
@@ -235,6 +175,7 @@ class _ManualMonitoringScreenState
                             connectedDevices[selectedDevice]?.device.id,
                           ) ??
                       false,
+                  ref,
                 ),
                 SizedBox(height: 45),
               ],
@@ -261,8 +202,9 @@ class _ManualMonitoringScreenState
     );
   }
 
-  Widget _buildMainText() {
-    if (_showCountdown) {
+  Widget _buildMainText(WidgetRef ref) {
+    final manualMonitoringPod = ref.watch(manualMonitoringProvider);
+    if (manualMonitoringPod.showCountdown) {
       return Column(
         children: [
           Text(
@@ -276,7 +218,7 @@ class _ManualMonitoringScreenState
           const SizedBox(height: 10),
 
           Text(
-            '$_remainingTime',
+            '${manualMonitoringPod.remainingTime}',
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -288,7 +230,7 @@ class _ManualMonitoringScreenState
     }
 
     return Text(
-      _isStreaming
+      manualMonitoringPod.isStreaming
           ? 'Streaming in progress'
           : 'Stream real-time audio from your device and monitor sound levels with precision',
       style: TextStyle(
@@ -299,13 +241,15 @@ class _ManualMonitoringScreenState
     );
   }
 
-  Widget _buildActionButton(bool isConnected) {
-    if (_showCountdown) {
+  Widget _buildActionButton(bool isConnected, WidgetRef ref) {
+    final manualMonitoringPod = ref.watch(manualMonitoringProvider);
+    if (manualMonitoringPod.showCountdown) {
       return Column(
         children: [
           BLEOutlinedButton(
             data: "Skip Countdown",
-            onPressed: _startStreaming,
+            onPressed:
+                ref.read(manualMonitoringProvider.notifier).startStreaming,
             textColor: ColorManager.primaryText,
             borderColor: ColorManager.containerBorder,
           ),
@@ -315,12 +259,19 @@ class _ManualMonitoringScreenState
     }
 
     return BLEFilledButton(
-      data: _isStreaming ? "Stop Streaming" : "Start Streaming",
+      data:
+          manualMonitoringPod.isStreaming
+              ? "Stop Streaming"
+              : "Start Streaming",
       onPressed: () {
-        _isStreaming ? _stopStreaming() : _startCountdown(isConnected);
+        manualMonitoringPod.isStreaming
+            ? ref.read(manualMonitoringProvider.notifier).stopStreaming()
+            : ref
+                .read(manualMonitoringProvider.notifier)
+                .startCountdown(isConnected);
       },
       icon: SvgPicture.asset(
-        "assets/svgs/${_isStreaming ? "stop" : "play"}.svg",
+        "assets/svgs/${manualMonitoringPod.isStreaming ? "stop" : "play"}.svg",
       ),
     );
   }
@@ -334,6 +285,6 @@ class _ManualMonitoringScreenState
     String minutesStr = minutes.toString().padLeft(2, '0');
     String secondsStr = remainingSeconds.toString().padLeft(2, '0');
 
-    return "$hoursStr:$minutesStr:$secondsStr"; // HH:MM:SS format
+    return "$hoursStr:$minutesStr:$secondsStr";
   }
 }

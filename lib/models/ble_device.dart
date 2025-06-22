@@ -9,6 +9,8 @@ class BLEDevice {
   BLEService thresholdAlert;
   BLEService getSoundLevel;
   BLEService setSoundLevel;
+  BLEService getSound;
+  BLEService setSound;
 
   BLEDevice({
     required this.device,
@@ -18,5 +20,7 @@ class BLEDevice {
     required this.thresholdAlert,
     required this.getSoundLevel,
     required this.setSoundLevel,
+    required this.getSound,
+    required this.setSound,
   });
 }

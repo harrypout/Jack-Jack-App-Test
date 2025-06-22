@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/models/ble_service.dart';
 import 'package:jackjack/providers/loading_provider.dart';
 import 'package:jackjack/providers/paired_devices.dart';
+import 'package:jackjack/providers/selected_device_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:jackjack/utils/env_manager.dart';
@@ -12,12 +14,94 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:jackjack/providers/threshold_alert_provider.dart';
 
+import '../utils/audio_stream_player.dart';
+
 part 'connected_devices_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 class ConnectedDevices extends _$ConnectedDevices {
+  late final AudioStreamPlayer _audioPlayer;
   @override
-  Map<String, BLEDevice> build() => {};
+  Map<String, BLEDevice> build() {
+    _audioPlayer = AudioStreamPlayer();
+    ref.onDispose(() => _audioPlayer.dispose());
+    return {};
+  }
+
+  void playAudio() async {
+    stopAudio();
+    await _audioPlayer.initialize();
+    await ref
+        .read(connectedDevicesProvider)[ref.read(selectedDeviceProvider)]
+        ?.setSound
+        .setValue(1);
+    await ref
+        .read(connectedDevicesProvider)[ref.read(selectedDeviceProvider)]
+        ?.getSound
+        .getValue();
+    _audioPlayer.start(
+        // createTestAudioStream(8000)
+     ref
+        .read(connectedDevicesProvider)[ref.read(selectedDeviceProvider)]
+        ?.getSound.data
+    );
+  }
+
+  Future<void> stopAudio() async {
+    _audioPlayer.stop();
+    await ref
+        .read(connectedDevicesProvider)[ref.read(selectedDeviceProvider)]
+        ?.setSound
+        .setValue(0);
+    await ref
+        .read(connectedDevicesProvider)[ref.read(selectedDeviceProvider)]
+        ?.getSound
+        .getValue();
+  }
+
+  // Stream<int> createTestAudioStream(int sampleRate) {
+  //   // Create a sine wave tone at 440Hz (standard A note)
+  //   final frequency = 440.0; // Hz
+  //   final amplitude = 16000; // Volume (max ~32767 for 16-bit audio)
+  //   final durationSeconds = 3.0;
+  //   final totalSamples = (sampleRate * durationSeconds).toInt();
+  //
+  //   final bytes = List<int>.generate(totalSamples, (index) {
+  //     // Generate sine wave: amplitude * sin(2 * PI * frequency * time)
+  //     final time = index / sampleRate;
+  //     final sample = (amplitude * sin(2 * pi * frequency * time)).toInt();
+  //     return sample;
+  //   });
+  //
+  //   // Create a broadcast StreamController
+  //   final controller = StreamController<int>.broadcast();
+  //
+  //   // Index to track position in the bytes array
+  //   var index = 0;
+  //
+  //   // Calculate delay between samples based on sample rate
+  //   final sampleDelay = (1000000 / sampleRate).round();
+  //
+  //   // Timer to emit values at the specified rate
+  //   final timer = Timer.periodic(Duration(microseconds: sampleDelay), (timer) {
+  //     if (index < bytes.length) {
+  //       // Emit the current sample value
+  //       controller.add(bytes[index]);
+  //       index++;
+  //     } else {
+  //       // End of the array, close the stream
+  //       timer.cancel();
+  //       controller.close();
+  //     }
+  //   });
+  //
+  //   // Clean up timer when the controller is closed
+  //   controller.onCancel = () {
+  //     timer.cancel();
+  //   };
+  //
+  //   return controller.stream;
+  // }
 
   Future<void> removeDevice(String deviceId) async {
     if (state[deviceId] != null) {
@@ -37,7 +121,6 @@ class ConnectedDevices extends _$ConnectedDevices {
     try {
       debugPrint("Should connect: $shouldConnect");
       debugPrint(state.keys.toString());
-      // List<BluetoothService> services = [];
       final completer = Completer<void>();
       if (shouldConnect) {
         debugPrint("connect");
@@ -45,14 +128,14 @@ class ConnectedDevices extends _$ConnectedDevices {
             .read(connectedDevicesTrackerProvider.notifier)
             .isDeviceConnected(device.id)) {
           debugPrint("reactive ble connect");
-          // Create connection and store subscription
 
           final subscription = FlutterReactiveBle()
               .connectToDevice(id: device.id, connectionTimeout: timeout)
               .listen(
                 (connectionState) async {
-                  // Here you can respond to connection state changes
-                  debugPrint('Connection state: ${connectionState.connectionState}');
+                  debugPrint(
+                    'Connection state: ${connectionState.connectionState}',
+                  );
 
                   if (connectionState.connectionState ==
                       DeviceConnectionState.connected) {
@@ -106,8 +189,6 @@ class ConnectedDevices extends _$ConnectedDevices {
     await PairedDevicesUUID.saveToPrefs(device.id);
     ref.read(loadingProvider(device.id).notifier).toggle(false);
     ref.read(deviceManagerProvider.notifier).updateDeviceStreams();
-    // ref.refresh(deviceManagerProvider);
-    // ref.read(deviceManagerProvider.notifier).state= ref.read(deviceManagerProvider.notifier).fetchDevices();
   }
 
   Future<void> getServices(
@@ -120,6 +201,8 @@ class ConnectedDevices extends _$ConnectedDevices {
     BLEService? thresholdAlert;
     BLEService? getSoundLevel;
     BLEService? setSoundLevel;
+    BLEService? getSound;
+    BLEService? setSound;
 
     getThreshold = await BLEService.getService(
       EnvManager.getInstanceSync().getThresholdUUIDS,
@@ -163,6 +246,20 @@ class ConnectedDevices extends _$ConnectedDevices {
       deviceName: device.name,
       shouldConnect: shouldConnect,
     );
+    getSound = await BLEService.getService(
+      EnvManager.getInstanceSync().getSoundUUIDS,
+      BLEServiceType.stream,
+      deviceId: device.id,
+      deviceName: device.name,
+      shouldConnect: shouldConnect,
+    );
+    setSound = await BLEService.getService(
+      EnvManager.getInstanceSync().setSoundUUIDS,
+      BLEServiceType.setInt,
+      deviceId: device.id,
+      deviceName: device.name,
+      shouldConnect: shouldConnect,
+    );
     debugPrint("Update");
     Map<String, BLEDevice> oldState = {};
     oldState.addAll(state);
@@ -174,6 +271,8 @@ class ConnectedDevices extends _$ConnectedDevices {
       thresholdAlert: thresholdAlert!,
       getSoundLevel: getSoundLevel!,
       setSoundLevel: setSoundLevel!,
+      getSound: getSound!,
+      setSound: setSound!,
     );
     debugPrint("1");
     state = oldState;

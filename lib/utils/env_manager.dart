@@ -37,6 +37,8 @@ class EnvManager {
   BLEUUIDS get thresholdAlertUUIDS => getEnvBLEUUIDS("THRESHOLD_ALERT");
   BLEUUIDS get getSoundLevelUUIDS => getEnvBLEUUIDS("GET_SOUND_LEVEL");
   BLEUUIDS get setSoundLevelUUIDS => getEnvBLEUUIDS("SET_SOUND_LEVEL");
+  BLEUUIDS get getSoundUUIDS => getEnvBLEUUIDS("GET_SOUND");
+  BLEUUIDS get setSoundUUIDS => getEnvBLEUUIDS("SET_SOUND");
 
   List<BLEUUIDS> get uuids => [
     getThresholdUUIDS,
@@ -45,5 +47,7 @@ class EnvManager {
     thresholdAlertUUIDS,
     getSoundLevelUUIDS,
     setSoundLevelUUIDS,
+    getSoundUUIDS,
+    setSoundUUIDS,
   ];
 }
