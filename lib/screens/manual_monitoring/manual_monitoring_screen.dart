@@ -173,8 +173,7 @@ class _ManualMonitoringScreenState
                           .read(connectedDevicesTrackerProvider.notifier)
                           .isDeviceConnected(
                             connectedDevices[selectedDevice]?.device.id,
-                          ) ??
-                      false,
+                          ),
                   ref,
                 ),
                 SizedBox(height: 45),

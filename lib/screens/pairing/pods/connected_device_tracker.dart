@@ -56,7 +56,7 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
       state = AsyncData(Set<String>.from(_connectedDeviceIds));
     });
 
-    final bleDevices = ref.read(deviceManagerProvider);
+    ref.read(deviceManagerProvider);
   }
 
   bool isDeviceConnected(String? deviceId) {

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
@@ -18,11 +17,11 @@ class AudioStreamPlayer {
     await session.configure(AudioSessionConfiguration.speech());
 
     _audioPlayer.playerStateStream.listen((state) {
-      print('Audio player state: ${state.processingState} - ${state.playing}');
+      debugPrint('Audio player state: ${state.processingState} - ${state.playing}');
     });
 
     _audioPlayer.positionStream.listen((position) {
-      print('Audio position: $position');
+      debugPrint('Audio position: $position');
     });
   }
 
@@ -32,14 +31,14 @@ class AudioStreamPlayer {
     _pcmBuffer.clear();
 
     try {
-      print('Starting audio stream player');
+      debugPrint('Starting audio stream player');
 
       _bufferTimer = Timer(Duration(seconds: 1), () {
         if (_pcmBuffer.isNotEmpty) {
-          print('Buffer timer triggered with ${_pcmBuffer.length} samples');
+          debugPrint('Buffer timer triggered with ${_pcmBuffer.length} samples');
           _playBufferedAudio();
         } else {
-          print('Buffer timer triggered but buffer is empty');
+          debugPrint('Buffer timer triggered but buffer is empty');
         }
       });
 
@@ -49,55 +48,55 @@ class AudioStreamPlayer {
           _pcmBuffer.add(scaledValue);
 
           if (_pcmBuffer.length % 100 == 0) {
-            print('Buffer size: ${_pcmBuffer.length} samples, last value: $value');
+            debugPrint('Buffer size: ${_pcmBuffer.length} samples, last value: $value');
           }
         },
         onError: (e) {
-          print('Stream error: $e');
+          debugPrint('Stream error: $e');
           stop();
         },
         onDone: () {
-          print('Stream completed with ${_pcmBuffer.length} samples');
+          debugPrint('Stream completed with ${_pcmBuffer.length} samples');
           _bufferTimer?.cancel();
           _playBufferedAudio();
         },
       );
     } catch (e) {
-      print('AudioStreamPlayer start error: $e');
+      debugPrint('AudioStreamPlayer start error: $e');
       stop();
     }
   }
 
   void _playBufferedAudio() {
     if (_pcmBuffer.isEmpty) {
-      print('No audio data to play');
+      debugPrint('No audio data to play');
       return;
     }
 
     try {
-      print('Creating WAV from ${_pcmBuffer.length} samples');
+      debugPrint('Creating WAV from ${_pcmBuffer.length} samples');
       final wavBytes = _createWavFile(_pcmBuffer);
-      print('WAV file created, size: ${wavBytes.length} bytes');
+      debugPrint('WAV file created, size: ${wavBytes.length} bytes');
 
       final wavSource = BytesSource(wavBytes);
 
       _audioPlayer.setAudioSource(wavSource).then((_) {
-        print('Audio source set successfully');
+        debugPrint('Audio source set successfully');
         _audioPlayer.play().then((_) {
-          print('Play command issued');
+          debugPrint('Play command issued');
         }).catchError((e) {
-          print('Error playing audio: $e');
+          debugPrint('Error playing audio: $e');
         });
       }).catchError((e) {
-        print('Error setting audio source: $e');
+        debugPrint('Error setting audio source: $e');
       });
     } catch (e) {
-      print('Error preparing audio: $e');
+      debugPrint('Error preparing audio: $e');
     }
   }
 
   void stop() {
-    print('Stopping audio player');
+    debugPrint('Stopping audio player');
     _isPlaying = false;
     _audioStreamSubscription?.cancel();
     _audioStreamSubscription = null;

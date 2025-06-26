@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/models/ble_service.dart';

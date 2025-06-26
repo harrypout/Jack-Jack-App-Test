@@ -142,7 +142,7 @@ class BLEService {
           debugPrint("Write successful");
         } catch (e) {
           debugPrint("Write error: $e");
-          throw e;
+          rethrow;
         }
       } else {
         debugPrint("Cannot write: characteristic is null");

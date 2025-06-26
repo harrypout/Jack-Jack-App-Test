@@ -19,7 +19,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
     final threshold = ref.watch(deviceThresholdProvider(device.id));
     final isConnected = ref
         .watch(connectedDevicesTrackerProvider.notifier)
-        .isDeviceConnected(device?.id);
+        .isDeviceConnected(device.id);
     return BLEBottomSheet(
       child: Column(
         mainAxisSize: MainAxisSize.min,

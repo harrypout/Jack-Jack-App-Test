@@ -27,15 +27,14 @@ class ThresholdScreen extends ConsumerWidget {
                           .where(
                             (id) =>
                                 connectedDevices[id] != null
-                                    ? (ref
-                                            .read(
-                                              connectedDevicesTrackerProvider
-                                                  .notifier,
-                                            )
-                                            .isDeviceConnected(
-                                              connectedDevices[id]!.device.id,
-                                            ) ??
-                                        false)
+                                    ? ref
+                                        .read(
+                                          connectedDevicesTrackerProvider
+                                              .notifier,
+                                        )
+                                        .isDeviceConnected(
+                                          connectedDevices[id]!.device.id,
+                                        )
                                     : false,
                           )
                           .length,
@@ -44,15 +43,14 @@ class ThresholdScreen extends ConsumerWidget {
                         .where(
                           (id) =>
                               connectedDevices[id] != null
-                                  ? (ref
-                                          .read(
-                                            connectedDevicesTrackerProvider
-                                                .notifier,
-                                          )
-                                          .isDeviceConnected(
-                                            connectedDevices[id]!.device.id,
-                                          ) ??
-                                      false)
+                                  ? ref
+                                      .read(
+                                        connectedDevicesTrackerProvider
+                                            .notifier,
+                                      )
+                                      .isDeviceConnected(
+                                        connectedDevices[id]!.device.id,
+                                      )
                                   : false,
                         )
                         .elementAt(index);
