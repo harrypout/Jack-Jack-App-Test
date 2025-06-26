@@ -21,7 +21,6 @@ class BluetoothDeviceWidget extends ConsumerWidget {
     this.onConnect,
     this.loader = false,
   });
-  // bool isConnecting = false;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

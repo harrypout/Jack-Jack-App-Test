@@ -15,24 +15,17 @@ class DeviceManager extends _$DeviceManager {
   StreamSubscription? _scanSubscription;
   final Map<String, DiscoveredDevice> _discoveredDevices = {};
 
-  // Replace stream controllers with simple lists
   List<DiscoveredDevice> _pairedDevices = [];
   List<DiscoveredDevice> _availableDevices = [];
 
   @override
   BLEDevices build() {
     debugPrint("DeviceManager build");
-
-    // Create the BLEDevices object with lists
     final bleDevices = BLEDevices(
       available: _availableDevices,
       paired: _pairedDevices,
     );
-
-    // Start scanning for devices
     _startScan();
-
-    // Clean up when provider is disposed
     ref.onDispose(() {
       debugPrint("DeviceManager dispose");
       _scanSubscription?.cancel();
@@ -53,10 +46,7 @@ class DeviceManager extends _$DeviceManager {
           .listen((device) {
             if (_discoveredDevices[device.id] == null) {
               debugPrint("Device found: $device");
-              // Store device to avoid duplicates
               _discoveredDevices[device.id] = device;
-
-              // Update device lists
               updateDeviceStreams();
             }
           });

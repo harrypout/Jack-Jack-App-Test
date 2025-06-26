@@ -8,9 +8,8 @@ class AudioStreamPlayer {
   final _audioPlayer = AudioPlayer();
   StreamSubscription? _audioStreamSubscription;
   bool _isPlaying = false;
+  //todo: might need to adjust this
   final int _sampleRate = 8000;
-
-  // Buffer timeout to ensure sound plays even if stream never completes
   Timer? _bufferTimer;
   final List<int> _pcmBuffer = [];
 
@@ -18,12 +17,10 @@ class AudioStreamPlayer {
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
 
-    // Add player state listener for debugging
     _audioPlayer.playerStateStream.listen((state) {
       print('Audio player state: ${state.processingState} - ${state.playing}');
     });
 
-    // Add position stream for debugging
     _audioPlayer.positionStream.listen((position) {
       print('Audio position: $position');
     });
@@ -37,7 +34,6 @@ class AudioStreamPlayer {
     try {
       print('Starting audio stream player');
 
-      // Start a timer to play audio after 1 second even if stream doesn't complete
       _bufferTimer = Timer(Duration(seconds: 1), () {
         if (_pcmBuffer.isNotEmpty) {
           print('Buffer timer triggered with ${_pcmBuffer.length} samples');
@@ -49,12 +45,9 @@ class AudioStreamPlayer {
 
       _audioStreamSubscription = dataStream.listen(
         (value) {
-          // Convert to appropriate range if needed (depends on your actual data)
-          // For example, if your data is 0-100, scale to full 16-bit range
-          final scaledValue = (value * 327.67).toInt(); // Scale from 0-100 to 0-32767
+          final scaledValue = (value * 327.67).toInt();
           _pcmBuffer.add(scaledValue);
 
-          // Debug every 100 samples
           if (_pcmBuffer.length % 100 == 0) {
             print('Buffer size: ${_pcmBuffer.length} samples, last value: $value');
           }
@@ -115,60 +108,51 @@ class AudioStreamPlayer {
   }
 
   Uint8List _createWavFile(List<int> pcmData) {
-    // PCM data parameters
-    final channels = 1; // Mono
-    final bitsPerSample = 16; // 16-bit audio
+    final channels = 1;
+    final bitsPerSample = 16;
 
-    // Calculate sizes
     final bytesPerSample = bitsPerSample ~/ 8;
     final byteRate = _sampleRate * channels * bytesPerSample;
     final blockAlign = channels * bytesPerSample;
     final dataSize = pcmData.length * bytesPerSample;
-    final fileSize = 36 + dataSize; // 36 = size of WAV header minus 8 bytes
+    final fileSize = 36 + dataSize;
 
-    // Create WAV header (44 bytes)
     final header = ByteData(44);
 
-    // "RIFF" chunk descriptor
     header.setUint8(0, 'R'.codeUnitAt(0));
     header.setUint8(1, 'I'.codeUnitAt(0));
     header.setUint8(2, 'F'.codeUnitAt(0));
     header.setUint8(3, 'F'.codeUnitAt(0));
-    header.setUint32(4, fileSize, Endian.little); // ChunkSize
+    header.setUint32(4, fileSize, Endian.little);
     header.setUint8(8, 'W'.codeUnitAt(0));
     header.setUint8(9, 'A'.codeUnitAt(0));
     header.setUint8(10, 'V'.codeUnitAt(0));
     header.setUint8(11, 'E'.codeUnitAt(0));
 
-    // "fmt " sub-chunk
     header.setUint8(12, 'f'.codeUnitAt(0));
     header.setUint8(13, 'm'.codeUnitAt(0));
     header.setUint8(14, 't'.codeUnitAt(0));
     header.setUint8(15, ' '.codeUnitAt(0));
-    header.setUint32(16, 16, Endian.little); // Subchunk1Size (16 for PCM)
-    header.setUint16(20, 1, Endian.little); // AudioFormat (1 for PCM)
-    header.setUint16(22, channels, Endian.little); // NumChannels
-    header.setUint32(24, _sampleRate, Endian.little); // SampleRate
-    header.setUint32(28, byteRate, Endian.little); // ByteRate
-    header.setUint16(32, blockAlign, Endian.little); // BlockAlign
-    header.setUint16(34, bitsPerSample, Endian.little); // BitsPerSample
+    header.setUint32(16, 16, Endian.little);
+    header.setUint16(20, 1, Endian.little);
+    header.setUint16(22, channels, Endian.little);
+    header.setUint32(24, _sampleRate, Endian.little);
+    header.setUint32(28, byteRate, Endian.little);
+    header.setUint16(32, blockAlign, Endian.little);
+    header.setUint16(34, bitsPerSample, Endian.little);
 
-    // "data" sub-chunk
     header.setUint8(36, 'd'.codeUnitAt(0));
     header.setUint8(37, 'a'.codeUnitAt(0));
     header.setUint8(38, 't'.codeUnitAt(0));
     header.setUint8(39, 'a'.codeUnitAt(0));
-    header.setUint32(40, dataSize, Endian.little); // Subchunk2Size
+    header.setUint32(40, dataSize, Endian.little);
 
-    // Create final WAV file with header + PCM data
     final outputBuffer = ByteData(44 + pcmData.length * 2);
 
-    // Copy header
     for (var i = 0; i < 44; i++) {
       outputBuffer.setUint8(i, header.getUint8(i));
     }
 
-    // Convert and copy PCM data
     for (var i = 0; i < pcmData.length; i++) {
       final sample = pcmData[i].clamp(-32768, 32767);
       outputBuffer.setInt16(44 + i * 2, sample, Endian.little);
@@ -183,7 +167,6 @@ class AudioStreamPlayer {
   }
 }
 
-// Simple BytesSource implementation for just_audio
 class BytesSource extends StreamAudioSource {
   final Uint8List _bytes;
 

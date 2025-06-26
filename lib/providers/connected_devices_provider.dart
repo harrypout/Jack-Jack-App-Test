@@ -59,50 +59,6 @@ class ConnectedDevices extends _$ConnectedDevices {
         .getValue();
   }
 
-  // Stream<int> createTestAudioStream(int sampleRate) {
-  //   // Create a sine wave tone at 440Hz (standard A note)
-  //   final frequency = 440.0; // Hz
-  //   final amplitude = 16000; // Volume (max ~32767 for 16-bit audio)
-  //   final durationSeconds = 3.0;
-  //   final totalSamples = (sampleRate * durationSeconds).toInt();
-  //
-  //   final bytes = List<int>.generate(totalSamples, (index) {
-  //     // Generate sine wave: amplitude * sin(2 * PI * frequency * time)
-  //     final time = index / sampleRate;
-  //     final sample = (amplitude * sin(2 * pi * frequency * time)).toInt();
-  //     return sample;
-  //   });
-  //
-  //   // Create a broadcast StreamController
-  //   final controller = StreamController<int>.broadcast();
-  //
-  //   // Index to track position in the bytes array
-  //   var index = 0;
-  //
-  //   // Calculate delay between samples based on sample rate
-  //   final sampleDelay = (1000000 / sampleRate).round();
-  //
-  //   // Timer to emit values at the specified rate
-  //   final timer = Timer.periodic(Duration(microseconds: sampleDelay), (timer) {
-  //     if (index < bytes.length) {
-  //       // Emit the current sample value
-  //       controller.add(bytes[index]);
-  //       index++;
-  //     } else {
-  //       // End of the array, close the stream
-  //       timer.cancel();
-  //       controller.close();
-  //     }
-  //   });
-  //
-  //   // Clean up timer when the controller is closed
-  //   controller.onCancel = () {
-  //     timer.cancel();
-  //   };
-  //
-  //   return controller.stream;
-  // }
-
   Future<void> removeDevice(String deviceId) async {
     if (state[deviceId] != null) {
       ref.read(loadingProvider(deviceId).notifier).toggle(true);
