@@ -4,7 +4,7 @@ part 'navigation_provider.g.dart';
 @riverpod
 class Navigation extends _$Navigation {
   @override
-  int build() => 0; // Initial value is false
+  int build() => 0;
 
   void toggle(int index) => state = index;
 }

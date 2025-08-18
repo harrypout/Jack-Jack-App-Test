@@ -1,23 +1,32 @@
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/widgets/ble_bottom_sheet.dart';
-import 'package:ble/widgets/device_info_bottom_sheet.dart';
+import 'package:jackjack/providers/loading_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+// import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_bottom_sheet.dart';
+import 'package:jackjack/screens/pairing/widgets/device_info_bottom_sheet.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
-class BluetoothDevice extends StatelessWidget {
-  final String name;
+class BluetoothDeviceWidget extends ConsumerWidget {
+  final DiscoveredDevice device;
   final bool isPaired;
-  const BluetoothDevice({
+  final bool loader;
+  final Future<void> Function(DiscoveredDevice device)? onConnect;
+  const BluetoothDeviceWidget({
     super.key,
-    required this.name,
+    required this.device,
     required this.isPaired,
+    this.onConnect,
+    this.loader = false,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLoading = ref.watch(loadingProvider(device.id));
     return Container(
       width: double.maxFinite,
-      // height: 74,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
@@ -31,11 +40,11 @@ class BluetoothDevice extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            spacing: 12,
             children: [
               SvgPicture.asset("assets/svgs/device.svg"),
+              const SizedBox(width: 12),
               Text(
-                name,
+                loader ? "Device Name" : device.name,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -44,27 +53,63 @@ class BluetoothDevice extends StatelessWidget {
               ),
             ],
           ),
-          isPaired
-              ? IconButton(
-                onPressed: () {
-                  BLEBottomSheet.openSheet(context, PairedInfoBottomSheet(name: name, isConnected: true, threshold: 80));
-                },
-                icon: SvgPicture.asset(
-                  "assets/svgs/app-info.svg",
-                  colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn),
-                ),
-              )
-              : TextButton(
-                onPressed: () {},
-                child: Text(
-                  "Pair",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: ColorManager.accent,
-                  ),
-                ),
-              ),
+          Skeletonizer(
+            enabled: isLoading,
+            child:
+                isPaired
+                    ? IconButton(
+                      onPressed:
+                          loader
+                              ? null
+                              : () {
+                                BLEBottomSheet.openSheet(
+                                  context,
+                                  PairedInfoBottomSheet(device: device),
+                                );
+                              },
+                      icon: SvgPicture.asset(
+                        "assets/svgs/app-info.svg",
+                        colorFilter: ColorFilter.mode(
+                          Colors.blue,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    )
+                    : TextButton(
+                      onPressed:
+                          loader
+                              ? null
+                              : () async {
+                                if (onConnect != null) {
+                                  if (!isLoading) {
+                                    ref
+                                        .read(
+                                          loadingProvider(
+                                            device.id,
+                                          ).notifier,
+                                        )
+                                        .toggle(true);
+                                    await onConnect!(device);
+                                    ref
+                                        .read(
+                                          loadingProvider(
+                                            device.id,
+                                          ).notifier,
+                                        )
+                                        .toggle(false);
+                                  }
+                                }
+                              },
+                      child: Text(
+                        "Connect",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: ColorManager.accent,
+                        ),
+                      ),
+                    ),
+          ),
         ],
       ),
     );

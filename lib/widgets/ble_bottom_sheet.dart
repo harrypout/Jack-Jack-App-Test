@@ -1,5 +1,5 @@
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/utils/theme_manager.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 
 class BLEBottomSheet extends StatelessWidget {

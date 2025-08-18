@@ -1,21 +1,17 @@
-import 'package:ble/utils/color_manager.dart';
+import 'package:jackjack/models/faq.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 
 class FAQItem extends StatelessWidget {
-  final String question;
-  final String answer;
-  const FAQItem({super.key, required this.question, required this.answer});
+  final FAQ faq;
+  const FAQItem({super.key, required this.faq});
 
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
       title: Text(
-        question,
-        style: const TextStyle(
-          // color: ColorManager.primaryText,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-        ),
+        faq.question,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
       ),
       textColor: ColorManager.accent,
       collapsedTextColor: ColorManager.primaryText,
@@ -34,7 +30,7 @@ class FAQItem extends StatelessWidget {
       expandedAlignment: Alignment.topLeft,
       children: [
         Text(
-          answer,
+          faq.answer,
           style: const TextStyle(
             color: ColorManager.tertiaryText,
             fontSize: 12,

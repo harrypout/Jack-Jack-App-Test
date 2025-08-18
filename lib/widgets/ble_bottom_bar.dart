@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'package:ble/providers/navigation_provider.dart';
-import 'package:ble/screens/home/home_screen.dart';
-import 'package:ble/screens/manual_monitoring/manual_monitoring_screen.dart';
-import 'package:ble/screens/pairing/pairing_screen.dart';
-import 'package:ble/screens/settings/settings_screen.dart';
-import 'package:ble/screens/threshold/threshold_screen.dart';
-import 'package:ble/utils/color_manager.dart';
+import 'package:jackjack/providers/navigation_provider.dart';
+import 'package:jackjack/screens/home/home_screen.dart';
+import 'package:jackjack/screens/manual_monitoring/manual_monitoring_screen.dart';
+import 'package:jackjack/screens/pairing/pairing_screen.dart';
+import 'package:jackjack/screens/settings/settings_screen.dart';
+import 'package:jackjack/screens/threshold/threshold_screen.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -132,8 +132,7 @@ class CustomBottomNav extends ConsumerWidget {
                     "assets/svgs/scanner${selectedScreenIndex == 2 ? "_filled" : ""}.svg",
                     width: 24,
                     height: 24,
-                    // height: MediaQuery.sizeOf(context).height,
-                    // fit: BoxFit.fill,
+
                   ),
                 ),
               ),
@@ -165,9 +164,6 @@ class NavBarButton extends ConsumerWidget {
     var selectedScreenIndex = ref.watch(navigationProvider);
     return ElevatedButton(
       style: ButtonStyle(
-        //   minimumSize: WidgetStateProperty.all(
-        //       Size(width, height),
-        // ),
         padding: WidgetStateProperty.all(
           const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
@@ -196,8 +192,6 @@ class NavBarButton extends ConsumerWidget {
               "assets/svgs/$icon${selectedScreenIndex == index ? "_filled" : ""}.svg",
               width: 24,
               height: 24,
-              // height: MediaQuery.sizeOf(context).height,
-              // fit: BoxFit.fill,
             ),
           ),
           Text(
@@ -226,9 +220,6 @@ class MyCustomPainter extends CustomPainter {
           ..style = PaintingStyle.fill
           ..invertColors = false;
 
-    // print(size.width);
-    // 392.72727272727275
-
     Rect box = Rect.fromLTRB(0, 110, size.width, 35);
     Rect box2 = Rect.fromLTRB(0, 110, size.width, 90);
     RRect roundBox = RRect.fromRectAndRadius(box, const Radius.circular(10));
@@ -237,21 +228,17 @@ class MyCustomPainter extends CustomPainter {
     path.addRect(box2);
     path.addRect(box2);
 
-    // path.moveTo(size.width * 0.38, 35);
     path.moveTo((size.width * 0.5) - 45, 35);
-    // path.arcToPoint(Offset(size.width * 0.4225, 42),
     path.arcToPoint(
       Offset((size.width * 0.5) - 30, 42),
       radius: const Radius.circular(16),
       clockwise: true,
     );
-    // path.arcToPoint(Offset(size.width * 0.577, 42),
     path.arcToPoint(
       Offset((size.width * 0.5) + 30, 42),
       radius: const Radius.circular(32),
       clockwise: false,
     );
-    // path.arcToPoint(Offset(size.width * 0.627,35),
     path.arcToPoint(
       Offset((size.width * 0.5) + 45, 35),
       radius: const Radius.circular(20),
@@ -271,30 +258,3 @@ class MyCustomPainter extends CustomPainter {
     return false;
   }
 }
-
-//last
-//       path.moveTo(size.width * 0.38, 35);
-//       path.arcToPoint(Offset(size.width * 0.42, 42),
-//           radius: const Radius.circular(16), clockwise: true);
-//       path.arcToPoint(Offset(size.width * 0.577, 42),
-//           radius: const Radius.circular(32), clockwise: false);
-//       path.arcToPoint(Offset(size.width * 0.627,35),
-//           radius: const Radius.circular(20));
-
-//       // path.addArc(roundBox, startAngle, sweepAngle)
-//       path.arcToPoint(Offset(size.width * 0.42, 42),
-//           radius: const Radius.circular(16), clockwise: true);
-//       // path.arcToPoint(Offset(size.width * 0.6, 25),
-//       //     radius: const Radius.circular(40));
-//       path.arcToPoint(Offset(size.width * 0.577, 42),
-//           radius: const Radius.circular(32), clockwise: false);
-//       path.arcToPoint(Offset(size.width * 0.627,35),
-//           radius: const Radius.circular(20));
-
-//      // path.addArc(roundBox, startAngle, sweepAngle)
-//       path.arcToPoint(Offset(size.width * 0.42, 42),
-//           radius: const Radius.circular(16), clockwise: true);
-//       // path.arcToPoint(Offset(size.width * 0.6, 25),
-//       //     radius: const Radius.circular(40));
-//       path.arcToPoint(Offset(size.width * 0.58, 35),
-//           radius: const Radius.circular(32), clockwise: false);

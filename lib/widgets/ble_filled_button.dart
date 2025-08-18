@@ -1,5 +1,5 @@
-import 'package:ble/utils/color_manager.dart';
-import 'package:ble/widgets/ble_button.dart';
+import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_button.dart';
 import 'package:flutter/material.dart';
 
 class BLEFilledButton extends StatelessWidget {

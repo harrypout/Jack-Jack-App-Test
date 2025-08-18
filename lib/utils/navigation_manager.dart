@@ -1,13 +1,13 @@
-import 'package:ble/screens/faq/faq_screen.dart';
-import 'package:ble/main.dart';
-import 'package:ble/screens/manual_monitoring/manual_monitoring_screen.dart';
-import 'package:ble/screens/notifications/notification_screen.dart';
-import 'package:ble/screens/pairing/pairing_screen.dart';
-import 'package:ble/screens/settings/settings_screen.dart';
-import 'package:ble/screens/threshold/threshold_screen.dart';
-import 'package:ble/widgets/ble_bottom_bar.dart';
+import 'package:jackjack/screens/faq/faq_screen.dart';
+import 'package:jackjack/main.dart';
+import 'package:jackjack/screens/manual_monitoring/manual_monitoring_screen.dart';
+import 'package:jackjack/screens/notifications/notification_screen.dart';
+import 'package:jackjack/screens/pairing/pairing_screen.dart';
+import 'package:jackjack/screens/settings/settings_screen.dart';
+import 'package:jackjack/screens/threshold/threshold_screen.dart';
+import 'package:jackjack/widgets/ble_bottom_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:ble/screens/onboarding/onboarding_screen.dart';
+import 'package:jackjack/screens/onboarding/onboarding_screen.dart';
 
 import '../screens/home/home_screen.dart';
 

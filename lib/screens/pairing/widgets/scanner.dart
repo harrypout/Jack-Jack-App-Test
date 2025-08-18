@@ -1,11 +1,13 @@
-import 'package:ble/screens/pairing/widgets/circles_animation_painter.dart';
-import 'package:ble/utils/color_manager.dart';
+import 'package:jackjack/screens/pairing/widgets/circles_animation_painter.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class Scanner extends StatefulWidget {
   final String asset;
-  const Scanner({super.key, required this.asset});
+  final bool animate;
+
+  const Scanner({super.key, required this.asset, this.animate = true});
 
   @override
   State<Scanner> createState() => _ScannerState();
@@ -32,7 +34,13 @@ class _ScannerState extends State<Scanner> with SingleTickerProviderStateMixin {
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+    );
+
+    if (widget.animate) {
+      _controller.repeat(reverse: true);
+    } else {
+      _controller.value = 0.5; // Set to middle value for static display
+    }
 
     _innerRadius = Tween<double>(
       begin: _innerStart,
@@ -48,6 +56,21 @@ class _ScannerState extends State<Scanner> with SingleTickerProviderStateMixin {
       begin: _outerStart,
       end: _outerEnd,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void didUpdateWidget(Scanner oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Update animation state if animate property changes
+    if (widget.animate != oldWidget.animate) {
+      if (widget.animate) {
+        _controller.repeat(reverse: true);
+      } else {
+        _controller.stop();
+        _controller.value = 0.5;
+      }
+    }
   }
 
   @override

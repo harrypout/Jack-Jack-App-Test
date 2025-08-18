@@ -1,4 +1,4 @@
-package com.ble.ble.ble
+package com.jackjack
 
 import io.flutter.embedding.android.FlutterActivity
 

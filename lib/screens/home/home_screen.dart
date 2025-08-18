@@ -1,9 +1,11 @@
-import 'package:ble/screens/notifications/notification_screen.dart';
-import 'package:ble/utils/theme_manager.dart';
-import 'package:ble/widgets/ble_background.dart';
-import 'package:ble/widgets/ble_gauge.dart';
-import 'package:ble/widgets/ble_home_screen_device.dart';
-import 'package:ble/widgets/ble_indicator_box.dart';
+import 'package:jackjack/providers/notifications_provider.dart';
+import 'package:jackjack/providers/selected_device_provider.dart';
+import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/screens/home/widgets/selected_device_widget.dart';
+import 'package:jackjack/screens/notifications/notification_screen.dart';
+import 'package:jackjack/utils/theme_manager.dart';
+import 'package:jackjack/widgets/ble_background.dart';
+import 'package:jackjack/widgets/ble_home_screen_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,6 +20,15 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final connectedDevices = ref.watch(connectedDevicesProvider);
+    final selectedDevice = ref.watch(selectedDeviceProvider);
+    if (connectedDevices.isNotEmpty && selectedDevice == null) {
+      Future.microtask(
+        () => ref
+            .read(selectedDeviceProvider.notifier)
+            .setSelectedDevice(connectedDevices.keys.first),
+      );
+    }
     return Scaffold(
       body: BLEBackground(
         child: SafeArea(
@@ -27,6 +38,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             child: Column(
               spacing: 12,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -45,36 +57,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         Text("Good Morning!"),
                       ],
                     ),
-                    OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, NotificationScreen.id);
-                      },
-                      style: ButtonStyle(
-                        padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                        minimumSize: WidgetStatePropertyAll(Size.zero),
+                    Badge(
+                      isLabelVisible:
+                          ref.watch(notificationsProvider).isNotEmpty
+                              ? true
+                              : false,
+                      label:
+                          ref.watch(notificationsProvider).isNotEmpty
+                              ? Container()
+                              : null,
+                      offset: Offset(-4, 4),
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, NotificationScreen.id);
+                        },
+                        style: ButtonStyle(
+                          padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
+                          minimumSize: WidgetStatePropertyAll(Size.zero),
+                        ),
+                        child: Icon(Icons.notifications),
                       ),
-                      child: Icon(Icons.notifications),
                     ),
                   ],
                 ),
-                BLEGauge(selectedDevice: "Sound Sense 1",),
-                SizedBox(
-                  height: 80,
-                  child: Row(
-                    spacing: 16,
-                    children: [
-                      IndicatorBox(
-                        title: "Battery",
-                        subtitle: "100%",
-                        asset: "battery",
-                      ),
-                      IndicatorBox(
-                        title: "Status",
-                        subtitle: "Connected",
-                        asset: "status",
-                      ),
-                    ],
-                  ),
+                SelectedDeviceHomeWidget(
+                  device: connectedDevices[selectedDevice],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -84,34 +91,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      spacing: 12,
-                      children: [
-                        HomeScreenDevice(
-                          deviceName: "Sound Sense 1",
-                          battery: "100%",
-                          threshold: 90,
-                          isSelected: true,
-                          isConnected: true,
+                  child: ListView.builder(
+                    itemCount: connectedDevices.length,
+                    itemBuilder: (context, index) {
+                      final id = connectedDevices.keys.elementAt(index);
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: id == connectedDevices.keys.last ? 45 : 0,
                         ),
-                        HomeScreenDevice(
-                          deviceName: "Sound Sense 2",
-                          battery: "99%",
-                          threshold: 80,
-                          isSelected: false,
-                          isConnected: true,
+                        child: HomeScreenDevice(
+                          device: connectedDevices[id]!,
+                          isSelected: selectedDevice == id,
                         ),
-                        HomeScreenDevice(
-                          deviceName: "Sound Sense 3",
-                          battery: "98%",
-                          threshold: 70,
-                          isSelected: false,
-                          isConnected: false,
-                        ),
-                        SizedBox(height: 45),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ),
               ],
