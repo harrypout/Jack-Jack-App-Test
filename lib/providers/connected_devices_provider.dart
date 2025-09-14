@@ -39,10 +39,11 @@ class ConnectedDevices extends _$ConnectedDevices {
         ?.getSound
         .getValue();
     _audioPlayer.start(
-        // createTestAudioStream(8000)
-     ref
-        .read(connectedDevicesProvider)[ref.read(selectedDeviceProvider)]
-        ?.getSound.data
+      // createTestAudioStream(8000)
+      ref
+          .read(connectedDevicesProvider)[ref.read(selectedDeviceProvider)]
+          ?.getSound
+          .data,
     );
   }
 
@@ -173,6 +174,15 @@ class ConnectedDevices extends _$ConnectedDevices {
       deviceName: device.name,
       shouldConnect: shouldConnect,
     );
+    if (getThreshold.data is int?) {
+      if (getThreshold.data < 30) {
+        await setThreshold.setValue(30);
+        await getThreshold.getValue();
+      } else if (getThreshold.data > 120) {
+        await setThreshold.setValue(120);
+        await getThreshold.getValue();
+      }
+    }
     getBattery = await BLEService.getService(
       EnvManager.getInstanceSync().getBatteryUUIDS,
       BLEServiceType.getInt,

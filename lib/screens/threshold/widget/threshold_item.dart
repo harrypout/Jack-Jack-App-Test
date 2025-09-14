@@ -25,8 +25,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
     super.initState();
     setState(() {
       sound = prefs.getBool("${widget.device.device.id}s") ?? false;
-      vibration =
-          prefs.getBool("${widget.device.device.id}v") ?? false;
+      vibration = prefs.getBool("${widget.device.device.id}v") ?? false;
     });
   }
 
@@ -35,142 +34,136 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
     final threshold = ref.watch(
       deviceThresholdProvider(widget.device.device.id),
     );
-    return ExpansionTile(
-      title: Text(
-        widget.device.device.name,
-        style: const TextStyle(
-          color: ColorManager.primaryText,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      subtitle: Row(
-        spacing: 6,
-        children: [
-          if (sound || vibration)
-          Text(
-            "${sound ? "Sound" : ""}${sound && vibration ? " & " : ""}${vibration ? "Vibration" : ""}${sound || vibration ? " Alert" : ""}",
+    return threshold == null ||
+            (threshold != null && (threshold < 30 || threshold > 120))
+        ? Container()
+        : ExpansionTile(
+          title: Text(
+            widget.device.device.name,
             style: const TextStyle(
-              color: ColorManager.tertiaryText,
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+              color: ColorManager.primaryText,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          if (sound || vibration) BLEPill(),
-          Text(
-            "${threshold?.toInt()} DB",
-            style: TextStyle(
-              fontWeight: FontWeight.w400,
-              fontSize: 12,
-              color: ColorManager.tertiaryText,
-            ),
+          subtitle: Row(
+            spacing: 6,
+            children: [
+              if (sound || vibration)
+                Text(
+                  "${sound ? "Sound" : ""}${sound && vibration ? " & " : ""}${vibration ? "Vibration" : ""}${sound || vibration ? " Alert" : ""}",
+                  style: const TextStyle(
+                    color: ColorManager.tertiaryText,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              if (sound || vibration) BLEPill(),
+              Text(
+                "${threshold?.toInt()} DB",
+                style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  color: ColorManager.tertiaryText,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      backgroundColor: ColorManager.white,
-      collapsedBackgroundColor: ColorManager.white,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(width: 1, color: ColorManager.containerBorder),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      collapsedShape: RoundedRectangleBorder(
-        side: BorderSide(width: 1, color: ColorManager.containerBorder),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      childrenPadding: EdgeInsets.all(16),
-      expandedCrossAxisAlignment: CrossAxisAlignment.start,
-      expandedAlignment: Alignment.topLeft,
-      children: [
-        Text(
-          "Set Sound Threshold ",
-          style: const TextStyle(
-            color: ColorManager.secondaryText,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+          backgroundColor: ColorManager.white,
+          collapsedBackgroundColor: ColorManager.white,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(width: 1, color: ColorManager.containerBorder),
+            borderRadius: BorderRadius.circular(8),
           ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          collapsedShape: RoundedRectangleBorder(
+            side: BorderSide(width: 1, color: ColorManager.containerBorder),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          childrenPadding: EdgeInsets.all(16),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          expandedAlignment: Alignment.topLeft,
           children: [
             Text(
-              "${threshold?.toInt()} DB",
-              style: TextStyle(
-                fontWeight: FontWeight.w400,
+              "Set Sound Threshold ",
+              style: const TextStyle(
+                color: ColorManager.secondaryText,
                 fontSize: 14,
-                color: ColorManager.tertiaryText,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            Slider(
-              value: threshold!.toDouble(),
-              max: 120,
-              min: 30,
-              activeColor: ColorManager.accent,
-              onChanged: (value) {
-                ref
-                    .read(
-                      deviceThresholdProvider(
-                        widget.device.device.id,
-                      ).notifier,
-                    )
-                    .saveToDevice(
-                      widget.device.device.id,
-                      value.toInt(),
-                    );
-              },
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "Sound Alert",
-                  style: const TextStyle(
-                    color: ColorManager.secondaryText,
+                  "${threshold?.toInt()} DB",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w400,
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    color: ColorManager.tertiaryText,
                   ),
                 ),
-                BLEToggle(
-                  value: sound,
+                Slider(
+                  value: threshold!.toDouble(),
+                  max: 120,
+                  min: 30,
+                  activeColor: ColorManager.accent,
                   onChanged: (value) {
-                    setState(() {
-                      sound = value;
-                    });
-                    prefs.setBool(
-                      "${widget.device.device.id}s",
-                      value,
-                    );
+                    ref
+                        .read(
+                          deviceThresholdProvider(
+                            widget.device.device.id,
+                          ).notifier,
+                        )
+                        .saveToDevice(widget.device.device.id, value.toInt());
                   },
                 ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Vibration Alert",
-                  style: const TextStyle(
-                    color: ColorManager.secondaryText,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Sound Alert",
+                      style: const TextStyle(
+                        color: ColorManager.secondaryText,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    BLEToggle(
+                      value: sound,
+                      onChanged: (value) {
+                        setState(() {
+                          sound = value;
+                        });
+                        prefs.setBool("${widget.device.device.id}s", value);
+                      },
+                    ),
+                  ],
                 ),
-                BLEToggle(
-                  value: vibration,
-                  onChanged: (value) {
-                    setState(() {
-                      vibration = value;
-                    });
-                    prefs.setBool(
-                      "${widget.device.device.id}v",
-                      value,
-                    );
-                  },
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Vibration Alert",
+                      style: const TextStyle(
+                        color: ColorManager.secondaryText,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    BLEToggle(
+                      value: vibration,
+                      onChanged: (value) {
+                        setState(() {
+                          vibration = value;
+                        });
+                        prefs.setBool("${widget.device.device.id}v", value);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
           ],
-        ),
-      ],
-    );
+        );
   }
 }
