@@ -128,7 +128,7 @@ class BLEService {
 
   Future<void> setValue(int value) async {
     final FlutterReactiveBle ble = FlutterReactiveBle();
-    debugPrint("Setting value: $type");
+    debugPrint("Setting value: $type, value: $value");
     if (type == BLEServiceType.setInt) {
       debugPrint("Setting");
       debugPrint("set ${uuid.name} int");

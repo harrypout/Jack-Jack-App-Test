@@ -10,6 +10,10 @@ class DeviceThreshold extends _$DeviceThreshold {
     return connectedDevices[deviceID]?.getThreshold.data;
   }
 
+  void change(int threshold) {
+    state = threshold;
+  }
+
   Future<void> saveToDevice(String deviceID, int threshold) async {
     final connectedDevices = ref.watch(connectedDevicesProvider);
     await connectedDevices[deviceID]?.setThreshold.setValue(threshold);

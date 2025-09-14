@@ -107,7 +107,15 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
                   max: 120,
                   min: 30,
                   activeColor: ColorManager.accent,
-                  onChanged: (value) {
+                  onChanged: (val){
+                    ref
+                        .read(
+                          deviceThresholdProvider(
+                            widget.device.device.id,
+                          ).notifier,
+                        ).change(val.toInt());
+                  },
+                  onChangeEnd: (value) {
                     ref
                         .read(
                           deviceThresholdProvider(

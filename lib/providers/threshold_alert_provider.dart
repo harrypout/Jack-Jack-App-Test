@@ -57,7 +57,7 @@ class ThresholdAlert extends _$ThresholdAlert {
       final subscription = (device.thresholdAlert.data as Stream<int>)
           .asBroadcastStream()
           .listen((value) {
-            debugPrint("value: $value");
+            debugPrint("value: $value, device.getThreshold.data: ${device.getThreshold.data}");
             if (value > 0 && device.getThreshold.data> 0) {
               final deviceName = device.device.name;
               NotificationManager.instance.showThresholdAlert(
