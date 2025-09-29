@@ -82,7 +82,7 @@ class BLEService {
   }
 
   Future<void> getValue() async {
-    debugPrint("Get Value: ${toString()}");
+    debugPrint("Old Get Value: ${toString()}");
     if (type == BLEServiceType.stream) {
       if (qualifiedCharacteristic == null) {
         data = Stream.value(0).asBroadcastStream();
@@ -123,7 +123,7 @@ class BLEService {
         }
       }
     }
-    debugPrint(data.toString());
+    debugPrint("New Get Value: ${data.toString()}");
   }
 
   Future<void> setValue(int value) async {

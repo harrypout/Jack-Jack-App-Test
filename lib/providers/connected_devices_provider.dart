@@ -251,7 +251,7 @@ class ConnectedDevices extends _$ConnectedDevices {
       );
       ref
           .read(thresholdAlertProvider.notifier)
-          .setupDeviceAlert(device.id, oldState[device.id]!);
+          .setupDeviceAlert(device.id);
     }
   }
 }

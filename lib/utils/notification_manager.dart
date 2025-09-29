@@ -36,23 +36,52 @@ class NotificationManager {
     await _notificationsPlugin.initialize(initializationSettings);
   }
 
+  AndroidNotificationDetails defaultNotificationDetails({
+    bool enableVibration = false,
+    playSound = false,
+  }) => AndroidNotificationDetails(
+    'threshold_alerts_channel${playSound ? "_sound" : ""}${enableVibration ? "_vibration" : ""}',
+    'Threshold Alerts with ${playSound ? "Sound" : "No Sound"} and ${enableVibration ? "Vibration" : "No Vibration"}',
+    channelDescription: 'Alerts when sound level exceeds threshold',
+    importance: Importance.high,
+    priority: Priority.high,
+    enableVibration: enableVibration,
+    playSound: playSound,
+  );
+
+  AndroidNotificationDetails get noSoundNoVibrationNotificationDetails =>
+      defaultNotificationDetails(enableVibration: false, playSound: false);
+
+  AndroidNotificationDetails get soundNoVibrationNotificationDetails =>
+      defaultNotificationDetails(enableVibration: false, playSound: true);
+
+  AndroidNotificationDetails get noSoundVibrationNotificationDetails =>
+      defaultNotificationDetails(enableVibration: true, playSound: false);
+
+  AndroidNotificationDetails get soundVibrationNotificationDetails =>
+      defaultNotificationDetails(enableVibration: true, playSound: true);
+
+  AndroidNotificationDetails getNotificationDetails({
+    required bool vibration,
+    required bool sound,
+  }) {
+    if (vibration && sound) {
+      return soundVibrationNotificationDetails;
+    } else if (vibration && !sound) {
+      return noSoundVibrationNotificationDetails;
+    } else if (!vibration && sound) {
+      return soundNoVibrationNotificationDetails;
+    } else {
+      return noSoundNoVibrationNotificationDetails;
+    }
+  }
+
   Future<void> showNotification({
     required String title,
     required String body,
     required bool vibration,
     required bool sound,
   }) async {
-    AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'threshold_alerts_channel',
-          'Threshold Alerts',
-          channelDescription: 'Alerts when sound level exceeds threshold',
-          importance: Importance.high,
-          priority: Priority.high,
-          enableVibration: vibration,
-          playSound: sound,
-        );
-
     DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
@@ -60,7 +89,7 @@ class NotificationManager {
     );
 
     NotificationDetails platformDetails = NotificationDetails(
-      android: androidDetails,
+      android: getNotificationDetails(vibration: vibration, sound: sound),
       iOS: iosDetails,
     );
 
@@ -80,7 +109,8 @@ class NotificationManager {
     final hasSound = prefs.getBool("${deviceId}s") ?? false;
     final hasVibration = prefs.getBool("${deviceId}v") ?? false;
     debugPrint(
-        "Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId");
+      "Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId",
+    );
     await showNotification(
       title: 'Sound Alert',
       body: 'Sound level exceeded on $deviceName',
