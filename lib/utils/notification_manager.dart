@@ -109,11 +109,28 @@ class NotificationManager {
     final hasSound = prefs.getBool("${deviceId}s") ?? false;
     final hasVibration = prefs.getBool("${deviceId}v") ?? false;
     debugPrint(
-      "Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId",
+      "Threshold Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId",
     );
     await showNotification(
       title: 'Sound Alert',
       body: 'Sound level exceeded on $deviceName',
+      vibration: hasVibration,
+      sound: hasSound,
+    );
+  }
+
+    Future<void> showDisconnectionAlert({
+    required String deviceId,
+    required String deviceName,
+  }) async {
+    final hasSound = prefs.getBool("${deviceId}s") ?? false;
+    final hasVibration = prefs.getBool("${deviceId}v") ?? false;
+    debugPrint(
+      "Disconnection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId",
+    );
+    await showNotification(
+      title: 'Device Alert',
+      body: '$deviceName was disconnected',
       vibration: hasVibration,
       sound: hasSound,
     );
