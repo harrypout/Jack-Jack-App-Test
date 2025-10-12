@@ -3,6 +3,7 @@ import 'package:jackjack/providers/periodic_task_provider.dart';
 import 'package:jackjack/providers/threshold_alert_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
+import 'package:jackjack/utils/battery_optimization_manager.dart';
 import 'package:jackjack/utils/env_manager.dart';
 import 'package:jackjack/utils/permission_manager.dart';
 import 'package:jackjack/utils/navigation_manager.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
   prefs = await SharedPreferences.getInstance();
   await NotificationManager.instance.initialize();
   await PermissionManager.check();
+  await BatteryOptimizationManager.check();
   await PairedDevicesUUID.loadFromPrefs();
   runApp(ProviderScope(child: const BLE()));
 }
