@@ -1,9 +1,9 @@
 import 'package:jackjack/models/ble_device.dart';
+import 'package:jackjack/providers/connected_status_provider.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/providers/loading_provider.dart';
 import 'package:jackjack/providers/selected_device_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
-import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/widgets/ble_pill.dart';
 import 'package:jackjack/widgets/ble_toggle.dart';
@@ -26,25 +26,16 @@ class HomeScreenDevice extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
-  bool on = false;
-
-  @override
-  void initState() {
-    super.initState();
-    setState(() {
-      on = ref
-          .read(connectedDevicesTrackerProvider.notifier)
-          .isDeviceConnected(widget.device.device.id);
-    });
-    debugPrint(widget.device.device.id);
-  }
-
   @override
   Widget build(BuildContext context) {
     final threshold = ref.watch(
       deviceThresholdProvider(widget.device.device.id),
     );
     final isLoading = ref.watch(loadingProvider(widget.device.device.id));
+    final isConnected = ref.watch(
+      connectedStatusProvider(widget.device.device.id),
+    );
+
     return InkWell(
       onTap: () {
         ref
@@ -71,8 +62,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        child:
-        Skeletonizer(
+        child: Skeletonizer(
           enabled: isLoading,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -123,7 +113,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                       ),
                       BLEPill(),
                       Text(
-                        on ? "Connected" : "Disconnected",
+                        isConnected ? "Connected" : "Disconnected",
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 12,
@@ -144,7 +134,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                 ],
               ),
               BLEToggle(
-                value: on,
+                value: isConnected,
                 onChanged:
                     isLoading
                         ? (v) {}
@@ -156,9 +146,13 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                                 widget.device.device,
                                 shouldConnect: value,
                               );
-                          setState(() {
-                            on = value;
-                          });
+                          ref
+                              .read(
+                                connectedStatusProvider(
+                                  widget.device.device.id,
+                                ).notifier,
+                              )
+                              .toggle(value);
                         },
               ),
             ],

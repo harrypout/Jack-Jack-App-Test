@@ -1,5 +1,5 @@
 import 'package:jackjack/models/ble_device.dart';
-import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
+import 'package:jackjack/providers/connected_status_provider.dart';
 import 'package:jackjack/widgets/ble_gauge.dart';
 import 'package:jackjack/widgets/ble_indicator_box.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +11,9 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isConnected = ref
-        .watch(connectedDevicesTrackerProvider.notifier)
-        .isDeviceConnected(device?.device.id);
+      final isConnected = ref.watch(
+      connectedStatusProvider(device?.device.id),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
