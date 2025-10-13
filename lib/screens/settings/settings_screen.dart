@@ -4,10 +4,21 @@ import 'package:jackjack/screens/settings/widgets/settings_section.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_app_bar.dart';
 import 'package:jackjack/widgets/ble_background.dart';
+import 'package:jackjack/widgets/ble_dropdown.dart';
 import 'package:jackjack/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
-
 import '../../main.dart';
+
+Map<String, Duration> notificationTimeoutOptions = {
+  "15 seconds": Duration(seconds: 15),
+  "30 seconds": Duration(seconds: 30),
+  "1 minute": Duration(minutes: 1),
+  "2 minutes": Duration(minutes: 2),
+};
+Duration get notificationTimeout {
+  String key = prefs.getString("notificationTimeout") ?? "15 seconds";
+  return notificationTimeoutOptions[key] ?? Duration(seconds: 15);
+}
 
 class SettingsScreen extends StatefulWidget {
   static const String id = 'settings_screen';
@@ -65,6 +76,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             });
                             prefs.setBool("autoConnect", value);
                           },
+                        ),
+                        SettingsItem(
+                          assetName: "help",
+                          title: "Notification Timeout",
+                          trailing: Container(
+                            height: 50,
+                            width: 150,
+                            child: DropdownWithMap(
+                              hintText: "Select Timeout",
+                              items: notificationTimeoutOptions,
+                              initialSelection: notificationTimeout,
+                              onSelected: (Duration? duration) {
+                                if (duration != null) {
+                                  String key = notificationTimeoutOptions.keys
+                                      .firstWhere((k) =>
+                                          notificationTimeoutOptions[k] ==
+                                          duration);
+                                  prefs.setString("notificationTimeout", key);
+                                  setState(() {});
+                                }
+                              },
+                              width: 150,
+                            ),
+                          ),
+                          onTap: () {},
                         ),
                       ],
                     ),

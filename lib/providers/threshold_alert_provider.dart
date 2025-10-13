@@ -4,6 +4,7 @@ import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/models/notification_sf.dart';
 import 'package:jackjack/providers/notifications_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/screens/settings/settings_screen.dart';
 import 'package:jackjack/utils/notification_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'threshold_alert_provider.g.dart';
@@ -62,7 +63,9 @@ class ThresholdAlert extends _$ThresholdAlert {
       final subscription = (deviceThresholdAlert.data as Stream<int>)
           .asBroadcastStream()
           .listen((value) {
-        if(lastAlertTime == null || DateTime.now().difference(lastAlertTime!) >= Duration(seconds: 3)) {
+            if (lastAlertTime == null ||
+                DateTime.now().difference(lastAlertTime!) >=
+                    notificationTimeout) {
               if (value > 0) {
                 var device = ref.read(connectedDevicesProvider)[deviceId]!;
                 if (device.getThreshold.data > 0) {
