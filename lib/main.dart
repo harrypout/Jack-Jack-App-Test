@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:jackjack/providers/paired_devices.dart';
 import 'package:jackjack/providers/periodic_task_provider.dart';
 import 'package:jackjack/providers/threshold_alert_provider.dart';
@@ -21,7 +23,9 @@ Future<void> main() async {
   prefs = await SharedPreferences.getInstance();
   await NotificationManager.instance.initialize();
   await PermissionManager.check();
-  await BatteryOptimizationManager.check();
+  if(Platform.isAndroid){
+    await BatteryOptimizationManager.check();
+  }
   await PairedDevicesUUID.loadFromPrefs();
   runApp(ProviderScope(child: const BLE()));
 }
