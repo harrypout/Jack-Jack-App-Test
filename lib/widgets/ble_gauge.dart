@@ -6,9 +6,15 @@ import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class BLEGauge extends ConsumerStatefulWidget {
   final String selectedDevice;
+  final int selectedValue;
   final Stream<int>? valueStream;
 
-  const BLEGauge({super.key, required this.selectedDevice, this.valueStream});
+  const BLEGauge({
+    super.key,
+    required this.selectedDevice,
+    this.valueStream,
+    required this.selectedValue,
+  });
 
   @override
   ConsumerState createState() => _BLEGaugeState();
@@ -17,7 +23,6 @@ class BLEGauge extends ConsumerStatefulWidget {
 class _BLEGaugeState extends ConsumerState<BLEGauge> {
   double _currentValue = 0.0;
   StreamSubscription<int>? _streamSubscription;
-  int selectedValue = 0;
   double gaugeRangeWidth = 10;
 
   @override
@@ -151,11 +156,18 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
               ),
               //todo: broken
               GaugeAnnotation(
+                axisValue: widget.selectedValue.toDouble(),
                 widget: Transform.rotate(
-                  angle: (selectedValue / 120) * 2 * 3.141592653589793,
+                  angle:
+                      (135 +
+                          ((widget.selectedValue <= 120
+                                  ? widget.selectedValue
+                                  : 120) *
+                              2.25)) *
+                      ((22 / 7) / 180),
                   child: Icon(Icons.arrow_back, color: Colors.green, size: 20),
                 ),
-                angle: (selectedValue / 120) * 360,
+                // angle: (selectedValue / 120) * 360,
                 positionFactor: 0.8,
               ),
             ],

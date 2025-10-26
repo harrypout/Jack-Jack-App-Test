@@ -61,6 +61,12 @@ class _ManualMonitoringScreenState
                                   connectedDevices[selectedDevice]
                                       ?.getSoundLevel
                                       .data,
+                              //todo:test
+                              selectedValue:
+                                  connectedDevices[selectedDevice]
+                                      ?.getThreshold
+                                      .data ??
+                                  0,
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -170,10 +176,10 @@ class _ManualMonitoringScreenState
                 ),
                 _buildActionButton(
                   ref
-                          .read(connectedDevicesTrackerProvider.notifier)
-                          .isDeviceConnected(
-                            connectedDevices[selectedDevice]?.device.id,
-                          ),
+                      .read(connectedDevicesTrackerProvider.notifier)
+                      .isDeviceConnected(
+                        connectedDevices[selectedDevice]?.device.id,
+                      ),
                   ref,
                 ),
                 SizedBox(height: 45),

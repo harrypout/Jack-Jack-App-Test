@@ -11,15 +11,15 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-      final isConnected = ref.watch(
-      connectedStatusProvider(device?.device.id),
-    );
+    final isConnected = ref.watch(connectedStatusProvider(device?.device.id));
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         BLEGauge(
           selectedDevice: device?.device.name ?? "No Device Selected",
           valueStream: device?.getSoundLevel.data,
+          //todo:test
+          selectedValue: device?.getThreshold.data ?? 0,
         ),
         Row(
           spacing: 16,
