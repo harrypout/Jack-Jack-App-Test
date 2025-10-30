@@ -1,5 +1,6 @@
 import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/providers/connected_status_provider.dart';
+import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/widgets/ble_gauge.dart';
 import 'package:jackjack/widgets/ble_indicator_box.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,9 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isConnected = ref.watch(connectedStatusProvider(device?.device.id));
+    final threshold = ref.watch(
+      deviceThresholdProvider(device?.device.id ?? ""),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -19,7 +23,7 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
           selectedDevice: device?.device.name ?? "No Device Selected",
           valueStream: device?.getSoundLevel.data,
           //todo:test
-          selectedValue: device?.getThreshold.data ?? 0,
+          selectedValue: threshold ?? 0,
         ),
         Row(
           spacing: 16,
