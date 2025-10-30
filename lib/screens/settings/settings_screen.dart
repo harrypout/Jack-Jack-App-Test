@@ -140,11 +140,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               title: "App Info",
                               onTap: () {},
                             ),
-                            SettingsItem(
-                              assetName: "share",
-                              title: "Share with Friends",
-                              onTap: () {},
-                            ),
+                            // SettingsItem(
+                            //   assetName: "share",
+                            //   title: "Share with Friends",
+                            //   onTap: () {},
+                            // ),
                           ],
                         ),
                       ],
