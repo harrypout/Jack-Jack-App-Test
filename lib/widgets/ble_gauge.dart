@@ -167,8 +167,7 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
                       ((22 / 7) / 180),
                   child: Icon(Icons.arrow_back, color: Colors.green, size: 20),
                 ),
-                // angle: (selectedValue / 120) * 360,
-                positionFactor: 0.8,
+                positionFactor: 1.09,
               ),
             ],
             majorTickStyle: MajorTickStyle(
