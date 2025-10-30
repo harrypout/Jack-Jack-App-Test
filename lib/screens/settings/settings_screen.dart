@@ -86,7 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               title: "Notification Timeout",
                               trailing: Container(
                                 height: 50,
-                                width: 150,
+                                // width: 150,
                                 child: DropdownWithMap(
                                   hintText: "Select Timeout",
                                   items: notificationTimeoutOptions,
@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       setState(() {});
                                     }
                                   },
-                                  width: 150,
+                                  width: 125,
                                 ),
                               ),
                               onTap: () {},
