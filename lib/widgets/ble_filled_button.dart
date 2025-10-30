@@ -22,6 +22,7 @@ class BLEFilledButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BLEButton(
+      key: key,
       data: data,
       buttonSize: buttonSize,
       onPressed: onPressed,

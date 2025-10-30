@@ -1,3 +1,4 @@
+import 'package:jackjack/screens/contact_us/contact_us_screen.dart';
 import 'package:jackjack/screens/faq/faq_screen.dart';
 import 'package:jackjack/screens/settings/widgets/settings_item.dart';
 import 'package:jackjack/screens/settings/widgets/settings_section.dart';
@@ -42,106 +43,113 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: BLEBackground(
         child: SafeArea(
           child: Column(
             children: [
               BLEAppBar(title: "Settings"),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: ThemeManager.horizontalPadding,
-                ),
-                child: Column(
-                  children: [
-                    SettingsSection(
-                      section: "General",
-                      divider: false,
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ThemeManager.horizontalPadding,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
                       children: [
-                        SettingsItem(
-                          assetName: "bluetooth",
-                          title: "BLE Auto Connect",
-                          trailing: BLEToggle(
-                            value: autoConnect,
-                            onChanged: (value) {
-                              setState(() {
-                                autoConnect = value;
-                              });
-                              prefs.setBool("autoConnect", value);
-                            },
-                          ),
-                          onTap: () {
-                            bool value = !autoConnect;
-                            setState(() {
-                              autoConnect = value;
-                            });
-                            prefs.setBool("autoConnect", value);
-                          },
-                        ),
-                        SettingsItem(
-                          assetName: "help",
-                          title: "Notification Timeout",
-                          trailing: Container(
-                            height: 50,
-                            width: 150,
-                            child: DropdownWithMap(
-                              hintText: "Select Timeout",
-                              items: notificationTimeoutOptions,
-                              initialSelection: notificationTimeout,
-                              onSelected: (Duration? duration) {
-                                if (duration != null) {
-                                  String key = notificationTimeoutOptions.keys
-                                      .firstWhere((k) =>
-                                          notificationTimeoutOptions[k] ==
-                                          duration);
-                                  prefs.setString("notificationTimeout", key);
-                                  setState(() {});
-                                }
+                        SettingsSection(
+                          section: "General",
+                          divider: false,
+                          children: [
+                            SettingsItem(
+                              assetName: "bluetooth",
+                              title: "BLE Auto Connect",
+                              trailing: BLEToggle(
+                                value: autoConnect,
+                                onChanged: (value) {
+                                  setState(() {
+                                    autoConnect = value;
+                                  });
+                                  prefs.setBool("autoConnect", value);
+                                },
+                              ),
+                              onTap: () {
+                                bool value = !autoConnect;
+                                setState(() {
+                                  autoConnect = value;
+                                });
+                                prefs.setBool("autoConnect", value);
                               },
-                              width: 150,
                             ),
-                          ),
-                          onTap: () {},
+                            SettingsItem(
+                              assetName: "help",
+                              title: "Notification Timeout",
+                              trailing: Container(
+                                height: 50,
+                                width: 150,
+                                child: DropdownWithMap(
+                                  hintText: "Select Timeout",
+                                  items: notificationTimeoutOptions,
+                                  initialSelection: notificationTimeout,
+                                  onSelected: (Duration? duration) {
+                                    if (duration != null) {
+                                      String key = notificationTimeoutOptions.keys
+                                          .firstWhere((k) =>
+                                              notificationTimeoutOptions[k] ==
+                                              duration);
+                                      prefs.setString("notificationTimeout", key);
+                                      setState(() {});
+                                    }
+                                  },
+                                  width: 150,
+                                ),
+                              ),
+                              onTap: () {},
+                            ),
+                          ],
+                        ),
+                        SettingsSection(
+                          section: "Support",
+                          children: [
+                            SettingsItem(
+                              assetName: "help",
+                              title: "Help",
+                              onTap: () {
+                                Navigator.pushNamed(context, FAQScreen.id);
+                              },
+                            ),
+                            SettingsItem(
+                              assetName: "contact-us",
+                              title: "Contact Us",
+                              onTap: () {
+                                Navigator.pushNamed(context, ContactUsScreen.id);
+                              },
+                            ),
+                            SettingsItem(
+                              assetName: "rate-app",
+                              title: "Rate App",
+                              onTap: () {},
+                            ),
+                          ],
+                        ),
+                        SettingsSection(
+                          section: "About App",
+                          children: [
+                            SettingsItem(
+                              assetName: "app-info",
+                              title: "App Info",
+                              onTap: () {},
+                            ),
+                            SettingsItem(
+                              assetName: "share",
+                              title: "Share with Friends",
+                              onTap: () {},
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    SettingsSection(
-                      section: "Support",
-                      children: [
-                        SettingsItem(
-                          assetName: "help",
-                          title: "Help",
-                          onTap: () {
-                            Navigator.pushNamed(context, FAQScreen.id);
-                          },
-                        ),
-                        SettingsItem(
-                          assetName: "contact-us",
-                          title: "Contact Us",
-                          onTap: () {},
-                        ),
-                        SettingsItem(
-                          assetName: "rate-app",
-                          title: "Rate App",
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                    SettingsSection(
-                      section: "About App",
-                      children: [
-                        SettingsItem(
-                          assetName: "app-info",
-                          title: "App Info",
-                          onTap: () {},
-                        ),
-                        SettingsItem(
-                          assetName: "share",
-                          title: "Share with Friends",
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],

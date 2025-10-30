@@ -25,6 +25,7 @@ class BLEButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
+      key: key,
       onPressed: onPressed,
       style: ButtonStyle(
         padding: WidgetStateProperty.all(
