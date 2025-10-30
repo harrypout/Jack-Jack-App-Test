@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/widgets/ble_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 // import 'package:jackjack/providers/selected_device_provider.dart';
 // import 'package:jackjack/providers/connected_devices_provider.dart';
 // import 'package:jackjack/screens/manual_monitoring/providers/manual_monitoring_provider.dart';
@@ -13,7 +14,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:jackjack/widgets/ble_outlined_button.dart';
 // import 'package:jackjack/widgets/ble_pill.dart';
 // import 'package:jackjack/widgets/ble_toggle.dart';
-import 'package:jackjack/utils/theme_manager.dart';
 // import 'package:flutter_svg/svg.dart';
 
 class ManualMonitoringScreen extends ConsumerStatefulWidget {
