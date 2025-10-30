@@ -36,14 +36,13 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
     try {
       if (await canLaunchUrl(Uri.parse(emailUrl))) {
         await launchUrl(Uri.parse(emailUrl));
-         Navigator.pop(context);
+        Navigator.pop(context);
       } else {
         ToastManager.show("Failed to open email app");
       }
     } catch (e) {
       ToastManager.show("Failed to open email app");
     }
-
   }
 
   @override
@@ -104,7 +103,7 @@ class _ContactUsScreenState extends ConsumerState<ContactUsScreen> {
                       padding: EdgeInsets.only(
                         right: ThemeManager.horizontalPadding,
                         left: ThemeManager.horizontalPadding,
-                        bottom: 10
+                        bottom: 10,
                         // bottom: MediaQuery.of(context).viewInsets.bottom + 5,
                       ),
                       child: BLEFilledButton(

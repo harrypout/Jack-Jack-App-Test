@@ -34,8 +34,7 @@ class _ManualMonitoringScreenState
     return Scaffold(
       body: BLEBackground(
         child: SafeArea(
-          child:
-          Padding(
+          child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: ThemeManager.horizontalPadding,
             ),
@@ -43,18 +42,16 @@ class _ManualMonitoringScreenState
               children: [
                 _buildHeader(),
                 Expanded(
-                  child:
-                  Center(
-            child: Text(
-              "Coming Soon...",
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-                color: ColorManager.primaryText,
-              ),
-            ),
-          ),
-
+                  child: Center(
+                    child: Text(
+                      "Coming Soon...",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                        color: ColorManager.primaryText,
+                      ),
+                    ),
+                  ),
                   // Column(
                   //   mainAxisAlignment:
                   //       manualMonitoringPod.isStreaming

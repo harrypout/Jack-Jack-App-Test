@@ -93,11 +93,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   initialSelection: notificationTimeout,
                                   onSelected: (Duration? duration) {
                                     if (duration != null) {
-                                      String key = notificationTimeoutOptions.keys
-                                          .firstWhere((k) =>
-                                              notificationTimeoutOptions[k] ==
-                                              duration);
-                                      prefs.setString("notificationTimeout", key);
+                                      String key = notificationTimeoutOptions
+                                          .keys
+                                          .firstWhere(
+                                            (k) =>
+                                                notificationTimeoutOptions[k] ==
+                                                duration,
+                                          );
+                                      prefs.setString(
+                                        "notificationTimeout",
+                                        key,
+                                      );
                                       setState(() {});
                                     }
                                   },
@@ -122,7 +128,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               assetName: "contact-us",
                               title: "Contact Us",
                               onTap: () {
-                                Navigator.pushNamed(context, ContactUsScreen.id);
+                                Navigator.pushNamed(
+                                  context,
+                                  ContactUsScreen.id,
+                                );
                               },
                             ),
                             SettingsItem(
