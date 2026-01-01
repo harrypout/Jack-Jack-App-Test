@@ -52,6 +52,13 @@
     <key>UIBackgroundModes</key>
     <array>
       <string>bluetooth-central</string>
+      <string>audio</string>
+      <string>processing</string>
+    </array>
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+      <string>com.jackjack.batteryPoll</string>
+      <string>com.jackjack.bleMonitor</string>
     </array>
   </dict>
 </plist>

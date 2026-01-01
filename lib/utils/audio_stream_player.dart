@@ -14,7 +14,23 @@ class AudioStreamPlayer {
 
   Future<void> initialize() async {
     final session = await AudioSession.instance;
-    await session.configure(AudioSessionConfiguration.speech());
+
+    // Configure for background playback
+    await session.configure(
+      AudioSessionConfiguration(
+        avAudioSessionCategory: AVAudioSessionCategory.playback,
+        avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
+        avAudioSessionMode: AVAudioSessionMode.defaultMode,
+        avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
+        avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+        androidAudioAttributes: const AndroidAudioAttributes(
+          contentType: AndroidAudioContentType.speech,
+          usage: AndroidAudioUsage.media, // Allows background playback
+        ),
+        androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+        androidWillPauseWhenDucked: false,
+      ),
+    );
 
     _audioPlayer.playerStateStream.listen((state) {
       debugPrint('Audio player state: ${state.processingState} - ${state.playing}');

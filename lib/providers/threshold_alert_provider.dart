@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/models/notification_sf.dart';
 import 'package:jackjack/providers/notifications_provider.dart';
@@ -16,8 +17,28 @@ class ThresholdAlert extends _$ThresholdAlert {
 
   @override
   void build() {
+    // Listen to threshold alerts from background service
+    _listenToBackgroundAlerts();
+
     ref.onDispose(() {
       _cancelAllSubscriptions();
+    });
+  }
+
+  /// Subscribe to alerts from background service
+  void _listenToBackgroundAlerts() {
+    FlutterBackgroundService().on('thresholdAlert').listen((event) {
+      if (event != null) {
+        final threshold = event['threshold'] as int;
+        final deviceName = event['deviceName'] as String;
+
+        debugPrint('📢 Received threshold alert from background: $deviceName - $threshold');
+
+        // Add to notification list
+        ref.read(notificationsProvider.notifier).addNotification(
+              NotificationSF(device: deviceName, value: threshold),
+            );
+      }
     });
   }
 
