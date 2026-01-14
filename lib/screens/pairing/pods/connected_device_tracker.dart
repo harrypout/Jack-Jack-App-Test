@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
-import 'package:jackjack/providers/connected_status_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:jackjack/utils/notification_manager.dart';
@@ -51,7 +50,7 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
           });
 
           _deviceConnections[deviceId] = subscription;
-          disconnectDevice(deviceId);
+          // Subscription remains active to monitor connection state
         }
       } else if (connectionStateUpdate.connectionState == DeviceConnectionState.disconnected ||
                  connectionStateUpdate.connectionState == DeviceConnectionState.disconnecting) {
@@ -64,13 +63,7 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
             deviceName: disconnectedDevice.device.name,
           );
         }
-                                  ref
-                              .read(
-                                connectedStatusProvider(
-                                 connectionStateUpdate.deviceId,
-                                ).notifier,
-                              )
-                              .toggle(false);
+        // UI will auto-update via reactive provider - no manual toggle needed
         _connectedDeviceIds.remove(connectionStateUpdate.deviceId);
       }
       state = AsyncData(Set<String>.from(_connectedDeviceIds));

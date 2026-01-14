@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:jackjack/providers/paired_devices.dart';
 import 'package:jackjack/providers/periodic_task_provider.dart';
-import 'package:jackjack/providers/threshold_alert_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:jackjack/services/app_lifecycle_manager.dart';
@@ -83,7 +82,7 @@ class _BLEState extends ConsumerState<BLE> {
 
   @override
   Widget build(BuildContext context) {
-    ref.read(thresholdAlertProvider.notifier).setupAlerts();
+    // Alert setup happens automatically in connected_devices_provider.dart:254
     ref.watch(connectedDevicesTrackerProvider);
     ref.watch(deviceManagerProvider);
     ref.watch(periodicTaskServiceProvider);

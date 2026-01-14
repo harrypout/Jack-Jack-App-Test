@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/screens/manual_monitoring/providers/manual_monitoring_provider.dart';
+import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/main.dart';
 
 /// Manages app lifecycle events and coordinates between foreground UI and background service
@@ -73,6 +74,10 @@ class AppLifecycleManager with WidgetsBindingObserver {
 
     // Refresh background service status (user may have toggled in settings)
     _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? false;
+
+    // Restart foreground scan to discover nearby devices
+    ref.read(deviceManagerProvider.notifier).refreshScan();
+    debugPrint('✅ Refreshed device scan');
 
     if (_backgroundServiceActive) {
       // Request state sync from background service

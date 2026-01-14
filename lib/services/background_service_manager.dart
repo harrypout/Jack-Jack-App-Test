@@ -7,6 +7,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:jackjack/utils/env_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@pragma('vm:entry-point')
 class BackgroundServiceManager {
   static final FlutterBackgroundService _service = FlutterBackgroundService();
 
@@ -51,6 +52,7 @@ class BackgroundServiceManager {
     Map<String, String> deviceNames = {};
     bool isStreaming = false;
     Timer? batteryPollTimer;
+    Timer? autoReconnectTimer;
     Map<String, StreamSubscription> deviceConnections = {};
     Map<String, StreamSubscription> thresholdSubscriptions = {};
     Map<String, int> reconnectAttempts = {};
@@ -136,6 +138,7 @@ class BackgroundServiceManager {
 
       // Cancel all timers and subscriptions
       batteryPollTimer?.cancel();
+      autoReconnectTimer?.cancel();
       for (var subscription in deviceConnections.values) {
         subscription.cancel();
       }
@@ -176,6 +179,63 @@ class BackgroundServiceManager {
         } catch (e) {
           debugPrint('❌ Background: Error reading battery for $deviceId: $e');
         }
+      }
+    });
+
+    // Start auto-reconnect timer (every 5 minutes)
+    autoReconnectTimer = Timer.periodic(const Duration(minutes: 5), (_) async {
+      final autoConnect = prefs.getBool("autoConnect") ?? false;
+      if (!autoConnect) {
+        debugPrint('⏭️  Background: Auto-connect disabled, skipping scan');
+        return;
+      }
+
+      final pairedDeviceIds = prefs.getStringList('pairedDevicesUUID') ?? [];
+      if (pairedDeviceIds.isEmpty) {
+        debugPrint('⏭️  Background: No paired devices, skipping scan');
+        return;
+      }
+
+      debugPrint('🔍 Background: Starting auto-reconnect scan for ${pairedDeviceIds.length} paired devices');
+
+      StreamSubscription? scanSubscription;
+      try {
+        scanSubscription = ble
+            .scanForDevices(
+          withServices: [Uuid.parse(configs.setThresholdUUIDS.service)],
+          scanMode: ScanMode.balanced,
+        )
+            .listen((device) {
+          if (pairedDeviceIds.contains(device.id) &&
+              !connectedDeviceIds.contains(device.id)) {
+            debugPrint(
+                '🔌 Background: Found disconnected paired device: ${device.name} (${device.id})');
+
+            // Add to connected list and setup monitoring
+            connectedDeviceIds.add(device.id);
+            deviceNames[device.id] = device.name;
+
+            // Setup monitoring for this device
+            _setupDeviceMonitoring(
+              ble,
+              [device.id],
+              {device.id: device.name},
+              service,
+              deviceConnections,
+              thresholdSubscriptions,
+              reconnectAttempts,
+              prefs,
+            );
+          }
+        });
+
+        // Stop scan after 30 seconds
+        await Future.delayed(const Duration(seconds: 30));
+        await scanSubscription.cancel();
+        debugPrint('🛑 Background: Auto-reconnect scan completed');
+      } catch (e) {
+        debugPrint('❌ Background: Auto-reconnect scan error: $e');
+        await scanSubscription?.cancel();
       }
     });
   }

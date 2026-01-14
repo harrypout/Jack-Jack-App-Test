@@ -71,45 +71,63 @@ class ThresholdAlert extends _$ThresholdAlert {
 
   void setupDeviceAlert(String deviceId) {
     debugPrint("creating alert for $deviceId");
+
     if (_subscriptions.containsKey(deviceId)) {
       debugPrint("cancelling existing subscription for $deviceId");
       _subscriptions[deviceId]?.cancel();
       _subscriptions.remove(deviceId);
     }
-    var deviceThresholdAlert =
-        ref.read(connectedDevicesProvider)[deviceId]!.thresholdAlert;
 
-    if (deviceThresholdAlert.data != null &&
-        deviceThresholdAlert.qualifiedCharacteristic != null) {
-      final subscription = (deviceThresholdAlert.data as Stream<int>)
-          .asBroadcastStream()
-          .listen((value) {
-            if (lastAlertTime == null ||
-                DateTime.now().difference(lastAlertTime!) >=
-                    notificationTimeout) {
-              if (value > 0) {
-                var device = ref.read(connectedDevicesProvider)[deviceId]!;
-                if (device.getThreshold.data > 0) {
-                  debugPrint(
-                    "value: $value, device.getThreshold.data: ${device.getThreshold.data}",
-                  );
-                  final deviceName = device.device.name;
-                  NotificationManager.instance.showThresholdAlert(
-                    deviceId: deviceId,
-                    deviceName: deviceName,
-                    threshold: value,
-                  );
-                  ref
-                      .read(notificationsProvider.notifier)
-                      .addNotification(
-                        NotificationSF(device: deviceName, value: value),
-                      );
-                }
-              }
-              lastAlertTime = DateTime.now();
-            }
-          });
-      _subscriptions[deviceId] = subscription;
+    final deviceConnection = ref.read(connectedDevicesProvider)[deviceId];
+    if (deviceConnection == null) {
+      debugPrint("⚠️ Device $deviceId not in connected devices, skipping alert setup");
+      return;
     }
+
+    var deviceThresholdAlert = deviceConnection.thresholdAlert;
+
+    if (deviceThresholdAlert.data == null ||
+        deviceThresholdAlert.qualifiedCharacteristic == null) {
+      debugPrint("⚠️ Threshold alert data not ready for $deviceId, retrying in 200ms");
+
+      // Retry after a delay
+      Future.delayed(const Duration(milliseconds: 200), () {
+        setupDeviceAlert(deviceId);
+      });
+      return;
+    }
+
+    // Normal alert setup continues...
+    final subscription = (deviceThresholdAlert.data as Stream<int>)
+        .asBroadcastStream()
+        .listen((value) {
+          if (lastAlertTime == null ||
+              DateTime.now().difference(lastAlertTime!) >=
+                  notificationTimeout) {
+            if (value > 0) {
+              var device = ref.read(connectedDevicesProvider)[deviceId]!;
+              if (device.getThreshold.data > 0) {
+                debugPrint(
+                  "value: $value, device.getThreshold.data: ${device.getThreshold.data}",
+                );
+                final deviceName = device.device.name;
+                NotificationManager.instance.showThresholdAlert(
+                  deviceId: deviceId,
+                  deviceName: deviceName,
+                  threshold: value,
+                );
+                ref
+                    .read(notificationsProvider.notifier)
+                    .addNotification(
+                      NotificationSF(device: deviceName, value: value),
+                    );
+              }
+            }
+            lastAlertTime = DateTime.now();
+          }
+        });
+
+    _subscriptions[deviceId] = subscription;
+    debugPrint("✅ Alert subscription active for $deviceId");
   }
 }

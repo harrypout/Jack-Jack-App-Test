@@ -115,11 +115,10 @@ class ConnectedDevices extends _$ConnectedDevices {
               .read(connectedDevicesTrackerProvider.notifier)
               .storeConnectionSubscription(device.id, subscription);
         } else {
-          debugPrint("not connected");
+          // Device already connected, just complete successfully
+          debugPrint("Device already connected, proceeding to service discovery");
           if (!completer.isCompleted) {
-            completer.completeError("not connected");
-            debugPrint("Error: not connected");
-            throw "not connected";
+            completer.complete();
           }
         }
       } else {

@@ -13,6 +13,10 @@ part 'available_devices.g.dart';
 @riverpod
 class DeviceManager extends _$DeviceManager {
   StreamSubscription? _scanSubscription;
+  Timer? _scanCycleTimer;
+  Timer? _updateDebounceTimer;
+  bool _isScanning = false;
+  bool _isUpdating = false;
   final Map<String, DiscoveredDevice> _discoveredDevices = {};
 
   List<DiscoveredDevice> _pairedDevices = [];
@@ -28,15 +32,20 @@ class DeviceManager extends _$DeviceManager {
     _startScan();
     ref.onDispose(() {
       debugPrint("DeviceManager dispose");
+      _scanCycleTimer?.cancel();
       _scanSubscription?.cancel();
+      _updateDebounceTimer?.cancel();
     });
 
     return bleDevices;
   }
 
   void _startScan() {
+    if (_isScanning) return; // Prevent double-start
+
     try {
-      debugPrint("Starting scan");
+      debugPrint("Starting 35-second scan");
+      _isScanning = true;
       updateDeviceStreams();
       _scanSubscription = FlutterReactiveBle()
           .scanForDevices(
@@ -50,16 +59,33 @@ class DeviceManager extends _$DeviceManager {
               updateDeviceStreams();
             }
           });
+
+      // Stop scan after 35 seconds, wait 5 seconds, then restart
+      _scanCycleTimer?.cancel();
+      _scanCycleTimer = Timer(const Duration(seconds: 35), () async {
+        debugPrint("35-second scan complete, pausing for 5 seconds");
+        await _scanSubscription?.cancel();
+        _isScanning = false;
+
+        // Wait 5 seconds before restarting scan
+        await Future.delayed(const Duration(seconds: 5));
+        _startScan(); // Restart the cycle
+      });
     } catch (e, s) {
       debugPrint("Scan error: $e\n$s");
+      _isScanning = false;
     }
   }
 
   void updateDeviceStreams() {
-    Future.microtask(() async {
-      debugPrint("Updating device lists");
+    // Debounce: cancel pending update and schedule new one
+    _updateDebounceTimer?.cancel();
+    _updateDebounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      if (_isUpdating) return; // Skip if already updating
+      _isUpdating = true;
 
       try {
+        debugPrint("Updating device lists");
         await PairedDevicesUUID.loadFromPrefs();
 
         final newPairedDevices = <DiscoveredDevice>[];
@@ -71,25 +97,32 @@ class DeviceManager extends _$DeviceManager {
           if (pairedIds.contains(device.id)) {
             debugPrint("Paired device: ${device.name} (${device.id})");
             newPairedDevices.add(device);
-            if (!ref.read(connectedDevicesProvider).keys.contains(device.id)) {
-              debugPrint("Connecting to paired device: ${device.id}");
-              await ref
+
+            // Only auto-connect if NOT already connected and auto-connect enabled
+            // Check BOTH providers: physical connection AND service initialization
+            final isPhysicallyConnected = ref.read(connectedDevicesTrackerProvider).value?.contains(device.id) ?? false;
+            final hasServices = ref.read(connectedDevicesProvider).keys.contains(device.id);
+            final isConnected = isPhysicallyConnected && hasServices;
+
+            if (!isConnected && (prefs.getBool("autoConnect") ?? false)) {
+              debugPrint("Auto-connecting to paired device: ${device.id}");
+              ref
                   .read(connectedDevicesProvider.notifier)
-                  .connect(device, shouldConnect: prefs.getBool("autoConnect")?? false)
+                  .connect(device, shouldConnect: true)
                   .catchError((error) {
-                    debugPrint("Error connecting to device ${device.id}: $error");
+                    debugPrint("Error auto-connecting to ${device.id}: $error");
                   });
             }
           } else {
             debugPrint("Available device: ${device.name} (${device.id})");
             newAvailableDevices.add(device);
             if (ref.read(connectedDevicesProvider).keys.contains(device.id)) {
-              ref
-                  .read(connectedDevicesProvider.notifier)
-                  .removeDevice(device.id);
+              ref.read(connectedDevicesProvider.notifier).removeDevice(device.id);
             }
           }
         }
+
+        // Handle already-connected devices from tracker
         final connectedDeviceIds =
             ref.read(connectedDevicesTrackerProvider).value ?? <String>{};
         debugPrint("Connected devices from tracker: $connectedDeviceIds");
@@ -108,6 +141,7 @@ class DeviceManager extends _$DeviceManager {
             await PairedDevicesUUID.saveToPrefs(deviceId);
           }
         }
+
         _pairedDevices = newPairedDevices;
         _availableDevices = newAvailableDevices;
         state = BLEDevices(
@@ -116,6 +150,8 @@ class DeviceManager extends _$DeviceManager {
         );
       } catch (e, stackTrace) {
         debugPrint("Error updating device lists: $e\n$stackTrace");
+      } finally {
+        _isUpdating = false;
       }
     });
   }
@@ -136,7 +172,10 @@ class DeviceManager extends _$DeviceManager {
 
   void refreshScan() {
     debugPrint("Refreshing scan");
+    _scanCycleTimer?.cancel();
     _scanSubscription?.cancel();
+    _isScanning = false;
+    // Don't clear discovered devices - keep them to avoid reconnection issues
     _startScan();
   }
 }

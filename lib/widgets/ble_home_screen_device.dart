@@ -146,13 +146,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                                 widget.device.device,
                                 shouldConnect: value,
                               );
-                          ref
-                              .read(
-                                connectedStatusProvider(
-                                  widget.device.device.id,
-                                ).notifier,
-                              )
-                              .toggle(value);
+                          // UI will auto-update via reactive provider - no manual toggle needed
                         },
               ),
             ],
