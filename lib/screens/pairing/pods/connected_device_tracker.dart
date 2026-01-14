@@ -37,6 +37,16 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
       if (connectionStateUpdate.connectionState == DeviceConnectionState.connected) {
         debugPrint('Connected to device: ${connectionStateUpdate.deviceId}');
         _connectedDeviceIds.add(connectionStateUpdate.deviceId);
+
+        // Show connection notification
+        final connectedDevice = ref.read(connectedDevicesProvider)[connectionStateUpdate.deviceId];
+        if (connectedDevice != null) {
+          NotificationManager.instance.showConnectionAlert(
+            deviceId: connectedDevice.device.id,
+            deviceName: connectedDevice.device.name,
+          );
+        }
+
         if (!_deviceConnections.containsKey(connectionStateUpdate.deviceId)) {
           final deviceId = connectionStateUpdate.deviceId;
           final subscription = _ble.connectToDevice(
@@ -87,6 +97,17 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
   }
 
   Future<void> disconnectDevice(String deviceId) async {
+    // Show disconnect notification before removing
+    if (_connectedDeviceIds.contains(deviceId)) {
+      final disconnectedDevice = ref.read(connectedDevicesProvider)[deviceId];
+      if (disconnectedDevice != null) {
+        NotificationManager.instance.showDisconnectionAlert(
+          deviceId: disconnectedDevice.device.id,
+          deviceName: disconnectedDevice.device.name,
+        );
+      }
+    }
+
     _deviceConnections[deviceId]?.cancel();
     _deviceConnections.remove(deviceId);
     if (_connectedDeviceIds.contains(deviceId)) {

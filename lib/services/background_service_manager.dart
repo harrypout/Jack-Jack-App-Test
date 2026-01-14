@@ -69,12 +69,21 @@ class BackgroundServiceManager {
     // Listen for commands from UI
     service.on('updateDeviceList').listen((event) {
       if (event != null) {
-        connectedDeviceIds = List<String>.from(event['deviceIds'] as List);
+        final allDeviceIds = List<String>.from(event['deviceIds'] as List);
         deviceNames = Map<String, String>.from(event['deviceNames'] as Map);
         isStreaming = event['isStreaming'] as bool? ?? false;
 
+        // Filter out devices that user manually disconnected
+        connectedDeviceIds = allDeviceIds.where((deviceId) {
+          final userDisconnected = prefs.getBool("user_disconnected_$deviceId") ?? false;
+          if (userDisconnected) {
+            debugPrint('📱 Background: Filtering out user-disconnected device: $deviceId');
+          }
+          return !userDisconnected;
+        }).toList();
+
         debugPrint(
-            '📱 Background: Updated device list - ${connectedDeviceIds.length} devices');
+            '📱 Background: Updated device list - ${connectedDeviceIds.length} devices (${allDeviceIds.length - connectedDeviceIds.length} filtered)');
 
         // Update notification
         if (service is AndroidServiceInstance) {
@@ -94,6 +103,7 @@ class BackgroundServiceManager {
           thresholdSubscriptions,
           reconnectAttempts,
           prefs,
+          connectedDeviceIds,
         );
       }
     });
@@ -206,8 +216,12 @@ class BackgroundServiceManager {
           scanMode: ScanMode.balanced,
         )
             .listen((device) {
+          // Check if user manually disconnected this device
+          final userDisconnected = prefs.getBool("user_disconnected_${device.id}") ?? false;
+
           if (pairedDeviceIds.contains(device.id) &&
-              !connectedDeviceIds.contains(device.id)) {
+              !connectedDeviceIds.contains(device.id) &&
+              !userDisconnected) {
             debugPrint(
                 '🔌 Background: Found disconnected paired device: ${device.name} (${device.id})');
 
@@ -225,7 +239,10 @@ class BackgroundServiceManager {
               thresholdSubscriptions,
               reconnectAttempts,
               prefs,
+              connectedDeviceIds,
             );
+          } else if (userDisconnected) {
+            debugPrint('⏭️  Background: Skipping auto-connect for ${device.id} - user manually disconnected');
           }
         });
 
@@ -250,6 +267,7 @@ class BackgroundServiceManager {
     Map<String, StreamSubscription> thresholdSubscriptions,
     Map<String, int> reconnectAttempts,
     SharedPreferences prefs,
+    List<String> connectedDeviceIds,
   ) {
     // Cancel existing connections
     for (var subscription in deviceConnections.values) {
@@ -297,27 +315,36 @@ class BackgroundServiceManager {
             'timestamp': DateTime.now().millisecondsSinceEpoch,
           });
 
-          // Implement reconnection with exponential backoff
-          final attempt = reconnectAttempts[deviceId] ?? 0;
-          if (attempt < 10) {
-            // Max 10 retries
-            reconnectAttempts[deviceId] = attempt + 1;
-            final delay = Duration(seconds: min(30, pow(2, attempt).toInt()));
+          // Check if user manually disconnected this device
+          final userDisconnected = prefs.getBool("user_disconnected_$deviceId") ?? false;
 
-            debugPrint(
-                '🔄 Background: Scheduling reconnection for $deviceId in ${delay.inSeconds}s (attempt ${attempt + 1}/10)');
-
-            Timer(delay, () {
-              debugPrint('🔄 Background: Reconnecting to $deviceId...');
-              // Connection stream will automatically retry
-            });
+          if (userDisconnected) {
+            debugPrint('⏭️  Background: Skipping reconnection for $deviceId - user manually disconnected');
+            // Remove from connected list since user doesn't want it connected
+            connectedDeviceIds.remove(deviceId);
           } else {
-            debugPrint(
-                '❌ Background: Max reconnection attempts reached for $deviceId');
-            service.invoke('deviceConnectionFailed', {
-              'deviceId': deviceId,
-              'timestamp': DateTime.now().millisecondsSinceEpoch,
-            });
+            // Implement reconnection with exponential backoff
+            final attempt = reconnectAttempts[deviceId] ?? 0;
+            if (attempt < 10) {
+              // Max 10 retries
+              reconnectAttempts[deviceId] = attempt + 1;
+              final delay = Duration(seconds: min(30, pow(2, attempt).toInt()));
+
+              debugPrint(
+                  '🔄 Background: Scheduling reconnection for $deviceId in ${delay.inSeconds}s (attempt ${attempt + 1}/10)');
+
+              Timer(delay, () {
+                debugPrint('🔄 Background: Reconnecting to $deviceId...');
+                // Connection stream will automatically retry
+              });
+            } else {
+              debugPrint(
+                  '❌ Background: Max reconnection attempts reached for $deviceId');
+              service.invoke('deviceConnectionFailed', {
+                'deviceId': deviceId,
+                'timestamp': DateTime.now().millisecondsSinceEpoch,
+              });
+            }
           }
         }
       }, onError: (error) {

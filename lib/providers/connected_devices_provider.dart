@@ -13,6 +13,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:jackjack/providers/threshold_alert_provider.dart';
 
+import '../main.dart';
 import '../utils/audio_stream_player.dart';
 
 part 'connected_devices_provider.g.dart';
@@ -122,6 +123,9 @@ class ConnectedDevices extends _$ConnectedDevices {
           }
         }
       } else {
+        // Mark as user-initiated disconnect
+        await prefs.setBool("user_disconnected_${device.id}", true);
+
         if (ref
             .read(connectedDevicesTrackerProvider.notifier)
             .isDeviceConnected(device.id)) {
@@ -142,6 +146,10 @@ class ConnectedDevices extends _$ConnectedDevices {
       ToastManager.show("Error: $e");
     }
     await PairedDevicesUUID.saveToPrefs(device.id);
+    // Clear user disconnect flag when manually connecting
+    if (shouldConnect) {
+      prefs.remove("user_disconnected_${device.id}");
+    }
     ref.read(loadingProvider(device.id).notifier).toggle(false);
     ref.read(deviceManagerProvider.notifier).updateDeviceStreams();
   }

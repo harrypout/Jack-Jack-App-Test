@@ -3,6 +3,7 @@ import 'package:jackjack/providers/paired_devices.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:flutter/material.dart';
+import 'package:jackjack/main.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/widgets/ble_bottom_sheet.dart';
 import 'package:jackjack/widgets/ble_filled_button.dart';
@@ -165,6 +166,8 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                           .read(connectedDevicesTrackerProvider.notifier)
                           .disconnectDevice(device.id);
                       await PairedDevicesUUID.removeFromPrefs(device.id);
+                      // Clean up user disconnect flag when forgetting device
+                      await prefs.remove("user_disconnected_${device.id}");
 
                       ref
                           .read(deviceManagerProvider.notifier)

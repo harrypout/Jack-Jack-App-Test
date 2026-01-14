@@ -104,13 +104,25 @@ class DeviceManager extends _$DeviceManager {
             final hasServices = ref.read(connectedDevicesProvider).keys.contains(device.id);
             final isConnected = isPhysicallyConnected && hasServices;
 
-            if (!isConnected && (prefs.getBool("autoConnect") ?? false)) {
+            // Check if user manually disconnected this device
+            final userDisconnected = prefs.getBool("user_disconnected_${device.id}") ?? false;
+
+            if (!isConnected && (prefs.getBool("autoConnect") ?? false) && !userDisconnected) {
               debugPrint("Auto-connecting to paired device: ${device.id}");
               ref
                   .read(connectedDevicesProvider.notifier)
                   .connect(device, shouldConnect: true)
                   .catchError((error) {
                     debugPrint("Error auto-connecting to ${device.id}: $error");
+                  });
+            } else if (!hasServices && userDisconnected) {
+              // User manually disconnected - add to provider but don't physically connect
+              debugPrint("Skipping auto-connect for ${device.id} - user manually disconnected");
+              ref
+                  .read(connectedDevicesProvider.notifier)
+                  .connect(device, shouldConnect: false)
+                  .catchError((error) {
+                    debugPrint("Error registering device ${device.id}: $error");
                   });
             }
           } else {

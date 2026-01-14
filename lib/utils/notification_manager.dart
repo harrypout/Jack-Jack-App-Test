@@ -135,4 +135,21 @@ class NotificationManager {
       sound: hasSound,
     );
   }
+
+  Future<void> showConnectionAlert({
+    required String deviceId,
+    required String deviceName,
+  }) async {
+    final hasSound = prefs.getBool("${deviceId}s") ?? false;
+    final hasVibration = prefs.getBool("${deviceId}v") ?? false;
+    debugPrint(
+      "Connection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId",
+    );
+    await showNotification(
+      title: 'Device Alert',
+      body: '$deviceName was connected',
+      vibration: hasVibration,
+      sound: hasSound,
+    );
+  }
 }
