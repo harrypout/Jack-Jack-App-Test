@@ -19,8 +19,8 @@ class BackgroundServiceManager {
         autoStart: false, // Started manually after notification channel is ready
         isForegroundMode: true, // Required for reliable BLE
         notificationChannelId: 'ble_monitoring_service',
-        initialNotificationTitle: 'JackJack Monitoring',
-        initialNotificationContent: 'Background monitoring is active',
+        initialNotificationTitle: 'JackJack',
+        initialNotificationContent: 'Background monitoring active',
         foregroundServiceNotificationId: 888,
       ),
       iosConfiguration: IosConfiguration(
@@ -51,19 +51,115 @@ class BackgroundServiceManager {
     List<String> connectedDeviceIds = [];
     Map<String, String> deviceNames = {};
     bool isStreaming = false;
-    Timer? batteryPollTimer;
-    Timer? autoReconnectTimer;
     Map<String, StreamSubscription> deviceConnections = {};
     Map<String, StreamSubscription> thresholdSubscriptions = {};
     Map<String, int> reconnectAttempts = {};
 
-    // Update Android notification if needed
+    // Background scanning state
+    Set<String> disconnectedDeviceIds = {};
+    StreamSubscription? scanSubscription;
+    Timer? scanCycleTimer;
+    bool isScanning = false;
+    Map<String, DiscoveredDevice> discoveredDevices = {};
+
+    // Helper function to stop background scanning
+    void stopBackgroundScan() {
+      debugPrint('🛑 Background: Stopping scan');
+      scanSubscription?.cancel();
+      scanCycleTimer?.cancel();
+      isScanning = false;
+      discoveredDevices.clear();
+    }
+
+    // Helper function to start background scanning
+    void startBackgroundScan() {
+      if (isScanning) {
+        debugPrint('🔍 Background: Scan already running');
+        return;
+      }
+
+      debugPrint('🔍 Background: Starting 35-second scan for ${disconnectedDeviceIds.length} disconnected devices');
+      isScanning = true;
+      discoveredDevices.clear();
+
+      scanSubscription = ble
+          .scanForDevices(
+            withServices: [Uuid.parse(configs.setThresholdUUIDS.service)],
+            scanMode: ScanMode.balanced,
+          )
+          .listen((device) {
+        // Only process if this is a disconnected device we're looking for
+        if (disconnectedDeviceIds.contains(device.id)) {
+          debugPrint('🔍 Background: Found disconnected device: ${device.name} (${device.id})');
+
+          if (discoveredDevices[device.id] == null) {
+            discoveredDevices[device.id] = device;
+
+            // Setup monitoring for reconnected device
+            connectedDeviceIds.add(device.id);
+            deviceNames[device.id] = device.name;
+
+            _setupDeviceMonitoring(
+              ble,
+              [device.id],
+              {device.id: device.name},
+              service,
+              deviceConnections,
+              thresholdSubscriptions,
+              reconnectAttempts,
+              prefs,
+              connectedDeviceIds,
+              onDeviceDisconnected: (deviceId) {
+                disconnectedDeviceIds.add(deviceId);
+                if (!isScanning) {
+                  startBackgroundScan();
+                }
+              },
+              onDeviceReconnected: (deviceId) {
+                disconnectedDeviceIds.remove(deviceId);
+                if (disconnectedDeviceIds.isEmpty && isScanning) {
+                  stopBackgroundScan();
+                }
+              },
+            );
+
+            // Remove from disconnected set
+            disconnectedDeviceIds.remove(device.id);
+
+            // Stop scanning if all devices reconnected
+            if (disconnectedDeviceIds.isEmpty) {
+              debugPrint('✅ Background: All devices reconnected, stopping scan');
+              stopBackgroundScan();
+
+              // Dismiss notification when all devices reconnected
+              if (service is AndroidServiceInstance) {
+                service.setAsBackgroundService();
+              }
+            }
+          }
+        }
+      });
+
+      // Stop scan after 35 seconds, wait 5 seconds, then restart if still needed
+      scanCycleTimer?.cancel();
+      scanCycleTimer = Timer(const Duration(seconds: 35), () async {
+        debugPrint('🔍 Background: 35-second scan complete, pausing for 5 seconds');
+        await scanSubscription?.cancel();
+        isScanning = false;
+
+        // Check if we still have disconnected devices
+        if (disconnectedDeviceIds.isNotEmpty) {
+          await Future.delayed(const Duration(seconds: 5));
+          startBackgroundScan();
+        } else {
+          debugPrint('✅ Background: All devices reconnected during pause, scan stopped');
+        }
+      });
+    }
+
+    // Don't show notification initially - wait for device list update
     if (service is AndroidServiceInstance) {
       service.setAsForegroundService();
-      service.setForegroundNotificationInfo(
-        title: 'JackJack Monitoring',
-        content: 'Monitoring ${connectedDeviceIds.length} devices',
-      );
     }
 
     // Listen for commands from UI
@@ -72,6 +168,7 @@ class BackgroundServiceManager {
         final allDeviceIds = List<String>.from(event['deviceIds'] as List);
         deviceNames = Map<String, String>.from(event['deviceNames'] as Map);
         isStreaming = event['isStreaming'] as bool? ?? false;
+        final shouldScan = event['shouldScan'] as bool? ?? false;
 
         // Filter out devices that user manually disconnected
         connectedDeviceIds = allDeviceIds.where((deviceId) {
@@ -88,8 +185,8 @@ class BackgroundServiceManager {
         // Update notification
         if (service is AndroidServiceInstance) {
           service.setForegroundNotificationInfo(
-            title: 'JackJack Monitoring',
-            content: 'Monitoring ${connectedDeviceIds.length} devices',
+            title: 'JackJack',
+            content: 'Background monitoring active',
           );
         }
 
@@ -104,6 +201,53 @@ class BackgroundServiceManager {
           reconnectAttempts,
           prefs,
           connectedDeviceIds,
+          onDeviceDisconnected: (deviceId) {
+            disconnectedDeviceIds.add(deviceId);
+            if (!isScanning) {
+              startBackgroundScan();
+            }
+          },
+          onDeviceReconnected: (deviceId) {
+            disconnectedDeviceIds.remove(deviceId);
+            if (disconnectedDeviceIds.isEmpty && isScanning) {
+              stopBackgroundScan();
+            }
+          },
+        );
+
+        // Start scanning if requested (when app goes to background with disconnected devices)
+        if (shouldScan) {
+          // Determine which devices are disconnected
+          final allIds = allDeviceIds.toSet();
+          final connectedIds = connectedDeviceIds.toSet();
+          disconnectedDeviceIds = allIds.difference(connectedIds);
+
+          if (disconnectedDeviceIds.isNotEmpty) {
+            startBackgroundScan();
+          }
+        }
+      }
+    });
+
+    service.on('stopBackgroundScan').listen((event) {
+      debugPrint('📱 Background: Received stop scan command from foreground');
+      stopBackgroundScan();
+    });
+
+    service.on('dismissNotification').listen((event) {
+      debugPrint('📱 Background: Dismissing foreground notification');
+      if (service is AndroidServiceInstance) {
+        service.setAsBackgroundService();
+      }
+    });
+
+    service.on('showNotification').listen((event) {
+      debugPrint('📱 Background: Showing foreground notification');
+      if (service is AndroidServiceInstance) {
+        service.setAsForegroundService();
+        service.setForegroundNotificationInfo(
+          title: 'JackJack',
+          content: 'Background monitoring active',
         );
       }
     });
@@ -147,8 +291,7 @@ class BackgroundServiceManager {
       debugPrint('🔴 Background service stopping...');
 
       // Cancel all timers and subscriptions
-      batteryPollTimer?.cancel();
-      autoReconnectTimer?.cancel();
+      stopBackgroundScan();
       for (var subscription in deviceConnections.values) {
         subscription.cancel();
       }
@@ -157,103 +300,6 @@ class BackgroundServiceManager {
       }
 
       service.stopSelf();
-    });
-
-    // Start battery polling timer (every 5 seconds)
-    batteryPollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (connectedDeviceIds.isEmpty) return;
-
-      debugPrint('🔋 Background: Polling battery levels for ${connectedDeviceIds.length} devices...');
-
-      // Poll battery from each connected device
-      for (String deviceId in connectedDeviceIds) {
-        try {
-          final batteryCharacteristic = QualifiedCharacteristic(
-            serviceId: Uuid.parse(configs.getBatteryUUIDS.service),
-            characteristicId: Uuid.parse(configs.getBatteryUUIDS.characteristic),
-            deviceId: deviceId,
-          );
-
-          final batteryData = await ble.readCharacteristic(batteryCharacteristic);
-          if (batteryData.isNotEmpty) {
-            final batteryLevel = batteryData[0];
-            debugPrint('🔋 Background: Device $deviceId battery: $batteryLevel%');
-
-            // Send battery update to UI
-            service.invoke('batteryUpdate', {
-              'deviceId': deviceId,
-              'batteryLevel': batteryLevel,
-              'timestamp': DateTime.now().millisecondsSinceEpoch,
-            });
-          }
-        } catch (e) {
-          debugPrint('❌ Background: Error reading battery for $deviceId: $e');
-        }
-      }
-    });
-
-    // Start auto-reconnect timer (every 5 minutes)
-    autoReconnectTimer = Timer.periodic(const Duration(minutes: 5), (_) async {
-      final autoConnect = prefs.getBool("autoConnect") ?? false;
-      if (!autoConnect) {
-        debugPrint('⏭️  Background: Auto-connect disabled, skipping scan');
-        return;
-      }
-
-      final pairedDeviceIds = prefs.getStringList('pairedDevicesUUID') ?? [];
-      if (pairedDeviceIds.isEmpty) {
-        debugPrint('⏭️  Background: No paired devices, skipping scan');
-        return;
-      }
-
-      debugPrint('🔍 Background: Starting auto-reconnect scan for ${pairedDeviceIds.length} paired devices');
-
-      StreamSubscription? scanSubscription;
-      try {
-        scanSubscription = ble
-            .scanForDevices(
-          withServices: [Uuid.parse(configs.setThresholdUUIDS.service)],
-          scanMode: ScanMode.balanced,
-        )
-            .listen((device) {
-          // Check if user manually disconnected this device
-          final userDisconnected = prefs.getBool("user_disconnected_${device.id}") ?? false;
-
-          if (pairedDeviceIds.contains(device.id) &&
-              !connectedDeviceIds.contains(device.id) &&
-              !userDisconnected) {
-            debugPrint(
-                '🔌 Background: Found disconnected paired device: ${device.name} (${device.id})');
-
-            // Add to connected list and setup monitoring
-            connectedDeviceIds.add(device.id);
-            deviceNames[device.id] = device.name;
-
-            // Setup monitoring for this device
-            _setupDeviceMonitoring(
-              ble,
-              [device.id],
-              {device.id: device.name},
-              service,
-              deviceConnections,
-              thresholdSubscriptions,
-              reconnectAttempts,
-              prefs,
-              connectedDeviceIds,
-            );
-          } else if (userDisconnected) {
-            debugPrint('⏭️  Background: Skipping auto-connect for ${device.id} - user manually disconnected');
-          }
-        });
-
-        // Stop scan after 30 seconds
-        await Future.delayed(const Duration(seconds: 30));
-        await scanSubscription.cancel();
-        debugPrint('🛑 Background: Auto-reconnect scan completed');
-      } catch (e) {
-        debugPrint('❌ Background: Auto-reconnect scan error: $e');
-        await scanSubscription?.cancel();
-      }
     });
   }
 
@@ -267,8 +313,10 @@ class BackgroundServiceManager {
     Map<String, StreamSubscription> thresholdSubscriptions,
     Map<String, int> reconnectAttempts,
     SharedPreferences prefs,
-    List<String> connectedDeviceIds,
-  ) {
+    List<String> connectedDeviceIds, {
+    Function(String)? onDeviceDisconnected,
+    Function(String)? onDeviceReconnected,
+  }) {
     // Cancel existing connections
     for (var subscription in deviceConnections.values) {
       subscription.cancel();
@@ -298,6 +346,9 @@ class BackgroundServiceManager {
           // Reset reconnect attempts on successful connection
           reconnectAttempts[deviceId] = 0;
 
+          // Handle reconnection callback
+          onDeviceReconnected?.call(deviceId);
+
           // Setup threshold monitoring for this device
           _setupThresholdMonitoring(
             ble,
@@ -323,6 +374,9 @@ class BackgroundServiceManager {
             // Remove from connected list since user doesn't want it connected
             connectedDeviceIds.remove(deviceId);
           } else {
+            // Handle unintentional disconnect callback
+            onDeviceDisconnected?.call(deviceId);
+
             // Implement reconnection with exponential backoff
             final attempt = reconnectAttempts[deviceId] ?? 0;
             if (attempt < 10) {

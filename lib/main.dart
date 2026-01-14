@@ -23,22 +23,14 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EnvManager.getInstance();
   prefs = await SharedPreferences.getInstance();
-  await NotificationManager.instance.initialize();
-  await PermissionManager.check();
   await PairedDevicesUUID.loadFromPrefs();
+
+  // Request all permissions upfront before showing UI
+  await _requestAllPermissions();
 
   // Enable background monitoring by default
   if (!prefs.containsKey("backgroundMonitoring")) {
     await prefs.setBool("backgroundMonitoring", true);
-  }
-
-  // Request battery optimization exemption on Android (only if not already granted)
-  if (Platform.isAndroid) {
-    final isIgnoring = await PlatformChannelManager.isIgnoringBatteryOptimizations();
-    if (!isIgnoring) {
-      await PlatformChannelManager.requestBatteryOptimizationExemption();
-    }
-    await BatteryOptimizationManager.check();
   }
 
   // Initialize background service
@@ -55,6 +47,28 @@ Future<void> main() async {
       await BackgroundServiceManager.startService();
     });
   }
+}
+
+Future<void> _requestAllPermissions() async {
+  debugPrint('🔐 Requesting all permissions upfront...');
+
+  // 1. BLE permissions (location on older Android, bluetooth on newer)
+  await PermissionManager.check();
+
+  // 2. Notification permissions
+  await NotificationManager.instance.initialize();
+
+  // 3. Battery optimization exemption (for reliable background service - Android only)
+  if (Platform.isAndroid) {
+    final isIgnoring = await PlatformChannelManager.isIgnoringBatteryOptimizations();
+    if (!isIgnoring) {
+      debugPrint('🔋 Requesting battery optimization exemption...');
+      await PlatformChannelManager.requestBatteryOptimizationExemption();
+    }
+    await BatteryOptimizationManager.check();
+  }
+
+  debugPrint('✅ All permissions requested');
 }
 
 class BLE extends ConsumerStatefulWidget {
