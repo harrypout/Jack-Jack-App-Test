@@ -46,6 +46,10 @@ class DeviceManager extends _$DeviceManager {
     try {
       debugPrint("Starting 35-second scan");
       _isScanning = true;
+
+      // Clear discovered devices at start of each scan cycle
+      _discoveredDevices.clear();
+
       updateDeviceStreams();
       _scanSubscription = FlutterReactiveBle()
           .scanForDevices(
@@ -156,6 +160,23 @@ class DeviceManager extends _$DeviceManager {
 
         _pairedDevices = newPairedDevices;
         _availableDevices = newAvailableDevices;
+
+        // Clean up devices from connectedDevicesProvider that weren't found in scan
+        // (out of range or powered off)
+        final allScannedDeviceIds = _discoveredDevices.keys.toSet();
+        final devicesInProvider = ref.read(connectedDevicesProvider).keys.toSet();
+        final devicesToRemove = devicesInProvider.difference(allScannedDeviceIds);
+
+        for (final deviceId in devicesToRemove) {
+          // Only remove if device is also not physically connected
+          final isPhysicallyConnected = connectedDeviceIds.contains(deviceId);
+          if (!isPhysicallyConnected) {
+            debugPrint("Removing device from provider (not found in scan): $deviceId");
+            await ref.read(connectedDevicesProvider.notifier).removeDevice(deviceId);
+          }
+        }
+
+        // Update state after cleanup to ensure UI refreshes
         state = BLEDevices(
           available: _availableDevices,
           paired: _pairedDevices,
