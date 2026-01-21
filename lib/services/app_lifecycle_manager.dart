@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/providers/selected_device_provider.dart';
 import 'package:jackjack/screens/manual_monitoring/providers/manual_monitoring_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
@@ -47,6 +48,32 @@ class AppLifecycleManager with WidgetsBindingObserver {
     debugPrint('🟡 App paused (going to background)');
 
     if (_backgroundServiceActive) {
+      // Handle streaming state BEFORE device transfer
+      final isStreaming = ref.read(manualMonitoringProvider).isStreaming;
+      final backgroundAudioEnabled = prefs.getBool("backgroundAudio") ?? true;
+
+      if (isStreaming) {
+        if (!backgroundAudioEnabled) {
+          // Stop streaming if background audio is disabled
+          debugPrint('🎵 Stopping streaming - background audio disabled');
+          ref.read(manualMonitoringProvider.notifier).stopStreaming();
+        } else {
+          // Transfer streaming state to background
+          final streamingDuration = ref.read(manualMonitoringProvider).streamingDuration;
+          final streamingDeviceId = ref.read(selectedDeviceProvider);
+
+          debugPrint('🎵 Transferring streaming to background (duration: ${streamingDuration}s)');
+
+          FlutterBackgroundService().invoke('startManualStreaming', {
+            'deviceId': streamingDeviceId,
+            'streamingDuration': streamingDuration,
+          });
+
+          // Pause foreground timer (background will take over)
+          ref.read(manualMonitoringProvider.notifier).pauseTimer();
+        }
+      }
+
       // Get list of connected devices to transfer to background service
       final connectedDevices = ref.read(connectedDevicesProvider);
 
@@ -78,12 +105,10 @@ class AppLifecycleManager with WidgetsBindingObserver {
       );
 
       // Transfer device list to background service
-      final isStreaming = ref.read(manualMonitoringProvider).isStreaming;
-
       FlutterBackgroundService().invoke('updateDeviceList', {
         'deviceIds': deviceIds,
         'deviceNames': deviceNames,
-        'isStreaming': isStreaming,
+        'isStreaming': isStreaming && backgroundAudioEnabled,
         'shouldScan': disconnectedIds.isNotEmpty, // Start scan if any disconnected
       });
 
@@ -102,6 +127,33 @@ class AppLifecycleManager with WidgetsBindingObserver {
 
     // Refresh background service status (user may have toggled in settings)
     _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? false;
+
+    if (_backgroundServiceActive) {
+      // Request current state from background FIRST
+      FlutterBackgroundService().invoke('requestStateSync');
+
+      // Wait briefly for response
+      Future.delayed(const Duration(milliseconds: 100), () {
+        // Listen for state sync response
+        FlutterBackgroundService().on('stateSync').listen((data) {
+          if (data != null) {
+            final isStreaming = data['isStreaming'] as bool? ?? false;
+            final streamingDuration = data['streamingDuration'] as int? ?? 0;
+
+            if (isStreaming) {
+              debugPrint('🎵 Resuming streaming from background (duration: ${streamingDuration}s)');
+
+              // Resume streaming in foreground with synced duration
+              ref.read(manualMonitoringProvider.notifier)
+                  .resumeStreaming(streamingDuration);
+
+              // Stop background timer (foreground has taken over)
+              FlutterBackgroundService().invoke('stopManualStreaming');
+            }
+          }
+        });
+      });
+    }
 
     // Refresh scan first to ensure foreground is ready to take over
     ref.read(deviceManagerProvider.notifier).refreshScan();

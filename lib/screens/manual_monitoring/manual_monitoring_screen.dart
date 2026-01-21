@@ -15,6 +15,7 @@ import 'package:jackjack/widgets/ble_outlined_button.dart';
 import 'package:jackjack/widgets/ble_pill.dart';
 import 'package:jackjack/widgets/ble_toggle.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:jackjack/main.dart';
 
 class ManualMonitoringScreen extends ConsumerStatefulWidget {
   static const String id = 'manual_monitoring_screen';
@@ -26,6 +27,24 @@ class ManualMonitoringScreen extends ConsumerStatefulWidget {
 
 class _ManualMonitoringScreenState
     extends ConsumerState<ManualMonitoringScreen> {
+  bool _backgroundAudioEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBackgroundAudioSetting();
+  }
+
+  Future<void> _loadBackgroundAudioSetting() async {
+    final enabled = prefs.getBool("backgroundAudio") ?? true;
+    setState(() => _backgroundAudioEnabled = enabled);
+  }
+
+  Future<void> _toggleBackgroundAudio(bool value) async {
+    await prefs.setBool("backgroundAudio", value);
+    setState(() => _backgroundAudioEnabled = value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final connectedDevices = ref.watch(connectedDevicesProvider);
@@ -156,7 +175,10 @@ class _ManualMonitoringScreenState
                                     ],
                                   ),
 
-                                  BLEToggle(value: true, onChanged: (value) {}),
+                                  BLEToggle(
+                                    value: _backgroundAudioEnabled,
+                                    onChanged: _toggleBackgroundAudio,
+                                  ),
                                 ],
                               ),
                             ),

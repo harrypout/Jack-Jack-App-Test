@@ -62,6 +62,11 @@ class BackgroundServiceManager {
     bool isScanning = false;
     Map<String, DiscoveredDevice> discoveredDevices = {};
 
+    // Background streaming state
+    int streamingDuration = 0;
+    Timer? streamingTimer;
+    String? streamingDeviceId;
+
     // Helper function to stop background scanning
     void stopBackgroundScan() {
       debugPrint('🛑 Background: Stopping scan');
@@ -254,22 +259,51 @@ class BackgroundServiceManager {
 
     service.on('startManualStreaming').listen((event) {
       if (event != null) {
-        final deviceId = event['deviceId'] as String;
-        debugPrint('📱 Background: Start manual streaming for $deviceId');
+        streamingDeviceId = event['deviceId'] as String;
+        streamingDuration = event['streamingDuration'] as int? ?? 0;
+
+        debugPrint('🎵 Background: Taking over streaming timer (device: $streamingDeviceId, duration: ${streamingDuration}s)');
         isStreaming = true;
 
-        // Audio streaming is handled in foreground by AudioStreamPlayer
-        // Background service just tracks the state
+        // Start background timer
+        streamingTimer?.cancel();
+        streamingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          streamingDuration++;
+
+          // Update notification every 30 seconds
+          if (streamingDuration % 30 == 0 && service is AndroidServiceInstance) {
+            final minutes = streamingDuration ~/ 60;
+            final seconds = streamingDuration % 60;
+            service.setForegroundNotificationInfo(
+              title: 'JackJack',
+              content: 'Audio streaming - ${minutes}m ${seconds}s',
+            );
+          }
+        });
+
+        // Update notification to show streaming status
+        if (service is AndroidServiceInstance) {
+          service.setForegroundNotificationInfo(
+            title: 'JackJack',
+            content: 'Audio streaming in background',
+          );
+        }
+
         service.invoke('streamingStatus', {
           'isStreaming': true,
-          'deviceId': deviceId,
+          'deviceId': streamingDeviceId,
+          'duration': streamingDuration,
         });
       }
     });
 
     service.on('stopManualStreaming').listen((event) {
-      debugPrint('📱 Background: Stop manual streaming');
+      debugPrint('🎵 Background: Releasing streaming timer to foreground');
       isStreaming = false;
+      streamingTimer?.cancel();
+      streamingTimer = null;
+      streamingDuration = 0;
+      streamingDeviceId = null;
 
       service.invoke('streamingStatus', {
         'isStreaming': false,
@@ -283,6 +317,8 @@ class BackgroundServiceManager {
       service.invoke('stateSync', {
         'deviceIds': connectedDeviceIds,
         'isStreaming': isStreaming,
+        'streamingDuration': streamingDuration,
+        'streamingDeviceId': streamingDeviceId,
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
     });
@@ -291,6 +327,7 @@ class BackgroundServiceManager {
       debugPrint('🔴 Background service stopping...');
 
       // Cancel all timers and subscriptions
+      streamingTimer?.cancel();
       stopBackgroundScan();
       for (var subscription in deviceConnections.values) {
         subscription.cancel();
