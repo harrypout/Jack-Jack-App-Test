@@ -70,7 +70,7 @@ class BluetoothDeviceWidget extends ConsumerWidget {
                       icon: SvgPicture.asset(
                         "assets/svgs/app-info.svg",
                         colorFilter: ColorFilter.mode(
-                          Colors.blue,
+                          ColorManager.accent,
                           BlendMode.srcIn,
                         ),
                       ),

@@ -45,7 +45,7 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
                   ? Container(
                     width: MediaQuery.of(context).size.width,
                     height: 10,
-                    color: ColorManager.white,
+                    color: ColorManager.background,
                   )
                   : Container(),
             ],
@@ -132,7 +132,10 @@ class CustomBottomNav extends ConsumerWidget {
                     "assets/svgs/scanner${selectedScreenIndex == 2 ? "_filled" : ""}.svg",
                     width: 24,
                     height: 24,
-
+                    colorFilter: const ColorFilter.mode(
+                      ColorManager.white,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),
@@ -192,6 +195,12 @@ class NavBarButton extends ConsumerWidget {
               "assets/svgs/$icon${selectedScreenIndex == index ? "_filled" : ""}.svg",
               width: 24,
               height: 24,
+              colorFilter: ColorFilter.mode(
+                selectedScreenIndex == index
+                    ? ColorManager.accent
+                    : ColorManager.tertiaryText,
+                BlendMode.srcIn,
+              ),
             ),
           ),
           Text(
@@ -216,7 +225,7 @@ class MyCustomPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     Paint paint =
         Paint()
-          ..color = ColorManager.white
+          ..color = ColorManager.background
           ..style = PaintingStyle.fill
           ..invertColors = false;
 
@@ -246,7 +255,7 @@ class MyCustomPainter extends CustomPainter {
 
     canvas.drawShadow(
       path.shift(const Offset(0, -5)),
-      Colors.black,
+      ColorManager.black,
       10.0,
       true,
     );

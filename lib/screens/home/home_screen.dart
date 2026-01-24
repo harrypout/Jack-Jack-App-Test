@@ -3,6 +3,7 @@ import 'package:jackjack/providers/selected_device_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/screens/home/widgets/selected_device_widget.dart';
 import 'package:jackjack/screens/notifications/notification_screen.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_background.dart';
 import 'package:jackjack/widgets/ble_home_screen_device.dart';
@@ -49,7 +50,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         Text(
                           "Welcome",
                           style: const TextStyle(
-                            color: Color(0xFF121521),
+                            color: ColorManager.primaryText,
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                           ),

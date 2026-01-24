@@ -165,7 +165,7 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
                                   : 120) *
                               2.25)) *
                       ((22 / 7) / 180),
-                  child: Icon(Icons.arrow_back, color: Colors.green, size: 20),
+                  child: Icon(Icons.arrow_back, color: ColorManager.success, size: 20),
                 ),
                 positionFactor: 1.09,
               ),

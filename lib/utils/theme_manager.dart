@@ -8,25 +8,25 @@ class ThemeManager {
 
   static appTheme(BuildContext context) {
     return ThemeData.light(useMaterial3: true).copyWith(
-      textTheme: GoogleFonts.latoTextTheme(Theme.of(context).textTheme),
+      textTheme: GoogleFonts.nunitoSansTextTheme(Theme.of(context).textTheme),
       colorScheme: ColorScheme.fromSeed(seedColor: ColorManager.accent),
       appBarTheme: const AppBarTheme(
         surfaceTintColor: ColorManager.transparent,
-        backgroundColor: ColorManager.white,
+        backgroundColor: ColorManager.background,
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        modalBackgroundColor: ColorManager.white,
+        modalBackgroundColor: ColorManager.background,
         surfaceTintColor: ColorManager.transparent,
       ),
-      scaffoldBackgroundColor: ColorManager.white,
+      scaffoldBackgroundColor: ColorManager.background,
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: ColorManager.white,
+        backgroundColor: ColorManager.background,
       ),
     );
   }
 
   static final statusBar = SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
+    statusBarColor: ColorManager.transparent,
     statusBarIconBrightness: Brightness.dark,
   );
 }

@@ -94,7 +94,7 @@ class _ManualMonitoringScreenState
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 spacing: 6,
                                 children: [
-                                  BLEPill(color: Colors.red),
+                                  BLEPill(color: ColorManager.error),
                                   Text(
                                     "Streaming ${_formatDuration(manualMonitoringPod.streamingDuration)}",
                                     style: TextStyle(

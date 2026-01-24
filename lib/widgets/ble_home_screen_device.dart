@@ -69,7 +69,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 spacing: 4,
                 children: [
-                  BLEPill(color: Colors.green),
+                  BLEPill(color: ColorManager.success),
                   Text(
                     "Current",
                     style: TextStyle(
