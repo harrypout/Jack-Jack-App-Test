@@ -29,9 +29,9 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
           body:
               <Widget>[
                 HomeScreen(),
-                ThresholdScreen(),
+                // ThresholdScreen(),
                 PairingScreen(),
-                ManualMonitoringScreen(),
+                // ManualMonitoringScreen(),
                 SettingsScreen(),
               ][selectedScreenIndex],
           bottomNavigationBar: const SizedBox(height: 75, width: 1),
@@ -80,18 +80,18 @@ class CustomBottomNav extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     NavBarButton(index: 0, title: "Home", icon: "home"),
-                    NavBarButton(
-                      index: 1,
-                      title: "Threshold",
-                      icon: "notificationm",
-                    ),
+                    // NavBarButton(
+                    //   index: 1,
+                    //   title: "Threshold",
+                    //   icon: "notificationm",
+                    // ),
                     SizedBox(width: 45),
-                    NavBarButton(
-                      index: 3,
-                      title: "Manual Mode",
-                      icon: "toggle",
-                    ),
-                    NavBarButton(index: 4, title: "Settings", icon: "setting"),
+                    // NavBarButton(
+                    //   index: 2,
+                    //   title: "Manual Mode",
+                    //   icon: "toggle",
+                    // ),
+                    NavBarButton(index: 2, title: "Settings", icon: "setting"),
                   ],
                 ),
               ],
@@ -111,7 +111,7 @@ class CustomBottomNav extends ConsumerWidget {
                 ),
                 child: ElevatedButton(
                   onPressed: () {
-                    ref.read(navigationProvider.notifier).toggle(2);
+                    ref.read(navigationProvider.notifier).toggle(1);
                   },
                   style: ButtonStyle(
                     padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
@@ -129,7 +129,7 @@ class CustomBottomNav extends ConsumerWidget {
                     shape: WidgetStateProperty.all(const CircleBorder()),
                   ),
                   child: SvgPicture.asset(
-                    "assets/svgs/scanner${selectedScreenIndex == 2 ? "_filled" : ""}.svg",
+                    "assets/svgs/scanner${selectedScreenIndex == 1 ? "_filled" : ""}.svg",
                     width: 24,
                     height: 24,
                     colorFilter: const ColorFilter.mode(
@@ -183,6 +183,7 @@ class NavBarButton extends ConsumerWidget {
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         ),
+        minimumSize: WidgetStatePropertyAll(Size(160,40)),
       ),
       onPressed: () {
         ref.read(navigationProvider.notifier).toggle(index);

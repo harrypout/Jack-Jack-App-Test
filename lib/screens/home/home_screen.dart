@@ -48,14 +48,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Welcome",
+                          "Jack Jack",
                           style: const TextStyle(
                             color: ColorManager.primaryText,
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Text("Good Morning!"),
+                        // Text("Good Morning!"),
                       ],
                     ),
                     Badge(
@@ -85,10 +85,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   device: connectedDevices[selectedDevice],
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("Other Devices"),
-                    TextButton(onPressed: () {}, child: Text("View All")),
+                    Text("Devices"),
+                    // TextButton(onPressed: () {}, child: Text("View All")),
                   ],
                 ),
                 Expanded(

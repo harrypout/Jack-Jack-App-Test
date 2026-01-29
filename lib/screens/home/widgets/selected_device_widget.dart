@@ -20,7 +20,7 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         BLEGauge(
-          selectedDevice: device?.device.name ?? "No Device Selected",
+          selectedDevice: device?.device.name ?? "No Device Connected",
           valueStream: device?.getSoundLevel.data,
           //todo:test
           selectedValue: threshold ?? 0,

@@ -2,8 +2,8 @@ import 'package:jackjack/screens/contact_us/contact_us_screen.dart';
 import 'package:jackjack/screens/faq/faq_screen.dart';
 import 'package:jackjack/screens/settings/widgets/settings_item.dart';
 import 'package:jackjack/screens/settings/widgets/settings_section.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
-import 'package:jackjack/widgets/ble_app_bar.dart';
 import 'package:jackjack/widgets/ble_background.dart';
 import 'package:jackjack/widgets/ble_dropdown.dart';
 import 'package:jackjack/widgets/ble_toggle.dart';
@@ -47,8 +47,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: BLEBackground(
         child: SafeArea(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              BLEAppBar(title: "Settings"),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ThemeManager.horizontalPadding,
+                  vertical: 8,
+                ),
+                child: Text(
+                  "Settings",
+                  style: const TextStyle(
+                    color: ColorManager.primaryText,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.symmetric(

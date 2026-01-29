@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_app_bar.dart';
 import 'package:jackjack/widgets/ble_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jackjack/utils/theme_manager.dart';
@@ -215,22 +216,23 @@ class _ManualMonitoringScreenState
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            "Manual Monitoring Mode",
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
-              color: ColorManager.primaryText,
-            ),
-          ),
-        ],
-      ),
-    );
+    return BLEAppBar(title: "Manual Monitoring Mode",);
+    //   Padding(
+    //   padding: const EdgeInsets.only(top: 12.0),
+    //   child: Row(
+    //     mainAxisAlignment: MainAxisAlignment.center,
+    //     children: [
+    //       Text(
+    //         "Manual Monitoring Mode",
+    //         style: TextStyle(
+    //           fontWeight: FontWeight.w700,
+    //           fontSize: 20,
+    //           color: ColorManager.primaryText,
+    //         ),
+    //       ),
+    //     ],
+    //   ),
+    // );
   }
 
   Widget _buildMainText(WidgetRef ref) {

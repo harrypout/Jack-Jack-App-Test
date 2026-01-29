@@ -149,25 +149,37 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
             },
           ),
           BleToggleRow(
-            "Sound Alert",
-            value: sound,
+            "Alerts",
+            value: sound && vibration,
             onChanged: (value) {
               setState(() {
                 sound = value;
               });
               prefs.setBool("${widget.device.device.id}s", value);
-            },
-          ),
-          BleToggleRow(
-            "Vibration Alert",
-            value: sound,
-            onChanged: (value) {
-              setState(() {
-                vibration = value;
-              });
               prefs.setBool("${widget.device.device.id}v", value);
             },
           ),
+          // BleToggleRow(
+          //   "Sound Alert",
+          //   value: sound,
+          //   onChanged: (value) {
+          //     setState(() {
+          //       sound = value;
+          //        vibration = value;
+          //     });
+          //     prefs.setBool("${widget.device.device.id}s", value);
+          //   },
+          // ),
+          // BleToggleRow(
+          //   "Vibration Alert",
+          //   value: vibration,
+          //   onChanged: (value) {
+          //     setState(() {
+          //       vibration = value;
+          //     });
+          //     prefs.setBool("${widget.device.device.id}v", value);
+          //   },
+          // ),
           if (!(threshold == null ||
               (threshold != null && (threshold < 30 || threshold > 120))))
           Column(
