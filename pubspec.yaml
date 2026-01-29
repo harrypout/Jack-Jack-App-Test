@@ -57,6 +57,7 @@ flutter_launcher_icons:
   android: "launcher_icon"
   adaptive_icon_background: "#f9fafb"
   adaptive_icon_foreground: "assets/pngs/jackjack_android.png"
+  adaptive_icon_monochrome: "assets/pngs/jackjack_mono.png"
   ios: true
   remove_alpha_ios: true
   min_sdk_android: 21
