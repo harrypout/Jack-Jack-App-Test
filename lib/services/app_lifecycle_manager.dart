@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/selected_device_provider.dart';
+import 'package:jackjack/providers/threshold_alert_provider.dart';
 import 'package:jackjack/screens/manual_monitoring/providers/manual_monitoring_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
+import 'package:jackjack/utils/notification_manager.dart';
 import 'package:jackjack/main.dart';
 
 /// Manages app lifecycle events and coordinates between foreground UI and background service
@@ -13,13 +15,35 @@ class AppLifecycleManager with WidgetsBindingObserver {
   final WidgetRef ref;
   bool _backgroundServiceActive = false;
 
+  /// Whether the app is currently in background (used by other providers to
+  /// suppress spurious disconnect events during the background handoff)
+  static bool isInBackground = false;
+
   AppLifecycleManager(this.ref);
 
   /// Initialize lifecycle observer
   void initialize() {
     WidgetsBinding.instance.addObserver(this);
     _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? false;
+    _listenToBackgroundDisconnects();
     debugPrint('🔄 AppLifecycleManager initialized (background: $_backgroundServiceActive)');
+  }
+
+  /// Listen for device disconnect events from the background service and show
+  /// OS notifications. The foreground tracker suppresses disconnects while the
+  /// app is in background, so we need this dedicated listener.
+  void _listenToBackgroundDisconnects() {
+    FlutterBackgroundService().on('deviceDisconnected').listen((event) {
+      if (event != null && isInBackground) {
+        final deviceId = event['deviceId'] as String;
+        final deviceName = event['deviceName'] as String? ?? 'Unknown Device';
+        debugPrint('📱 Background disconnect notification for $deviceName ($deviceId)');
+        NotificationManager.instance.showDisconnectionAlert(
+          deviceId: deviceId,
+          deviceName: deviceName,
+        );
+      }
+    });
   }
 
   @override
@@ -46,6 +70,7 @@ class AppLifecycleManager with WidgetsBindingObserver {
   /// Called when app enters background (home button pressed, phone locked, etc.)
   void _onAppPaused() {
     debugPrint('🟡 App paused (going to background)');
+    isInBackground = true;
 
     if (_backgroundServiceActive) {
       // Handle streaming state BEFORE device transfer
@@ -153,13 +178,8 @@ class AppLifecycleManager with WidgetsBindingObserver {
           }
         });
       });
-    }
 
-    // Refresh scan first to ensure foreground is ready to take over
-    ref.read(deviceManagerProvider.notifier).refreshScan();
-
-    if (_backgroundServiceActive) {
-      debugPrint('📱 App resumed - releasing background monitoring to foreground');
+      debugPrint('📱 App resumed - transitioning from background to foreground');
 
       // Stop background scanning (foreground will handle it)
       FlutterBackgroundService().invoke('stopBackgroundScan');
@@ -167,17 +187,27 @@ class AppLifecycleManager with WidgetsBindingObserver {
       // Dismiss foreground notification when app is in foreground
       FlutterBackgroundService().invoke('dismissNotification');
 
-      // Give foreground a moment to initialize before releasing background connections
-      Future.delayed(const Duration(milliseconds: 500), () {
-        // Release all device connections - foreground has taken over
-        FlutterBackgroundService().invoke('updateDeviceList', {
-          'deviceIds': [],
-          'deviceNames': {},
-          'isStreaming': false,
-          'shouldScan': false,
-        });
-      });
+      // DON'T release background device connections here.
+      // The foreground's original BLE connections were lost during background,
+      // so releasing background connections would disconnect the device with
+      // nobody maintaining the connection. Background connections will be
+      // cleaned up naturally next time the app goes to background
+      // (updateDeviceList cancels old connections before creating new ones).
     }
+
+    // Refresh scan to discover nearby devices
+    ref.read(deviceManagerProvider.notifier).refreshScan();
+
+    // Re-setup foreground threshold alerts — the foreground's BLE subscriptions
+    // die during the background phase, so we need to re-subscribe.
+    ref.read(thresholdAlertProvider.notifier).setupAlerts();
+
+    // Delay clearing the background flag so any lingering disconnect events
+    // from the BLE handoff are still suppressed during the transition.
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      isInBackground = false;
+      debugPrint('🟢 Background transition complete');
+    });
   }
 
   /// Called when app is being killed

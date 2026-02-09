@@ -62,6 +62,10 @@ class BackgroundServiceManager {
     bool isScanning = false;
     Map<String, DiscoveredDevice> discoveredDevices = {};
 
+    // When true, disconnect events are expected (connection setup/handoff)
+    // and should NOT trigger background scanning.
+    bool isSettingUpConnections = false;
+
     // Background streaming state
     int streamingDuration = 0;
     Timer? streamingTimer;
@@ -195,30 +199,59 @@ class BackgroundServiceManager {
           );
         }
 
-        // Connect to devices and setup monitoring
-        _setupDeviceMonitoring(
-          ble,
-          connectedDeviceIds,
-          deviceNames,
-          service,
-          deviceConnections,
-          thresholdSubscriptions,
-          reconnectAttempts,
-          prefs,
-          connectedDeviceIds,
-          onDeviceDisconnected: (deviceId) {
-            disconnectedDeviceIds.add(deviceId);
-            if (!isScanning) {
-              startBackgroundScan();
-            }
-          },
-          onDeviceReconnected: (deviceId) {
-            disconnectedDeviceIds.remove(deviceId);
-            if (disconnectedDeviceIds.isEmpty && isScanning) {
-              stopBackgroundScan();
-            }
-          },
-        );
+        // Check if background already has active connections for the same devices.
+        // If so, skip teardown/reconnect — the existing connections are still good.
+        final existingDeviceIds = deviceConnections.keys.toSet();
+        final newDeviceIdsSet = connectedDeviceIds.toSet();
+        final devicesChanged = newDeviceIdsSet.difference(existingDeviceIds).isNotEmpty ||
+            existingDeviceIds.difference(newDeviceIdsSet).isNotEmpty;
+
+        if (devicesChanged || deviceConnections.isEmpty) {
+          debugPrint('📱 Background: Device list changed, setting up new connections');
+
+          // Suppress disconnect events during connection setup — these are
+          // expected disconnects from cancelling old subscriptions, not
+          // unintentional device disconnects.
+          isSettingUpConnections = true;
+
+          // Connect to devices and setup monitoring
+          _setupDeviceMonitoring(
+            ble,
+            connectedDeviceIds,
+            deviceNames,
+            service,
+            deviceConnections,
+            thresholdSubscriptions,
+            reconnectAttempts,
+            prefs,
+            connectedDeviceIds,
+            onDeviceDisconnected: (deviceId) {
+              if (isSettingUpConnections) {
+                debugPrint('⏭️  Background: Ignoring disconnect during setup for $deviceId');
+                return;
+              }
+              disconnectedDeviceIds.add(deviceId);
+              if (!isScanning) {
+                startBackgroundScan();
+              }
+            },
+            onDeviceReconnected: (deviceId) {
+              disconnectedDeviceIds.remove(deviceId);
+              if (disconnectedDeviceIds.isEmpty && isScanning) {
+                stopBackgroundScan();
+              }
+            },
+          );
+
+          // Allow time for connections to establish before treating
+          // disconnects as unintentional.
+          Future.delayed(const Duration(seconds: 5), () {
+            isSettingUpConnections = false;
+            debugPrint('📱 Background: Connection setup complete, disconnect detection enabled');
+          });
+        } else {
+          debugPrint('📱 Background: Same devices, keeping existing connections');
+        }
 
         // Start scanning if requested (when app goes to background with disconnected devices)
         if (shouldScan) {
@@ -398,8 +431,10 @@ class BackgroundServiceManager {
         } else if (connectionState.connectionState ==
             DeviceConnectionState.disconnected) {
           // Notify UI about disconnection
+          final deviceName = deviceNames[deviceId] ?? 'Unknown Device';
           service.invoke('deviceDisconnected', {
             'deviceId': deviceId,
+            'deviceName': deviceName,
             'timestamp': DateTime.now().millisecondsSinceEpoch,
           });
 
@@ -470,8 +505,6 @@ class BackgroundServiceManager {
           .listen((data) {
         if (data.isNotEmpty && data[0] > 0) {
           final thresholdValue = data[0];
-          debugPrint(
-              '⚠️  Background: Threshold alert from $deviceId - $thresholdValue');
 
           // Send threshold alert to UI
           final deviceName = deviceNames[deviceId] ?? 'Unknown Device';

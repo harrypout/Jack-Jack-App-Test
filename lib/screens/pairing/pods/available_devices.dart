@@ -128,6 +128,14 @@ class DeviceManager extends _$DeviceManager {
                   .catchError((error) {
                     debugPrint("Error registering device ${device.id}: $error");
                   });
+            } else if (!hasServices) {
+              // Paired device found in scan but not in provider — register it
+              // so it shows on home screen. Uses getServices directly to avoid
+              // connect(shouldConnect: false) which would set user_disconnected flag.
+              debugPrint("Registering paired device ${device.id} in provider");
+              ref
+                  .read(connectedDevicesProvider.notifier)
+                  .getServices(device, shouldConnect: false);
             }
           } else {
             debugPrint("Available device: ${device.name} (${device.id})");
@@ -162,17 +170,21 @@ class DeviceManager extends _$DeviceManager {
         _availableDevices = newAvailableDevices;
 
         // Clean up devices from connectedDevicesProvider that weren't found in scan
-        // (out of range or powered off)
-        final allScannedDeviceIds = _discoveredDevices.keys.toSet();
-        final devicesInProvider = ref.read(connectedDevicesProvider).keys.toSet();
-        final devicesToRemove = devicesInProvider.difference(allScannedDeviceIds);
+        // (out of range or powered off).
+        // Skip cleanup when discovered devices is empty — scan just started and
+        // hasn't had time to find anything yet.
+        if (_discoveredDevices.isNotEmpty) {
+          final allScannedDeviceIds = _discoveredDevices.keys.toSet();
+          final devicesInProvider = ref.read(connectedDevicesProvider).keys.toSet();
+          final devicesToRemove = devicesInProvider.difference(allScannedDeviceIds);
 
-        for (final deviceId in devicesToRemove) {
-          // Only remove if device is also not physically connected
-          final isPhysicallyConnected = connectedDeviceIds.contains(deviceId);
-          if (!isPhysicallyConnected) {
-            debugPrint("Removing device from provider (not found in scan): $deviceId");
-            await ref.read(connectedDevicesProvider.notifier).removeDevice(deviceId);
+          for (final deviceId in devicesToRemove) {
+            // Only remove if device is also not physically connected
+            final isPhysicallyConnected = connectedDeviceIds.contains(deviceId);
+            if (!isPhysicallyConnected) {
+              debugPrint("Removing device from provider (not found in scan): $deviceId");
+              await ref.read(connectedDevicesProvider.notifier).removeDevice(deviceId);
+            }
           }
         }
 

@@ -32,12 +32,29 @@ class ThresholdAlert extends _$ThresholdAlert {
         final threshold = event['threshold'] as int;
         final deviceName = event['deviceName'] as String;
 
-        debugPrint('📢 Received threshold alert from background: $deviceName - $threshold');
+        // Apply same cooldown as foreground alerts
+        if (lastAlertTime != null &&
+            DateTime.now().difference(lastAlertTime!) < notificationTimeout) {
+          return;
+        }
 
-        // Add to notification list
-        ref.read(notificationsProvider.notifier).addNotification(
-              NotificationSF(device: deviceName, value: threshold),
-            );
+        if (threshold > 0) {
+          final deviceId = event['deviceId'] as String;
+
+          // Show OS notification
+          NotificationManager.instance.showThresholdAlert(
+            deviceId: deviceId,
+            deviceName: deviceName,
+            threshold: threshold,
+          );
+
+          // Add to in-app notification list
+          ref.read(notificationsProvider.notifier).addNotification(
+                NotificationSF(device: deviceName, value: threshold),
+              );
+
+          lastAlertTime = DateTime.now();
+        }
       }
     });
   }

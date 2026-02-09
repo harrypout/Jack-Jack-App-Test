@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
+import 'package:jackjack/services/app_lifecycle_manager.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:jackjack/utils/notification_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -54,6 +55,7 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
             connectionTimeout: const Duration(seconds: 5),
           ).listen((update) {
             if (update.connectionState == DeviceConnectionState.disconnected) {
+              if (AppLifecycleManager.isInBackground) return;
               _connectedDeviceIds.remove(deviceId);
               state = AsyncData(Set<String>.from(_connectedDeviceIds));
             }
@@ -64,6 +66,13 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
         }
       } else if (connectionStateUpdate.connectionState == DeviceConnectionState.disconnected ||
                  connectionStateUpdate.connectionState == DeviceConnectionState.disconnecting) {
+        // Skip disconnect handling when app is in background — the background
+        // service is taking over the BLE connection and the foreground sees a
+        // spurious disconnect during the handoff.
+        if (AppLifecycleManager.isInBackground) {
+          debugPrint('⏭️  Tracker: Ignoring disconnect for ${connectionStateUpdate.deviceId} (app in background)');
+          return;
+        }
         if(_connectedDeviceIds.contains(connectionStateUpdate.deviceId))
         {
           final disconnectedDevice = ref.read(
