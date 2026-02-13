@@ -36,44 +36,30 @@ class NotificationManager {
     await _notificationsPlugin.initialize(initializationSettings);
   }
 
-  AndroidNotificationDetails defaultNotificationDetails({
-    bool enableVibration = false,
-    playSound = false,
-  }) => AndroidNotificationDetails(
-    'threshold_alerts_channel${playSound ? "_sound" : ""}${enableVibration ? "_vibration" : ""}',
-    'Threshold Alerts with ${playSound ? "Sound" : "No Sound"} and ${enableVibration ? "Vibration" : "No Vibration"}',
-    channelDescription: 'Alerts when sound level exceeds threshold',
-    importance: Importance.high,
-    priority: Priority.high,
-    enableVibration: enableVibration,
-    playSound: playSound,
-  );
-
-  AndroidNotificationDetails get noSoundNoVibrationNotificationDetails =>
-      defaultNotificationDetails(enableVibration: false, playSound: false);
-
-  AndroidNotificationDetails get soundNoVibrationNotificationDetails =>
-      defaultNotificationDetails(enableVibration: false, playSound: true);
-
-  AndroidNotificationDetails get noSoundVibrationNotificationDetails =>
-      defaultNotificationDetails(enableVibration: true, playSound: false);
-
-  AndroidNotificationDetails get soundVibrationNotificationDetails =>
-      defaultNotificationDetails(enableVibration: true, playSound: true);
-
-  AndroidNotificationDetails getNotificationDetails({
-    required bool vibration,
-    required bool sound,
+  AndroidNotificationDetails _buildAndroidDetails({
+    required bool enableVibration,
+    required bool playSound,
+    String? soundName,
   }) {
-    if (vibration && sound) {
-      return soundVibrationNotificationDetails;
-    } else if (vibration && !sound) {
-      return noSoundVibrationNotificationDetails;
-    } else if (!vibration && sound) {
-      return soundNoVibrationNotificationDetails;
-    } else {
-      return noSoundNoVibrationNotificationDetails;
-    }
+    final soundSuffix = playSound ? '_${soundName ?? "default"}' : '';
+    final vibrationSuffix = enableVibration ? '_vibration' : '';
+    final channelId = 'alerts_channel${soundSuffix}$vibrationSuffix';
+    final channelName =
+        'Alerts with ${playSound ? (soundName ?? "Default") : "No Sound"}'
+        ' and ${enableVibration ? "Vibration" : "No Vibration"}';
+
+    return AndroidNotificationDetails(
+      channelId,
+      channelName,
+      channelDescription: 'Alerts when sound level exceeds threshold',
+      importance: Importance.high,
+      priority: Priority.high,
+      enableVibration: enableVibration,
+      playSound: playSound,
+      sound: playSound && soundName != null
+          ? RawResourceAndroidNotificationSound(soundName)
+          : null,
+    );
   }
 
   Future<void> showNotification({
@@ -81,15 +67,21 @@ class NotificationManager {
     required String body,
     required bool vibration,
     required bool sound,
+    String? soundName,
   }) async {
     DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: sound,
+      sound: sound && soundName != null ? '$soundName.mp3' : null,
     );
 
     NotificationDetails platformDetails = NotificationDetails(
-      android: getNotificationDetails(vibration: vibration, sound: sound),
+      android: _buildAndroidDetails(
+        enableVibration: vibration,
+        playSound: sound,
+        soundName: soundName,
+      ),
       iOS: iosDetails,
     );
 
@@ -101,6 +93,13 @@ class NotificationManager {
     );
   }
 
+  static const Map<String, String> _soundMap = {
+    "Level Up": "level_up",
+    "Ping": "ping",
+  };
+
+  String? _soundNameFromKey(String key) => _soundMap[key];
+
   Future<void> showThresholdAlert({
     required String deviceId,
     required String deviceName,
@@ -108,31 +107,37 @@ class NotificationManager {
   }) async {
     final hasSound = prefs.getBool("${deviceId}s") ?? false;
     final hasVibration = prefs.getBool("${deviceId}v") ?? false;
+    final soundKey = prefs.getString("thresholdSound") ?? "Default";
+    final soundName = soundKey == "Default" ? null : _soundNameFromKey(soundKey);
     debugPrint(
-      "Threshold Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId",
+      "Threshold Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );
     await showNotification(
       title: 'Sound Alert',
       body: 'Sound level exceeded on $deviceName',
       vibration: hasVibration,
       sound: hasSound,
+      soundName: soundName,
     );
   }
 
-    Future<void> showDisconnectionAlert({
+  Future<void> showDisconnectionAlert({
     required String deviceId,
     required String deviceName,
   }) async {
     final hasSound = prefs.getBool("${deviceId}s") ?? false;
     final hasVibration = prefs.getBool("${deviceId}v") ?? false;
+    final soundKey = prefs.getString("disconnectSound") ?? "Default";
+    final soundName = soundKey == "Default" ? null : _soundNameFromKey(soundKey);
     debugPrint(
-      "Disconnection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId",
+      "Disconnection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );
     await showNotification(
       title: 'Device Alert',
       body: '$deviceName was disconnected',
       vibration: hasVibration,
       sound: hasSound,
+      soundName: soundName,
     );
   }
 
@@ -142,14 +147,17 @@ class NotificationManager {
   }) async {
     final hasSound = prefs.getBool("${deviceId}s") ?? false;
     final hasVibration = prefs.getBool("${deviceId}v") ?? false;
+    final soundKey = prefs.getString("connectSound") ?? "Default";
+    final soundName = soundKey == "Default" ? null : _soundNameFromKey(soundKey);
     debugPrint(
-      "Connection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId",
+      "Connection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );
     await showNotification(
       title: 'Device Alert',
       body: '$deviceName was connected',
       vibration: hasVibration,
       sound: hasSound,
+      soundName: soundName,
     );
   }
 }

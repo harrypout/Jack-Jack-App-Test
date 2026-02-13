@@ -154,6 +154,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
             onChanged: (value) {
               setState(() {
                 sound = value;
+                vibration = value;
               });
               prefs.setBool("${widget.device.device.id}s", value);
               prefs.setBool("${widget.device.device.id}v", value);

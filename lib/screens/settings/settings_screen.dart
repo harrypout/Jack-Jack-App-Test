@@ -10,6 +10,15 @@ import 'package:jackjack/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
 import '../../main.dart';
 
+Map<String, String> notificationSoundOptions = {
+  "Default": "default",
+  "Level Up": "level_up",
+  "Ping": "ping",
+};
+String get connectSound => prefs.getString("connectSound") ?? "Default";
+String get disconnectSound => prefs.getString("disconnectSound") ?? "Default";
+String get thresholdSound => prefs.getString("thresholdSound") ?? "Default";
+
 Map<String, Duration> notificationTimeoutOptions = {
   "15 seconds": Duration(seconds: 15),
   "30 seconds": Duration(seconds: 30),
@@ -120,6 +129,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       );
                                       setState(() {});
                                     }
+                                  },
+                                  width: 125,
+                                ),
+                              ),
+                              onTap: () {},
+                            ),
+                          ],
+                        ),
+                        SettingsSection(
+                          section: "Notification Sounds",
+                          children: [
+                            SettingsItem(
+                              assetName: "sound",
+                              title: "Connect Sound",
+                              trailing: Container(
+                                height: 50,
+                                child: DropdownWithMap(
+                                  hintText: "Select Sound",
+                                  items: notificationSoundOptions,
+                                  initialSelection:
+                                      notificationSoundOptions[connectSound],
+                                  onSelected: (String? value) {
+                                    String key = notificationSoundOptions.keys
+                                        .firstWhere(
+                                          (k) =>
+                                              notificationSoundOptions[k] ==
+                                              value,
+                                          orElse: () => "Default",
+                                        );
+                                    prefs.setString("connectSound", key);
+                                    setState(() {});
+                                  },
+                                  width: 125,
+                                ),
+                              ),
+                              onTap: () {},
+                            ),
+                            SettingsItem(
+                              assetName: "sound",
+                              title: "Disconnect Sound",
+                              trailing: Container(
+                                height: 50,
+                                child: DropdownWithMap(
+                                  hintText: "Select Sound",
+                                  items: notificationSoundOptions,
+                                  initialSelection:
+                                      notificationSoundOptions[disconnectSound],
+                                  onSelected: (String? value) {
+                                    String key = notificationSoundOptions.keys
+                                        .firstWhere(
+                                          (k) =>
+                                              notificationSoundOptions[k] ==
+                                              value,
+                                          orElse: () => "Default",
+                                        );
+                                    prefs.setString("disconnectSound", key);
+                                    setState(() {});
+                                  },
+                                  width: 125,
+                                ),
+                              ),
+                              onTap: () {},
+                            ),
+                            SettingsItem(
+                              assetName: "sound",
+                              title: "Threshold Sound",
+                              trailing: Container(
+                                height: 50,
+                                child: DropdownWithMap(
+                                  hintText: "Select Sound",
+                                  items: notificationSoundOptions,
+                                  initialSelection:
+                                      notificationSoundOptions[thresholdSound],
+                                  onSelected: (String? value) {
+                                    String key = notificationSoundOptions.keys
+                                        .firstWhere(
+                                          (k) =>
+                                              notificationSoundOptions[k] ==
+                                              value,
+                                          orElse: () => "Default",
+                                        );
+                                    prefs.setString("thresholdSound", key);
+                                    setState(() {});
                                   },
                                   width: 125,
                                 ),
