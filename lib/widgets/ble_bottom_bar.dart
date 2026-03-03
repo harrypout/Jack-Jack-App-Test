@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:jackjack/providers/navigation_provider.dart';
+import 'package:jackjack/utils/platform_channel_manager.dart';
 import 'package:jackjack/screens/home/home_screen.dart';
 import 'package:jackjack/screens/manual_monitoring/manual_monitoring_screen.dart';
 import 'package:jackjack/screens/pairing/pairing_screen.dart';
@@ -22,7 +23,14 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
   @override
   Widget build(BuildContext context) {
     final selectedScreenIndex = ref.watch(navigationProvider);
-    return Stack(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          PlatformChannelManager.moveToBackground();
+        }
+      },
+      child: Stack(
       children: [
         Scaffold(
           resizeToAvoidBottomInset: false,
@@ -52,6 +60,7 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
           ),
         ),
       ],
+    ),
     );
   }
 }

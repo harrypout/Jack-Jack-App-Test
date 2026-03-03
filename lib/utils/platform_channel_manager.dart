@@ -34,6 +34,18 @@ class PlatformChannelManager {
     }
   }
 
+  /// Move app to background instead of finishing the activity (Android).
+  /// Makes the back button behave like the home button so the background
+  /// service stays alive.
+  static Future<void> moveToBackground() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await platform.invokeMethod('moveToBackground');
+    } catch (e) {
+      print('Error moving to background: $e');
+    }
+  }
+
   /// Setup method call handler for iOS background tasks
   /// This listens for callbacks from native iOS code
   static void setupBackgroundTaskHandler() {
