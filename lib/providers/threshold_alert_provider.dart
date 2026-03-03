@@ -57,6 +57,30 @@ class ThresholdAlert extends _$ThresholdAlert {
         }
       }
     });
+
+    FlutterBackgroundService().on('deviceDisconnected').listen((event) {
+      if (event != null) {
+        final deviceId = event['deviceId'] as String;
+        final deviceName = event['deviceName'] as String? ?? 'Unknown Device';
+        debugPrint('📱 Background disconnect notification for $deviceName ($deviceId)');
+        NotificationManager.instance.showDisconnectionAlert(
+          deviceId: deviceId,
+          deviceName: deviceName,
+        );
+      }
+    });
+
+    FlutterBackgroundService().on('deviceConnected').listen((event) {
+      if (event != null) {
+        final deviceId = event['deviceId'] as String;
+        final deviceName = event['deviceName'] as String? ?? 'Unknown Device';
+        debugPrint('📱 Background connect notification for $deviceName ($deviceId)');
+        NotificationManager.instance.showConnectionAlert(
+          deviceId: deviceId,
+          deviceName: deviceName,
+        );
+      }
+    });
   }
 
   void _cancelAllSubscriptions() {

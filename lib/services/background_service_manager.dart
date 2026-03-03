@@ -61,10 +61,13 @@ class BackgroundServiceManager {
     Timer? scanCycleTimer;
     bool isScanning = false;
     Map<String, DiscoveredDevice> discoveredDevices = {};
+    Set<String> disconnectNotifiedIds = {};
+    Map<String, Timer> reconnectConfirmTimers = {};
 
-    // When true, disconnect events are expected (connection setup/handoff)
-    // and should NOT trigger background scanning.
-    bool isSettingUpConnections = false;
+    // Tracks how many device connections are still being established.
+    // While > 0, disconnect events are expected (setup/handoff) and should
+    // NOT trigger background scanning.
+    int pendingConnectionSetups = 0;
 
     // Background streaming state
     int streamingDuration = 0;
@@ -108,17 +111,29 @@ class BackgroundServiceManager {
             connectedDeviceIds.add(device.id);
             deviceNames[device.id] = device.name;
 
-            _setupDeviceMonitoring(
-              ble,
-              [device.id],
-              {device.id: device.name},
-              service,
-              deviceConnections,
-              thresholdSubscriptions,
-              reconnectAttempts,
-              prefs,
-              connectedDeviceIds,
+            _connectSingleDevice(
+              ble: ble,
+              deviceId: device.id,
+              deviceNames: deviceNames,
+              service: service,
+              deviceConnections: deviceConnections,
+              thresholdSubscriptions: thresholdSubscriptions,
+              reconnectAttempts: reconnectAttempts,
+              prefs: prefs,
+              connectedDeviceIds: connectedDeviceIds,
               onDeviceDisconnected: (deviceId) {
+                // Cancel pending reconnect confirmation
+                reconnectConfirmTimers[deviceId]?.cancel();
+                // Only notify ONCE per disconnect session
+                if (!disconnectNotifiedIds.contains(deviceId)) {
+                  final deviceName = deviceNames[deviceId] ?? 'Unknown Device';
+                  service.invoke('deviceDisconnected', {
+                    'deviceId': deviceId,
+                    'deviceName': deviceName,
+                    'timestamp': DateTime.now().millisecondsSinceEpoch,
+                  });
+                  disconnectNotifiedIds.add(deviceId);
+                }
                 disconnectedDeviceIds.add(deviceId);
                 if (!isScanning) {
                   startBackgroundScan();
@@ -126,6 +141,20 @@ class BackgroundServiceManager {
               },
               onDeviceReconnected: (deviceId) {
                 disconnectedDeviceIds.remove(deviceId);
+                // Wait for stable connection before confirming reconnection
+                reconnectConfirmTimers[deviceId]?.cancel();
+                reconnectConfirmTimers[deviceId] = Timer(const Duration(seconds: 5), () {
+                  if (!disconnectedDeviceIds.contains(deviceId) &&
+                      disconnectNotifiedIds.contains(deviceId)) {
+                    final deviceName = deviceNames[deviceId] ?? 'Unknown Device';
+                    service.invoke('deviceConnected', {
+                      'deviceId': deviceId,
+                      'deviceName': deviceName,
+                      'timestamp': DateTime.now().millisecondsSinceEpoch,
+                    });
+                    disconnectNotifiedIds.remove(deviceId);
+                  }
+                });
                 if (disconnectedDeviceIds.isEmpty && isScanning) {
                   stopBackgroundScan();
                 }
@@ -179,17 +208,14 @@ class BackgroundServiceManager {
         isStreaming = event['isStreaming'] as bool? ?? false;
         final shouldScan = event['shouldScan'] as bool? ?? false;
 
-        // Filter out devices that user manually disconnected
-        connectedDeviceIds = allDeviceIds.where((deviceId) {
-          final userDisconnected = prefs.getBool("user_disconnected_$deviceId") ?? false;
-          if (userDisconnected) {
-            debugPrint('📱 Background: Filtering out user-disconnected device: $deviceId');
-          }
-          return !userDisconnected;
-        }).toList();
+        // Trust the foreground's pre-filtered list (foreground already filters
+        // out user-disconnected devices before sending).
+        // Mutate in-place so existing callbacks keep the same list reference.
+        connectedDeviceIds.clear();
+        connectedDeviceIds.addAll(allDeviceIds);
 
         debugPrint(
-            '📱 Background: Updated device list - ${connectedDeviceIds.length} devices (${allDeviceIds.length - connectedDeviceIds.length} filtered)');
+            '📱 Background: Updated device list - ${connectedDeviceIds.length} devices');
 
         // Update notification
         if (service is AndroidServiceInstance) {
@@ -209,10 +235,9 @@ class BackgroundServiceManager {
         if (devicesChanged || deviceConnections.isEmpty) {
           debugPrint('📱 Background: Device list changed, setting up new connections');
 
-          // Suppress disconnect events during connection setup — these are
-          // expected disconnects from cancelling old subscriptions, not
-          // unintentional device disconnects.
-          isSettingUpConnections = true;
+          // Track pending connections so disconnect events during setup
+          // (from cancelling old subscriptions) don't trigger scanning.
+          pendingConnectionSetups += connectedDeviceIds.length;
 
           // Connect to devices and setup monitoring
           _setupDeviceMonitoring(
@@ -226,9 +251,21 @@ class BackgroundServiceManager {
             prefs,
             connectedDeviceIds,
             onDeviceDisconnected: (deviceId) {
-              if (isSettingUpConnections) {
+              if (pendingConnectionSetups > 0) {
                 debugPrint('⏭️  Background: Ignoring disconnect during setup for $deviceId');
                 return;
+              }
+              // Cancel pending reconnect confirmation
+              reconnectConfirmTimers[deviceId]?.cancel();
+              // Only notify ONCE per disconnect session
+              if (!disconnectNotifiedIds.contains(deviceId)) {
+                final deviceName = deviceNames[deviceId] ?? 'Unknown Device';
+                service.invoke('deviceDisconnected', {
+                  'deviceId': deviceId,
+                  'deviceName': deviceName,
+                  'timestamp': DateTime.now().millisecondsSinceEpoch,
+                });
+                disconnectNotifiedIds.add(deviceId);
               }
               disconnectedDeviceIds.add(deviceId);
               if (!isScanning) {
@@ -237,17 +274,41 @@ class BackgroundServiceManager {
             },
             onDeviceReconnected: (deviceId) {
               disconnectedDeviceIds.remove(deviceId);
+              // Wait for stable connection before confirming reconnection
+              reconnectConfirmTimers[deviceId]?.cancel();
+              reconnectConfirmTimers[deviceId] = Timer(const Duration(seconds: 5), () {
+                if (!disconnectedDeviceIds.contains(deviceId) &&
+                    disconnectNotifiedIds.contains(deviceId)) {
+                  final deviceName = deviceNames[deviceId] ?? 'Unknown Device';
+                  service.invoke('deviceConnected', {
+                    'deviceId': deviceId,
+                    'deviceName': deviceName,
+                    'timestamp': DateTime.now().millisecondsSinceEpoch,
+                  });
+                  disconnectNotifiedIds.remove(deviceId);
+                }
+              });
               if (disconnectedDeviceIds.isEmpty && isScanning) {
                 stopBackgroundScan();
               }
             },
+            onConnectionSettled: () {
+              if (pendingConnectionSetups > 0) {
+                pendingConnectionSetups--;
+              }
+              if (pendingConnectionSetups == 0) {
+                debugPrint('📱 Background: All connections settled, disconnect detection enabled');
+              }
+            },
           );
 
-          // Allow time for connections to establish before treating
-          // disconnects as unintentional.
-          Future.delayed(const Duration(seconds: 5), () {
-            isSettingUpConnections = false;
-            debugPrint('📱 Background: Connection setup complete, disconnect detection enabled');
+          // Fallback: clear pending counter after 30s in case some
+          // connections never settle (device out of range, etc.)
+          Future.delayed(const Duration(seconds: 30), () {
+            if (pendingConnectionSetups > 0) {
+              debugPrint('⚠️ Background: Clearing ${pendingConnectionSetups} stale pending connections');
+              pendingConnectionSetups = 0;
+            }
           });
         } else {
           debugPrint('📱 Background: Same devices, keeping existing connections');
@@ -349,6 +410,7 @@ class BackgroundServiceManager {
       // Send current state back to UI
       service.invoke('stateSync', {
         'deviceIds': connectedDeviceIds,
+        'disconnectedDeviceIds': disconnectedDeviceIds.toList(),
         'isStreaming': isStreaming,
         'streamingDuration': streamingDuration,
         'streamingDeviceId': streamingDeviceId,
@@ -386,6 +448,7 @@ class BackgroundServiceManager {
     List<String> connectedDeviceIds, {
     Function(String)? onDeviceDisconnected,
     Function(String)? onDeviceReconnected,
+    VoidCallback? onConnectionSettled,
   }) {
     // Cancel existing connections
     for (var subscription in deviceConnections.values) {
@@ -399,86 +462,129 @@ class BackgroundServiceManager {
 
     // Connect to each device
     for (String deviceId in deviceIds) {
-      debugPrint('🔌 Background: Connecting to device $deviceId');
-
-      // Reset reconnect attempts for new connection
       reconnectAttempts[deviceId] = 0;
+      _connectSingleDevice(
+        ble: ble,
+        deviceId: deviceId,
+        deviceNames: deviceNames,
+        service: service,
+        deviceConnections: deviceConnections,
+        thresholdSubscriptions: thresholdSubscriptions,
+        reconnectAttempts: reconnectAttempts,
+        prefs: prefs,
+        connectedDeviceIds: connectedDeviceIds,
+        onDeviceDisconnected: onDeviceDisconnected,
+        onDeviceReconnected: onDeviceReconnected,
+        onConnectionSettled: onConnectionSettled,
+      );
+    }
+  }
 
-      // Monitor connection state with reconnection logic
-      final connectionSubscription = ble
-          .connectToDevice(id: deviceId)
-          .listen((connectionState) {
-        debugPrint(
-            '📡 Background: Device $deviceId state: ${connectionState.connectionState}');
+  /// Connect to a single device and monitor its connection state.
+  /// Used by both initial setup and reconnection timer.
+  static void _connectSingleDevice({
+    required FlutterReactiveBle ble,
+    required String deviceId,
+    required Map<String, String> deviceNames,
+    required ServiceInstance service,
+    required Map<String, StreamSubscription> deviceConnections,
+    required Map<String, StreamSubscription> thresholdSubscriptions,
+    required Map<String, int> reconnectAttempts,
+    required SharedPreferences prefs,
+    required List<String> connectedDeviceIds,
+    Function(String)? onDeviceDisconnected,
+    Function(String)? onDeviceReconnected,
+    VoidCallback? onConnectionSettled,
+  }) {
+    debugPrint('🔌 Background: Connecting to device $deviceId');
 
-        if (connectionState.connectionState ==
-            DeviceConnectionState.connected) {
-          // Reset reconnect attempts on successful connection
-          reconnectAttempts[deviceId] = 0;
+    // Cancel existing subscription for this device if any
+    deviceConnections[deviceId]?.cancel();
+    thresholdSubscriptions[deviceId]?.cancel();
 
-          // Handle reconnection callback
-          onDeviceReconnected?.call(deviceId);
+    bool settled = false;
 
-          // Setup threshold monitoring for this device
-          _setupThresholdMonitoring(
-            ble,
-            deviceId,
-            deviceNames,
-            service,
-            thresholdSubscriptions,
-            prefs,
-          );
-        } else if (connectionState.connectionState ==
-            DeviceConnectionState.disconnected) {
-          // Notify UI about disconnection
-          final deviceName = deviceNames[deviceId] ?? 'Unknown Device';
-          service.invoke('deviceDisconnected', {
-            'deviceId': deviceId,
-            'deviceName': deviceName,
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          });
+    final connectionSubscription = ble
+        .connectToDevice(id: deviceId)
+        .listen((connectionState) async {
+      debugPrint(
+          '📡 Background: Device $deviceId state: ${connectionState.connectionState}');
 
-          // Check if user manually disconnected this device
-          final userDisconnected = prefs.getBool("user_disconnected_$deviceId") ?? false;
+      // Mark connection as settled on first definitive state
+      if (!settled) {
+        settled = true;
+        onConnectionSettled?.call();
+      }
 
-          if (userDisconnected) {
-            debugPrint('⏭️  Background: Skipping reconnection for $deviceId - user manually disconnected');
-            // Remove from connected list since user doesn't want it connected
-            connectedDeviceIds.remove(deviceId);
+      if (connectionState.connectionState ==
+          DeviceConnectionState.connected) {
+        reconnectAttempts[deviceId] = 0;
+        onDeviceReconnected?.call(deviceId);
+
+        _setupThresholdMonitoring(
+          ble,
+          deviceId,
+          deviceNames,
+          service,
+          thresholdSubscriptions,
+          prefs,
+        );
+      } else if (connectionState.connectionState ==
+          DeviceConnectionState.disconnected) {
+        // Reload prefs to get fresh values from the foreground isolate
+        await prefs.reload();
+        final userDisconnected = prefs.getBool("user_disconnected_$deviceId") ?? false;
+
+        if (userDisconnected) {
+          debugPrint('⏭️  Background: Skipping reconnection for $deviceId - user manually disconnected');
+          connectedDeviceIds.remove(deviceId);
+        } else {
+          onDeviceDisconnected?.call(deviceId);
+
+          // Reconnect with exponential backoff
+          final attempt = reconnectAttempts[deviceId] ?? 0;
+          if (attempt < 10) {
+            reconnectAttempts[deviceId] = attempt + 1;
+            final delay = Duration(seconds: min(30, pow(2, attempt).toInt()));
+
+            debugPrint(
+                '🔄 Background: Scheduling reconnection for $deviceId in ${delay.inSeconds}s (attempt ${attempt + 1}/10)');
+
+            Timer(delay, () {
+              debugPrint('🔄 Background: Reconnecting to $deviceId...');
+              _connectSingleDevice(
+                ble: ble,
+                deviceId: deviceId,
+                deviceNames: deviceNames,
+                service: service,
+                deviceConnections: deviceConnections,
+                thresholdSubscriptions: thresholdSubscriptions,
+                reconnectAttempts: reconnectAttempts,
+                prefs: prefs,
+                connectedDeviceIds: connectedDeviceIds,
+                onDeviceDisconnected: onDeviceDisconnected,
+                onDeviceReconnected: onDeviceReconnected,
+              );
+            });
           } else {
-            // Handle unintentional disconnect callback
-            onDeviceDisconnected?.call(deviceId);
-
-            // Implement reconnection with exponential backoff
-            final attempt = reconnectAttempts[deviceId] ?? 0;
-            if (attempt < 10) {
-              // Max 10 retries
-              reconnectAttempts[deviceId] = attempt + 1;
-              final delay = Duration(seconds: min(30, pow(2, attempt).toInt()));
-
-              debugPrint(
-                  '🔄 Background: Scheduling reconnection for $deviceId in ${delay.inSeconds}s (attempt ${attempt + 1}/10)');
-
-              Timer(delay, () {
-                debugPrint('🔄 Background: Reconnecting to $deviceId...');
-                // Connection stream will automatically retry
-              });
-            } else {
-              debugPrint(
-                  '❌ Background: Max reconnection attempts reached for $deviceId');
-              service.invoke('deviceConnectionFailed', {
-                'deviceId': deviceId,
-                'timestamp': DateTime.now().millisecondsSinceEpoch,
-              });
-            }
+            debugPrint(
+                '❌ Background: Max reconnection attempts reached for $deviceId');
+            service.invoke('deviceConnectionFailed', {
+              'deviceId': deviceId,
+              'timestamp': DateTime.now().millisecondsSinceEpoch,
+            });
           }
         }
-      }, onError: (error) {
-        debugPrint('❌ Background: Connection error for $deviceId: $error');
-      });
+      }
+    }, onError: (error) {
+      debugPrint('❌ Background: Connection error for $deviceId: $error');
+      if (!settled) {
+        settled = true;
+        onConnectionSettled?.call();
+      }
+    });
 
-      deviceConnections[deviceId] = connectionSubscription;
-    }
+    deviceConnections[deviceId] = connectionSubscription;
   }
 
   /// Setup threshold monitoring for a specific device

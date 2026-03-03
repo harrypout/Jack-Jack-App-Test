@@ -81,6 +81,10 @@ class ConnectedDevices extends _$ConnectedDevices {
       debugPrint(state.keys.toString());
       final completer = Completer<void>();
       if (shouldConnect) {
+        // Clear user disconnect flag before connecting so the tracker
+        // doesn't ignore the incoming "connected" event
+        prefs.remove("user_disconnected_${device.id}");
+
         debugPrint("connect");
         if (!ref
             .read(connectedDevicesTrackerProvider.notifier)
@@ -147,10 +151,6 @@ class ConnectedDevices extends _$ConnectedDevices {
       ToastManager.show("Error: $e");
     }
     await PairedDevicesUUID.saveToPrefs(device.id);
-    // Clear user disconnect flag when manually connecting
-    if (shouldConnect) {
-      prefs.remove("user_disconnected_${device.id}");
-    }
     ref.read(loadingProvider(device.id).notifier).toggle(false);
     ref.read(deviceManagerProvider.notifier).updateDeviceStreams();
   }

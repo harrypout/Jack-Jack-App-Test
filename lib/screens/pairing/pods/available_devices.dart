@@ -16,6 +16,7 @@ class DeviceManager extends _$DeviceManager {
   Timer? _scanCycleTimer;
   Timer? _updateDebounceTimer;
   bool _isScanning = false;
+  bool _isStopped = false;
   bool _isUpdating = false;
   final Map<String, DiscoveredDevice> _discoveredDevices = {};
 
@@ -29,6 +30,7 @@ class DeviceManager extends _$DeviceManager {
       available: _availableDevices,
       paired: _pairedDevices,
     );
+    _isStopped = false;
     _startScan();
     ref.onDispose(() {
       debugPrint("DeviceManager dispose");
@@ -42,6 +44,7 @@ class DeviceManager extends _$DeviceManager {
 
   void _startScan() {
     if (_isScanning) return; // Prevent double-start
+    if (_isStopped) return; // Don't start if explicitly stopped
 
     try {
       debugPrint("Starting 35-second scan");
@@ -215,11 +218,21 @@ class DeviceManager extends _$DeviceManager {
     state = BLEDevices(available: _availableDevices, paired: _pairedDevices);
   }
 
+  void stopScan() {
+    debugPrint("Stopping scan");
+    _scanCycleTimer?.cancel();
+    _scanSubscription?.cancel();
+    _updateDebounceTimer?.cancel();
+    _isScanning = false;
+    _isStopped = true;
+  }
+
   void refreshScan() {
     debugPrint("Refreshing scan");
     _scanCycleTimer?.cancel();
     _scanSubscription?.cancel();
     _isScanning = false;
+    _isStopped = false;
     // Don't clear discovered devices - keep them to avoid reconnection issues
     _startScan();
   }

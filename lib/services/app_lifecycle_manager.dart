@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -7,7 +8,6 @@ import 'package:jackjack/providers/threshold_alert_provider.dart';
 import 'package:jackjack/screens/manual_monitoring/providers/manual_monitoring_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
-import 'package:jackjack/utils/notification_manager.dart';
 import 'package:jackjack/main.dart';
 
 /// Manages app lifecycle events and coordinates between foreground UI and background service
@@ -25,25 +25,7 @@ class AppLifecycleManager with WidgetsBindingObserver {
   void initialize() {
     WidgetsBinding.instance.addObserver(this);
     _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? false;
-    _listenToBackgroundDisconnects();
     debugPrint('🔄 AppLifecycleManager initialized (background: $_backgroundServiceActive)');
-  }
-
-  /// Listen for device disconnect events from the background service and show
-  /// OS notifications. The foreground tracker suppresses disconnects while the
-  /// app is in background, so we need this dedicated listener.
-  void _listenToBackgroundDisconnects() {
-    FlutterBackgroundService().on('deviceDisconnected').listen((event) {
-      if (event != null && isInBackground) {
-        final deviceId = event['deviceId'] as String;
-        final deviceName = event['deviceName'] as String? ?? 'Unknown Device';
-        debugPrint('📱 Background disconnect notification for $deviceName ($deviceId)');
-        NotificationManager.instance.showDisconnectionAlert(
-          deviceId: deviceId,
-          deviceName: deviceName,
-        );
-      }
-    });
   }
 
   @override
@@ -71,6 +53,9 @@ class AppLifecycleManager with WidgetsBindingObserver {
   void _onAppPaused() {
     debugPrint('🟡 App paused (going to background)');
     isInBackground = true;
+
+    // Stop foreground scan — background service handles scanning if needed
+    ref.read(deviceManagerProvider.notifier).stopScan();
 
     if (_backgroundServiceActive) {
       // Handle streaming state BEFORE device transfer
@@ -154,29 +139,44 @@ class AppLifecycleManager with WidgetsBindingObserver {
     _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? false;
 
     if (_backgroundServiceActive) {
-      // Request current state from background FIRST
+      // Set up listener BEFORE sending request to avoid race condition
+      // where the response arrives before the listener is ready.
+      StreamSubscription? stateSyncSub;
+      stateSyncSub = FlutterBackgroundService().on('stateSync').listen((data) {
+        if (data != null) {
+          final isStreaming = data['isStreaming'] as bool? ?? false;
+          final streamingDuration = data['streamingDuration'] as int? ?? 0;
+          final disconnectedIds = List<String>.from(
+            data['disconnectedDeviceIds'] as List? ?? [],
+          );
+
+          if (isStreaming) {
+            debugPrint('🎵 Resuming streaming from background (duration: ${streamingDuration}s)');
+
+            // Resume streaming in foreground with synced duration
+            ref.read(manualMonitoringProvider.notifier)
+                .resumeStreaming(streamingDuration);
+
+            // Stop background timer (foreground has taken over)
+            FlutterBackgroundService().invoke('stopManualStreaming');
+          }
+
+          // Sync disconnected device state from background
+          for (final deviceId in disconnectedIds) {
+            ref.read(connectedDevicesTrackerProvider.notifier).markDisconnected(deviceId);
+          }
+
+          // One-shot: cancel after first response
+          stateSyncSub?.cancel();
+        }
+      });
+
+      // Now send the request (listener is already active)
       FlutterBackgroundService().invoke('requestStateSync');
 
-      // Wait briefly for response
-      Future.delayed(const Duration(milliseconds: 100), () {
-        // Listen for state sync response
-        FlutterBackgroundService().on('stateSync').listen((data) {
-          if (data != null) {
-            final isStreaming = data['isStreaming'] as bool? ?? false;
-            final streamingDuration = data['streamingDuration'] as int? ?? 0;
-
-            if (isStreaming) {
-              debugPrint('🎵 Resuming streaming from background (duration: ${streamingDuration}s)');
-
-              // Resume streaming in foreground with synced duration
-              ref.read(manualMonitoringProvider.notifier)
-                  .resumeStreaming(streamingDuration);
-
-              // Stop background timer (foreground has taken over)
-              FlutterBackgroundService().invoke('stopManualStreaming');
-            }
-          }
-        });
+      // Timeout: cancel listener after 2 seconds if no response
+      Future.delayed(const Duration(seconds: 2), () {
+        stateSyncSub?.cancel();
       });
 
       debugPrint('📱 App resumed - transitioning from background to foreground');

@@ -6,6 +6,7 @@ import 'package:jackjack/services/app_lifecycle_manager.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:jackjack/utils/notification_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:jackjack/main.dart';
 
 part 'connected_device_tracker.g.dart';
 
@@ -36,8 +37,24 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
     _connectionSubscription = _ble.connectedDeviceStream.listen((connectionStateUpdate) {
       debugPrint("-----------------------------------------------------------------------$connectionStateUpdate");
       if (connectionStateUpdate.connectionState == DeviceConnectionState.connected) {
+        // Skip if user manually disconnected this device
+        final userDisconnected = prefs.getBool("user_disconnected_${connectionStateUpdate.deviceId}") ?? false;
+        if (userDisconnected) {
+          debugPrint('⏭️ Tracker: Ignoring connect for ${connectionStateUpdate.deviceId} (user manually disconnected)');
+          return;
+        }
+
         debugPrint('Connected to device: ${connectionStateUpdate.deviceId}');
         _connectedDeviceIds.add(connectionStateUpdate.deviceId);
+
+        // Skip notifications and connection management when in background
+        // — the background service handles these. Creating a connectToDevice
+        // here would race with the background's connection.
+        if (AppLifecycleManager.isInBackground) {
+          debugPrint('⏭️ Tracker: Skipping connect handling for ${connectionStateUpdate.deviceId} (app in background)');
+          state = AsyncData(Set<String>.from(_connectedDeviceIds));
+          return;
+        }
 
         // Show connection notification
         final connectedDevice = ref.read(connectedDevicesProvider)[connectionStateUpdate.deviceId];
@@ -103,6 +120,25 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
   ) {
     _deviceConnections[deviceId]?.cancel();
     _deviceConnections[deviceId] = subscription;
+  }
+
+  /// Release all BLE subscriptions without clearing the connected device IDs.
+  /// Used during background transition to avoid GATT races — the background
+  /// service will create its own connections.
+  void releaseAllSubscriptions() {
+    debugPrint('🔌 Tracker: Releasing all BLE subscriptions for background handoff');
+    for (final subscription in _deviceConnections.values) {
+      subscription.cancel();
+    }
+    _deviceConnections.clear();
+  }
+
+  /// Mark a device as disconnected (used during state sync from background).
+  void markDisconnected(String deviceId) {
+    if (_connectedDeviceIds.contains(deviceId)) {
+      _connectedDeviceIds.remove(deviceId);
+      state = AsyncData(Set<String>.from(_connectedDeviceIds));
+    }
   }
 
   Future<void> disconnectDevice(String deviceId) async {

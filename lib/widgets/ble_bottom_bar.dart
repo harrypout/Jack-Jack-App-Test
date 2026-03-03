@@ -76,22 +76,11 @@ class CustomBottomNav extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    NavBarButton(index: 0, title: "Home", icon: "home"),
-                    // NavBarButton(
-                    //   index: 1,
-                    //   title: "Threshold",
-                    //   icon: "notificationm",
-                    // ),
+                    Expanded(child: NavBarButton(index: 0, title: "Home", icon: "home")),
                     SizedBox(width: 45),
-                    // NavBarButton(
-                    //   index: 2,
-                    //   title: "Manual Mode",
-                    //   icon: "toggle",
-                    // ),
-                    NavBarButton(index: 2, title: "Settings", icon: "setting"),
+                    Expanded(child: NavBarButton(index: 2, title: "Settings", icon: "setting")),
                   ],
                 ),
               ],
@@ -183,7 +172,7 @@ class NavBarButton extends ConsumerWidget {
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         ),
-        minimumSize: WidgetStatePropertyAll(Size(160,40)),
+        minimumSize: WidgetStatePropertyAll(Size(0, 40)),
       ),
       onPressed: () {
         ref.read(navigationProvider.notifier).toggle(index);
