@@ -1,5 +1,7 @@
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
+import 'package:jackjack/services/app_initializer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:jackjack/screens/pairing/widgets/bluetooth_device.dart';
 import 'package:jackjack/screens/pairing/widgets/device_section.dart';
 import 'package:jackjack/screens/pairing/widgets/scanner.dart';
@@ -17,6 +19,9 @@ class PairingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bleDevices = ref.watch(deviceManagerProvider);
+    final bleStatus = ref.watch(bleStatusNotifierProvider);
+    final btOff = bleStatus != BleStatus.ready;
+
     debugPrint("Available devices: ${bleDevices.available.length}");
     for (var device in bleDevices.available) {
       debugPrint(" - ${device.name} (${device.id})");
@@ -48,87 +53,108 @@ class PairingScreen extends ConsumerWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {
-                          ref.read(deviceManagerProvider.notifier).refreshScan();
-                        },
+                        onPressed: btOff
+                            ? null
+                            : () {
+                                ref.read(deviceManagerProvider.notifier).refreshScan();
+                              },
                         child: Text(
                           "Refresh",
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: ColorManager.accent,
+                            color: btOff ? ColorManager.tertiaryText : ColorManager.accent,
                           ),
                         ),
                       ),
                     ],
                   ),
+
                   Scanner(
                     asset: "bluetooth-search",
                     animate: false,
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Text(
-                      'Scan Complete',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                        color: ColorManager.primaryText,
-                      ),
+                    child: Column(
+                      children: [
+                        Text(
+                          btOff ? 'Bluetooth is turned off' : 'Scan Complete',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                            color: ColorManager.primaryText,
+                          ),
+                        ),
+                        if (btOff) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Turn on Bluetooth to scan for and connect to devices',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: ColorManager.tertiaryText,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
 
-                  // Paired Devices Section
-                  if (bleDevices.paired.isNotEmpty)
-                    DeviceSection(
-                      title: "Paired Devices",
-                      children: [
-                        ListView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: bleDevices.paired.length,
-                          itemBuilder: (context, index) {
-                            final device = bleDevices.paired[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: BluetoothDeviceWidget(
-                                device: device,
-                                isPaired: true,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                  if (!btOff) ...[
 
-                  // Available Devices Section
-                  if (bleDevices.available.isNotEmpty)
-                    DeviceSection(
-                      title: "Available Devices",
-                      children: [
-                        ListView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: bleDevices.available.length,
-                          itemBuilder: (context, index) {
-                            final device = bleDevices.available[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: BluetoothDeviceWidget(
-                                device: device,
-                                isPaired: false,
-                                onConnect: (device) async {
-                                  await ref
-                                      .read(connectedDevicesProvider.notifier)
-                                      .connect(device);
-                                  ref.read(deviceManagerProvider.notifier).updateDeviceStreams();
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                    // Paired Devices Section
+                    if (bleDevices.paired.isNotEmpty)
+                      DeviceSection(
+                        title: "Paired Devices",
+                        children: [
+                          ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: bleDevices.paired.length,
+                            itemBuilder: (context, index) {
+                              final device = bleDevices.paired[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: BluetoothDeviceWidget(
+                                  device: device,
+                                  isPaired: true,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+
+                    // Available Devices Section
+                    if (bleDevices.available.isNotEmpty)
+                      DeviceSection(
+                        title: "Available Devices",
+                        children: [
+                          ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: bleDevices.available.length,
+                            itemBuilder: (context, index) {
+                              final device = bleDevices.available[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: BluetoothDeviceWidget(
+                                  device: device,
+                                  isPaired: false,
+                                  onConnect: (device) async {
+                                    await ref
+                                        .read(connectedDevicesProvider.notifier)
+                                        .connect(device);
+                                    ref.read(deviceManagerProvider.notifier).updateDeviceStreams();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                  ],
                   SizedBox(height: 40),
                 ],
               ),

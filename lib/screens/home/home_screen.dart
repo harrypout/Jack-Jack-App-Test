@@ -8,7 +8,9 @@ import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_background.dart';
 import 'package:jackjack/widgets/ble_home_screen_device.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jackjack/services/app_initializer.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   static const String id = 'home_screen';
@@ -30,6 +32,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             .setSelectedDevice(connectedDevices.keys.first),
       );
     }
+    final bleStatus = ref.watch(bleStatusNotifierProvider);
+    final btOff = bleStatus != BleStatus.ready;
+
     return Scaffold(
       body: BLEBackground(
         child: SafeArea(
@@ -81,6 +86,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ],
                 ),
+                if (btOff)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: ColorManager.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: ColorManager.containerBorder,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.bluetooth_disabled,
+                          color: ColorManager.tertiaryText,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Bluetooth is turned off. Turn on Bluetooth to connect to devices.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: ColorManager.tertiaryText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 SelectedDeviceHomeWidget(
                   device: connectedDevices[selectedDevice],
                 ),

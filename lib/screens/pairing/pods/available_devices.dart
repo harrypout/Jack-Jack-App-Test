@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:jackjack/main.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/paired_devices.dart';
+import 'package:jackjack/services/app_initializer.dart';
 import 'package:jackjack/utils/env_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -31,7 +32,20 @@ class DeviceManager extends _$DeviceManager {
       paired: _pairedDevices,
     );
     _isStopped = false;
-    _startScan();
+
+    // Gate scanning on app initialization (BLE permissions) and Bluetooth status
+    final initState = ref.watch(appInitializerProvider);
+    final bleStatus = ref.watch(bleStatusNotifierProvider);
+
+    final permissionsReady = initState.valueOrNull != null;
+    final btReady = bleStatus == BleStatus.ready;
+
+    if (permissionsReady && btReady) {
+      _startScan();
+    } else {
+      debugPrint("DeviceManager: waiting for init ($permissionsReady) and BT ($btReady)");
+    }
+
     ref.onDispose(() {
       debugPrint("DeviceManager dispose");
       _scanCycleTimer?.cancel();
@@ -59,13 +73,19 @@ class DeviceManager extends _$DeviceManager {
             withServices: [Uuid.parse(configs.setThresholdUUIDS.service)],
             scanMode: ScanMode.lowLatency,
           )
-          .listen((device) {
-            if (_discoveredDevices[device.id] == null) {
-              debugPrint("Device found: $device");
-              _discoveredDevices[device.id] = device;
-              updateDeviceStreams();
-            }
-          });
+          .listen(
+            (device) {
+              if (_discoveredDevices[device.id] == null) {
+                debugPrint("Device found: $device");
+                _discoveredDevices[device.id] = device;
+                updateDeviceStreams();
+              }
+            },
+            onError: (error) {
+              debugPrint("BLE scan stream error: $error");
+              _isScanning = false;
+            },
+          );
 
       // Stop scan after 35 seconds, wait 5 seconds, then restart
       _scanCycleTimer?.cancel();

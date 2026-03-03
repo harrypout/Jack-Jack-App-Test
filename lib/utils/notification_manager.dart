@@ -11,20 +11,20 @@ class NotificationManager {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  bool _initialized = false;
+
   NotificationManager._();
 
-  Future<void> initialize() async {
-    await Permission.notification.request();
-
-    // Initialize notifications
+  /// Initialize the notifications plugin (fast, no user interaction).
+  Future<void> initializePlugin() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
         );
 
     const InitializationSettings initializationSettings =
@@ -34,6 +34,18 @@ class NotificationManager {
         );
 
     await _notificationsPlugin.initialize(initializationSettings);
+    _initialized = true;
+  }
+
+  /// Request notification permission from the OS (may show dialog).
+  Future<void> requestPermission() async {
+    await Permission.notification.request();
+  }
+
+  /// Full initialization (permission + plugin). Kept for backward compatibility.
+  Future<void> initialize() async {
+    await requestPermission();
+    await initializePlugin();
   }
 
   AndroidNotificationDetails _buildAndroidDetails({
@@ -69,6 +81,11 @@ class NotificationManager {
     required bool sound,
     String? soundName,
   }) async {
+    if (!_initialized) {
+      debugPrint('⚠️ NotificationManager: plugin not initialized yet, skipping notification');
+      return;
+    }
+
     DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,

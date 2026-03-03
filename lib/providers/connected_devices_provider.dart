@@ -77,6 +77,14 @@ class ConnectedDevices extends _$ConnectedDevices {
     ref.read(loadingProvider(device.id).notifier).toggle(true);
 
     try {
+      // Pre-connect BT check: fail fast if Bluetooth is off
+      if (shouldConnect) {
+        final bleStatus = FlutterReactiveBle().status;
+        if (bleStatus != BleStatus.ready) {
+          throw Exception('Bluetooth is turned off. Please enable Bluetooth to connect.');
+        }
+      }
+
       debugPrint("Should connect: $shouldConnect");
       debugPrint(state.keys.toString());
       final completer = Completer<void>();
