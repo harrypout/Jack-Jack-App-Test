@@ -67,7 +67,6 @@ class DeviceManager extends _$DeviceManager {
       // Clear discovered devices at start of each scan cycle
       _discoveredDevices.clear();
 
-      updateDeviceStreams();
       _scanSubscription = FlutterReactiveBle()
           .scanForDevices(
             withServices: [Uuid.parse(configs.setThresholdUUIDS.service)],

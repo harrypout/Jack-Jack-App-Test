@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/services/app_lifecycle_manager.dart';
+import 'package:jackjack/services/background_service_manager.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:jackjack/utils/notification_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -34,7 +35,7 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
 
   Future<void> _initialize() async {
     debugPrint("Initializing connected devices tracker...");
-    _connectionSubscription = _ble.connectedDeviceStream.listen((connectionStateUpdate) {
+    _connectionSubscription = _ble.connectedDeviceStream.listen((connectionStateUpdate) async {
       debugPrint("-----------------------------------------------------------------------$connectionStateUpdate");
       if (connectionStateUpdate.connectionState == DeviceConnectionState.connected) {
         // Skip if user manually disconnected this device
@@ -42,6 +43,19 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
         if (userDisconnected) {
           debugPrint('⏭️ Tracker: Ignoring connect for ${connectionStateUpdate.deviceId} (user manually disconnected)');
           return;
+        }
+
+        // On cold start (no GATT state), the OS may report stale connections
+        // from a previous session. If no background service is maintaining them,
+        // skip tracking so the device resumes advertising and the scan can
+        // find it naturally for auto-connect.
+        final isColdStart = ref.read(connectedDevicesProvider).isEmpty;
+        if (isColdStart) {
+          final bgRunning = await BackgroundServiceManager.isServiceRunning();
+          if (!bgRunning) {
+            debugPrint('⏭️ Tracker: Ignoring stale connection for ${connectionStateUpdate.deviceId} (cold start, no background service)');
+            return;
+          }
         }
 
         debugPrint('Connected to device: ${connectionStateUpdate.deviceId}');

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ui';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -53,7 +52,6 @@ class BackgroundServiceManager {
     bool isStreaming = false;
     Map<String, StreamSubscription> deviceConnections = {};
     Map<String, StreamSubscription> thresholdSubscriptions = {};
-    Map<String, int> reconnectAttempts = {};
 
     // Background scanning state
     Set<String> disconnectedDeviceIds = {};
@@ -118,7 +116,6 @@ class BackgroundServiceManager {
               service: service,
               deviceConnections: deviceConnections,
               thresholdSubscriptions: thresholdSubscriptions,
-              reconnectAttempts: reconnectAttempts,
               prefs: prefs,
               connectedDeviceIds: connectedDeviceIds,
               onDeviceDisconnected: (deviceId) {
@@ -168,11 +165,8 @@ class BackgroundServiceManager {
             if (disconnectedDeviceIds.isEmpty) {
               debugPrint('✅ Background: All devices reconnected, stopping scan');
               stopBackgroundScan();
-
-              // Dismiss notification when all devices reconnected
-              if (service is AndroidServiceInstance) {
-                service.setAsBackgroundService();
-              }
+              // Keep foreground notification — background monitoring is still
+              // active. Notification is dismissed only when app resumes.
             }
           }
         }
@@ -247,7 +241,6 @@ class BackgroundServiceManager {
             service,
             deviceConnections,
             thresholdSubscriptions,
-            reconnectAttempts,
             prefs,
             connectedDeviceIds,
             onDeviceDisconnected: (deviceId) {
@@ -443,7 +436,6 @@ class BackgroundServiceManager {
     ServiceInstance service,
     Map<String, StreamSubscription> deviceConnections,
     Map<String, StreamSubscription> thresholdSubscriptions,
-    Map<String, int> reconnectAttempts,
     SharedPreferences prefs,
     List<String> connectedDeviceIds, {
     Function(String)? onDeviceDisconnected,
@@ -462,7 +454,6 @@ class BackgroundServiceManager {
 
     // Connect to each device
     for (String deviceId in deviceIds) {
-      reconnectAttempts[deviceId] = 0;
       _connectSingleDevice(
         ble: ble,
         deviceId: deviceId,
@@ -470,7 +461,6 @@ class BackgroundServiceManager {
         service: service,
         deviceConnections: deviceConnections,
         thresholdSubscriptions: thresholdSubscriptions,
-        reconnectAttempts: reconnectAttempts,
         prefs: prefs,
         connectedDeviceIds: connectedDeviceIds,
         onDeviceDisconnected: onDeviceDisconnected,
@@ -481,7 +471,7 @@ class BackgroundServiceManager {
   }
 
   /// Connect to a single device and monitor its connection state.
-  /// Used by both initial setup and reconnection timer.
+  /// On disconnect, calls onDeviceDisconnected which triggers background scan.
   static void _connectSingleDevice({
     required FlutterReactiveBle ble,
     required String deviceId,
@@ -489,7 +479,6 @@ class BackgroundServiceManager {
     required ServiceInstance service,
     required Map<String, StreamSubscription> deviceConnections,
     required Map<String, StreamSubscription> thresholdSubscriptions,
-    required Map<String, int> reconnectAttempts,
     required SharedPreferences prefs,
     required List<String> connectedDeviceIds,
     Function(String)? onDeviceDisconnected,
@@ -518,7 +507,6 @@ class BackgroundServiceManager {
 
       if (connectionState.connectionState ==
           DeviceConnectionState.connected) {
-        reconnectAttempts[deviceId] = 0;
         onDeviceReconnected?.call(deviceId);
 
         _setupThresholdMonitoring(
@@ -539,41 +527,8 @@ class BackgroundServiceManager {
           debugPrint('⏭️  Background: Skipping reconnection for $deviceId - user manually disconnected');
           connectedDeviceIds.remove(deviceId);
         } else {
+          // Let background scan handle reconnection — no backoff timer needed
           onDeviceDisconnected?.call(deviceId);
-
-          // Reconnect with exponential backoff
-          final attempt = reconnectAttempts[deviceId] ?? 0;
-          if (attempt < 10) {
-            reconnectAttempts[deviceId] = attempt + 1;
-            final delay = Duration(seconds: min(30, pow(2, attempt).toInt()));
-
-            debugPrint(
-                '🔄 Background: Scheduling reconnection for $deviceId in ${delay.inSeconds}s (attempt ${attempt + 1}/10)');
-
-            Timer(delay, () {
-              debugPrint('🔄 Background: Reconnecting to $deviceId...');
-              _connectSingleDevice(
-                ble: ble,
-                deviceId: deviceId,
-                deviceNames: deviceNames,
-                service: service,
-                deviceConnections: deviceConnections,
-                thresholdSubscriptions: thresholdSubscriptions,
-                reconnectAttempts: reconnectAttempts,
-                prefs: prefs,
-                connectedDeviceIds: connectedDeviceIds,
-                onDeviceDisconnected: onDeviceDisconnected,
-                onDeviceReconnected: onDeviceReconnected,
-              );
-            });
-          } else {
-            debugPrint(
-                '❌ Background: Max reconnection attempts reached for $deviceId');
-            service.invoke('deviceConnectionFailed', {
-              'deviceId': deviceId,
-              'timestamp': DateTime.now().millisecondsSinceEpoch,
-            });
-          }
         }
       }
     }, onError: (error) {
