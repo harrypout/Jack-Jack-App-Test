@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import BackgroundTasks
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -10,6 +11,9 @@ import BackgroundTasks
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+
+    // Enable foreground notification banners
+    UNUserNotificationCenter.current().delegate = self
 
     // Register background tasks
     if #available(iOS 13.0, *) {

@@ -26,15 +26,11 @@ class AppInitializer extends _$AppInitializer {
     // Step 1: Load paired device UUIDs (fast, needed before scan results arrive)
     await PairedDevicesUUID.loadFromPrefs();
 
-    // Step 2: Request BLE permissions (critical — gates BLE scanning)
+    // Step 2: Request BLE permissions (gates BLE scanning but don't block remaining init)
     final permissionsGranted = await PermissionManager.check();
     if (!permissionsGranted) {
-      throw Exception('BLE permissions were denied. Please grant Bluetooth permissions in Settings.');
+      debugPrint('⚠️ BLE permissions were denied — scanning will be disabled');
     }
-    // Notify watchers that BLE permissions are ready — scan can start now.
-    // We update state mid-build by using ref.notifyListeners() won't work here,
-    // but watchers will see permissionsGranted once this future completes.
-    // Instead, we'll check the phase from the data value.
 
     // Step 3: Non-critical init — errors are caught individually
     try {
