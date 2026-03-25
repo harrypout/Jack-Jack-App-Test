@@ -14,6 +14,9 @@ Map<String, String> notificationSoundOptions = {
   "Default": "default",
   "Level Up": "level_up",
   "Ping": "ping",
+  "Stomachache": "stomachache_disconnected",
+  "Itemize": "itemize",
+  "Missile Alert": "missile_alert",
 };
 String get connectSound => prefs.getString("connectSound") ?? "Default";
 String get disconnectSound => prefs.getString("disconnectSound") ?? "Default";

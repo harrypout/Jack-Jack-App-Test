@@ -81,6 +81,7 @@ class NotificationManager {
     required bool vibration,
     required bool sound,
     String? soundName,
+    String? soundFile,
   }) async {
     if (!_initialized) {
       debugPrint(
@@ -93,7 +94,7 @@ class NotificationManager {
       presentAlert: true,
       presentBadge: true,
       presentSound: sound,
-      sound: sound && soundName != null ? '$soundName.mp3' : null,
+      sound: sound && soundFile != null ? soundFile : null,
     );
 
     NotificationDetails platformDetails = NotificationDetails(
@@ -113,12 +114,24 @@ class NotificationManager {
     );
   }
 
-  static const Map<String, String> _soundMap = {
-    "Level Up": "level_up",
-    "Ping": "ping",
+  // Maps display name to (filename_without_ext, extension)
+  static const Map<String, (String, String)> _soundMap = {
+    "Level Up": ("level_up", "mp3"),
+    "Ping": ("ping", "mp3"),
+    "Stomachache": ("stomachache_disconnected", "wav"),
+    "Itemize": ("itemize", "wav"),
+    "Missile Alert": ("missile_alert", "wav"),
   };
 
-  String? _soundNameFromKey(String key) => _soundMap[key];
+  /// Returns the filename without extension (for Android raw resources)
+  String? _soundNameFromKey(String key) => _soundMap[key]?.$1;
+
+  /// Returns the full filename with extension (for iOS)
+  String? _soundFileFromKey(String key) {
+    final entry = _soundMap[key];
+    if (entry == null) return null;
+    return '${entry.$1}.${entry.$2}';
+  }
 
   Future<void> showThresholdAlert({
     required String deviceId,
@@ -129,6 +142,7 @@ class NotificationManager {
     final hasVibration = prefs.getBool("${deviceId}v") ?? true;
     final soundKey = prefs.getString("thresholdSound") ?? "Default";
     final soundName = soundKey == "Default" ? null : _soundNameFromKey(soundKey);
+    final soundFile = soundKey == "Default" ? null : _soundFileFromKey(soundKey);
     debugPrint(
       "Threshold Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );
@@ -138,6 +152,7 @@ class NotificationManager {
       vibration: hasVibration,
       sound: hasSound,
       soundName: soundName,
+      soundFile: soundFile,
     );
   }
 
@@ -150,6 +165,8 @@ class NotificationManager {
     final soundKey = prefs.getString("disconnectSound") ?? "Default";
     final soundName =
         soundKey == "Default" ? null : _soundNameFromKey(soundKey);
+    final soundFile =
+        soundKey == "Default" ? null : _soundFileFromKey(soundKey);
     debugPrint(
       "Disconnection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );
@@ -159,6 +176,7 @@ class NotificationManager {
       vibration: hasVibration,
       sound: hasSound,
       soundName: soundName,
+      soundFile: soundFile,
     );
   }
 
@@ -171,6 +189,8 @@ class NotificationManager {
     final soundKey = prefs.getString("connectSound") ?? "Default";
     final soundName =
         soundKey == "Default" ? null : _soundNameFromKey(soundKey);
+    final soundFile =
+        soundKey == "Default" ? null : _soundFileFromKey(soundKey);
     debugPrint(
       "Connection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );
@@ -180,6 +200,7 @@ class NotificationManager {
       vibration: hasVibration,
       sound: hasSound,
       soundName: soundName,
+      soundFile: soundFile,
     );
   }
 }
