@@ -4,6 +4,7 @@ import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/providers/loading_provider.dart';
 import 'package:jackjack/providers/selected_device_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/services/device_name_manager.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/widgets/ble_pill.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +50,9 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
     final isConnected = ref.watch(
       connectedStatusProvider(widget.device.device.id),
     );
+    final deviceNames = ref.watch(deviceNamesProvider);
+    final displayName =
+        deviceNames[widget.device.device.id] ?? widget.device.device.name;
 
     return Skeletonizer(
       enabled: isLoading,
@@ -57,7 +61,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
           spacing: 12,
           children: [
             Text(
-              widget.device.device.name,
+              displayName,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
@@ -183,54 +187,56 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
           // ),
           if (!(threshold == null ||
               (threshold != null && (threshold < 30 || threshold > 120))))
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Set Sound Threshold ",
-                    textAlign: TextAlign.left,
-                    style: const TextStyle(
-                      color: ColorManager.secondaryText,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Set Sound Threshold ",
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(
+                        color: ColorManager.secondaryText,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  Text(
-                    "${threshold?.toInt()} DB",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                      color: ColorManager.tertiaryText,
+                    Text(
+                      "${threshold?.toInt()} DB",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 14,
+                        color: ColorManager.tertiaryText,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            Slider(
-              value: threshold!.toDouble(),
-              max: 120,
-              min: 30,
-              activeColor: ColorManager.accent,
-              onChanged: (val) {
-                ref
-                    .read(
-                      deviceThresholdProvider(widget.device.device.id).notifier,
-                    )
-                    .change(val.toInt());
-              },
-              onChangeEnd: (value) {
-                ref
-                    .read(
-                      deviceThresholdProvider(widget.device.device.id).notifier,
-                    )
-                    .saveToDevice(widget.device.device.id, value.toInt());
-              },
+                  ],
+                ),
+                Slider(
+                  value: threshold!.toDouble(),
+                  max: 120,
+                  min: 30,
+                  activeColor: ColorManager.accent,
+                  onChanged: (val) {
+                    ref
+                        .read(
+                          deviceThresholdProvider(
+                            widget.device.device.id,
+                          ).notifier,
+                        )
+                        .change(val.toInt());
+                  },
+                  onChangeEnd: (value) {
+                    ref
+                        .read(
+                          deviceThresholdProvider(
+                            widget.device.device.id,
+                          ).notifier,
+                        )
+                        .saveToDevice(widget.device.device.id, value.toInt());
+                  },
+                ),
+              ],
             ),
-            ],
-          ),
-
-
         ],
       ),
     );

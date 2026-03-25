@@ -1,4 +1,5 @@
 import 'package:jackjack/providers/loading_provider.dart';
+import 'package:jackjack/services/device_name_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +26,9 @@ class BluetoothDeviceWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(loadingProvider(device.id));
+    final deviceNames = ref.watch(deviceNamesProvider);
+    final displayName = deviceNames[device.id] ?? device.name;
+
     return Container(
       width: double.maxFinite,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -44,7 +48,7 @@ class BluetoothDeviceWidget extends ConsumerWidget {
               SvgPicture.asset("assets/svgs/device.svg"),
               const SizedBox(width: 12),
               Text(
-                loader ? "Device Name" : device.name,
+                loader ? "Device Name" : displayName,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -84,17 +88,13 @@ class BluetoothDeviceWidget extends ConsumerWidget {
                                   if (!isLoading) {
                                     ref
                                         .read(
-                                          loadingProvider(
-                                            device.id,
-                                          ).notifier,
+                                          loadingProvider(device.id).notifier,
                                         )
                                         .toggle(true);
                                     await onConnect!(device);
                                     ref
                                         .read(
-                                          loadingProvider(
-                                            device.id,
-                                          ).notifier,
+                                          loadingProvider(device.id).notifier,
                                         )
                                         .toggle(false);
                                   }

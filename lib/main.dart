@@ -3,6 +3,7 @@ import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:jackjack/services/app_initializer.dart';
 import 'package:jackjack/services/app_lifecycle_manager.dart';
+import 'package:jackjack/services/device_name_manager.dart';
 import 'package:jackjack/utils/env_manager.dart';
 import 'package:jackjack/utils/navigation_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
@@ -24,6 +25,9 @@ Future<void> main() async {
   ]);
 
   prefs = results[0] as SharedPreferences;
+
+  // Initialize device name manager
+  await DeviceNameManager.instance.initialize();
 
   // Enable background monitoring by default
   if (!prefs.containsKey("backgroundMonitoring")) {
