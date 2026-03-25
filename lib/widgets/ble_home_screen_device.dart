@@ -140,18 +140,23 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
               await ref
                   .read(connectedDevicesProvider.notifier)
                   .connect(widget.device.device, shouldConnect: value);
+              if (value) {
+                ref
+                    .read(selectedDeviceProvider.notifier)
+                    .setSelectedDevice(widget.device.device.id);
+              }
               debugPrint("onToggle: $value");
             },
           ),
-          BleToggleRow(
-            "Current Device",
-            value: widget.isSelected,
-            onChanged: (value) {
-              ref
-                  .read(selectedDeviceProvider.notifier)
-                  .setSelectedDevice(widget.device.device.id);
-            },
-          ),
+          // BleToggleRow(
+          //   "Current Device",
+          //   value: widget.isSelected,
+          //   onChanged: (value) {
+          //     ref
+          //         .read(selectedDeviceProvider.notifier)
+          //         .setSelectedDevice(widget.device.device.id);
+          //   },
+          // ),
           BleToggleRow(
             "Alerts",
             value: sound && vibration,

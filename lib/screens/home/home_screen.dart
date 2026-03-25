@@ -25,13 +25,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final connectedDevices = ref.watch(connectedDevicesProvider);
     final selectedDevice = ref.watch(selectedDeviceProvider);
-    if (connectedDevices.isNotEmpty && selectedDevice == null) {
-      Future.microtask(
-        () => ref
-            .read(selectedDeviceProvider.notifier)
-            .setSelectedDevice(connectedDevices.keys.first),
-      );
-    }
     final bleStatus = ref.watch(bleStatusNotifierProvider);
     final btOff = bleStatus != BleStatus.ready;
 
