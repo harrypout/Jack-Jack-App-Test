@@ -68,9 +68,10 @@ class NotificationManager {
       priority: Priority.high,
       enableVibration: enableVibration,
       playSound: playSound,
-      sound: playSound && soundName != null
-          ? RawResourceAndroidNotificationSound(soundName)
-          : null,
+      sound:
+          playSound && soundName != null
+              ? RawResourceAndroidNotificationSound(soundName)
+              : null,
     );
   }
 
@@ -82,7 +83,9 @@ class NotificationManager {
     String? soundName,
   }) async {
     if (!_initialized) {
-      debugPrint('⚠️ NotificationManager: plugin not initialized yet, skipping notification');
+      debugPrint(
+        '⚠️ NotificationManager: plugin not initialized yet, skipping notification',
+      );
       return;
     }
 
@@ -122,8 +125,8 @@ class NotificationManager {
     required String deviceName,
     required int threshold,
   }) async {
-    final hasSound = prefs.getBool("${deviceId}s") ?? false;
-    final hasVibration = prefs.getBool("${deviceId}v") ?? false;
+    final hasSound = prefs.getBool("${deviceId}s") ?? true;
+    final hasVibration = prefs.getBool("${deviceId}v") ?? true;
     final soundKey = prefs.getString("thresholdSound") ?? "Default";
     final soundName = soundKey == "Default" ? null : _soundNameFromKey(soundKey);
     debugPrint(
@@ -142,10 +145,11 @@ class NotificationManager {
     required String deviceId,
     required String deviceName,
   }) async {
-    final hasSound = prefs.getBool("${deviceId}s") ?? false;
-    final hasVibration = prefs.getBool("${deviceId}v") ?? false;
+    final hasSound = prefs.getBool("${deviceId}s") ?? true;
+    final hasVibration = prefs.getBool("${deviceId}v") ?? true;
     final soundKey = prefs.getString("disconnectSound") ?? "Default";
-    final soundName = soundKey == "Default" ? null : _soundNameFromKey(soundKey);
+    final soundName =
+        soundKey == "Default" ? null : _soundNameFromKey(soundKey);
     debugPrint(
       "Disconnection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );
@@ -162,10 +166,11 @@ class NotificationManager {
     required String deviceId,
     required String deviceName,
   }) async {
-    final hasSound = prefs.getBool("${deviceId}s") ?? false;
-    final hasVibration = prefs.getBool("${deviceId}v") ?? false;
+    final hasSound = prefs.getBool("${deviceId}s") ?? true;
+    final hasVibration = prefs.getBool("${deviceId}v") ?? true;
     final soundKey = prefs.getString("connectSound") ?? "Default";
-    final soundName = soundKey == "Default" ? null : _soundNameFromKey(soundKey);
+    final soundName =
+        soundKey == "Default" ? null : _soundNameFromKey(soundKey);
     debugPrint(
       "Connection Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );

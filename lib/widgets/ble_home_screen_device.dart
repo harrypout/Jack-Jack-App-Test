@@ -29,15 +29,15 @@ class HomeScreenDevice extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
-  bool sound = false;
-  bool vibration = false;
+  bool sound = true;
+  bool vibration = true;
 
   @override
   void initState() {
     super.initState();
     setState(() {
-      sound = prefs.getBool("${widget.device.device.id}s") ?? false;
-      vibration = prefs.getBool("${widget.device.device.id}v") ?? false;
+      sound = prefs.getBool("${widget.device.device.id}s") ?? true;
+      vibration = prefs.getBool("${widget.device.device.id}v") ?? true;
     });
   }
 
