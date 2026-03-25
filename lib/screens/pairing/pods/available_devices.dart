@@ -43,7 +43,9 @@ class DeviceManager extends _$DeviceManager {
     if (permissionsReady && btReady) {
       _startScan();
     } else {
-      debugPrint("DeviceManager: waiting for init ($permissionsReady) and BT ($btReady)");
+      debugPrint(
+        "DeviceManager: waiting for init ($permissionsReady) and BT ($btReady)",
+      );
     }
 
     ref.onDispose(() {
@@ -126,14 +128,25 @@ class DeviceManager extends _$DeviceManager {
 
             // Only auto-connect if NOT already connected and auto-connect enabled
             // Check BOTH providers: physical connection AND service initialization
-            final isPhysicallyConnected = ref.read(connectedDevicesTrackerProvider).value?.contains(device.id) ?? false;
-            final hasServices = ref.read(connectedDevicesProvider).keys.contains(device.id);
+            final isPhysicallyConnected =
+                ref
+                    .read(connectedDevicesTrackerProvider)
+                    .value
+                    ?.contains(device.id) ??
+                false;
+            final hasServices = ref
+                .read(connectedDevicesProvider)
+                .keys
+                .contains(device.id);
             final isConnected = isPhysicallyConnected && hasServices;
 
             // Check if user manually disconnected this device
-            final userDisconnected = prefs.getBool("user_disconnected_${device.id}") ?? false;
+            final userDisconnected =
+                prefs.getBool("user_disconnected_${device.id}") ?? false;
 
-            if (!isConnected && (prefs.getBool("autoConnect") ?? false) && !userDisconnected) {
+            if (!isConnected &&
+                (prefs.getBool("autoConnect") ?? true) &&
+                !userDisconnected) {
               debugPrint("Auto-connecting to paired device: ${device.id}");
               ref
                   .read(connectedDevicesProvider.notifier)
@@ -143,7 +156,9 @@ class DeviceManager extends _$DeviceManager {
                   });
             } else if (!hasServices && userDisconnected) {
               // User manually disconnected - add to provider but don't physically connect
-              debugPrint("Skipping auto-connect for ${device.id} - user manually disconnected");
+              debugPrint(
+                "Skipping auto-connect for ${device.id} - user manually disconnected",
+              );
               ref
                   .read(connectedDevicesProvider.notifier)
                   .connect(device, shouldConnect: false)
@@ -163,7 +178,9 @@ class DeviceManager extends _$DeviceManager {
             debugPrint("Available device: ${device.name} (${device.id})");
             newAvailableDevices.add(device);
             if (ref.read(connectedDevicesProvider).keys.contains(device.id)) {
-              ref.read(connectedDevicesProvider.notifier).removeDevice(device.id);
+              ref
+                  .read(connectedDevicesProvider.notifier)
+                  .removeDevice(device.id);
             }
           }
         }
@@ -197,15 +214,22 @@ class DeviceManager extends _$DeviceManager {
         // hasn't had time to find anything yet.
         if (_discoveredDevices.isNotEmpty) {
           final allScannedDeviceIds = _discoveredDevices.keys.toSet();
-          final devicesInProvider = ref.read(connectedDevicesProvider).keys.toSet();
-          final devicesToRemove = devicesInProvider.difference(allScannedDeviceIds);
+          final devicesInProvider =
+              ref.read(connectedDevicesProvider).keys.toSet();
+          final devicesToRemove = devicesInProvider.difference(
+            allScannedDeviceIds,
+          );
 
           for (final deviceId in devicesToRemove) {
             // Only remove if device is also not physically connected
             final isPhysicallyConnected = connectedDeviceIds.contains(deviceId);
             if (!isPhysicallyConnected) {
-              debugPrint("Removing device from provider (not found in scan): $deviceId");
-              await ref.read(connectedDevicesProvider.notifier).removeDevice(deviceId);
+              debugPrint(
+                "Removing device from provider (not found in scan): $deviceId",
+              );
+              await ref
+                  .read(connectedDevicesProvider.notifier)
+                  .removeDevice(deviceId);
             }
           }
         }

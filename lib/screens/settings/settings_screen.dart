@@ -39,13 +39,13 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool autoConnect = false;
+  bool autoConnect = true;
 
   @override
   void initState() {
     super.initState();
     setState(() {
-      autoConnect = prefs.getBool("autoConnect") ?? false;
+      autoConnect = prefs.getBool("autoConnect") ?? true;
     });
   }
 
