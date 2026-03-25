@@ -15,7 +15,7 @@ class PeriodicTaskService extends _$PeriodicTaskService {
     stopPeriodicTask();
 
     // Only start foreground polling if background service is NOT active
-    final backgroundActive = prefs.getBool("backgroundMonitoring") ?? false;
+    final backgroundActive = prefs.getBool("backgroundMonitoring") ?? true;
     if (!backgroundActive) {
       _startForegroundPolling();
     }

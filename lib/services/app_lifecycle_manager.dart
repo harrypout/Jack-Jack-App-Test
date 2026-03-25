@@ -24,8 +24,10 @@ class AppLifecycleManager with WidgetsBindingObserver {
   /// Initialize lifecycle observer
   void initialize() {
     WidgetsBinding.instance.addObserver(this);
-    _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? false;
-    debugPrint('🔄 AppLifecycleManager initialized (background: $_backgroundServiceActive)');
+    _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? true;
+    debugPrint(
+      '🔄 AppLifecycleManager initialized (background: $_backgroundServiceActive)',
+    );
   }
 
   @override
@@ -69,10 +71,13 @@ class AppLifecycleManager with WidgetsBindingObserver {
           ref.read(manualMonitoringProvider.notifier).stopStreaming();
         } else {
           // Transfer streaming state to background
-          final streamingDuration = ref.read(manualMonitoringProvider).streamingDuration;
+          final streamingDuration =
+              ref.read(manualMonitoringProvider).streamingDuration;
           final streamingDeviceId = ref.read(selectedDeviceProvider);
 
-          debugPrint('🎵 Transferring streaming to background (duration: ${streamingDuration}s)');
+          debugPrint(
+            '🎵 Transferring streaming to background (duration: ${streamingDuration}s)',
+          );
 
           FlutterBackgroundService().invoke('startManualStreaming', {
             'deviceId': streamingDeviceId,
@@ -88,13 +93,17 @@ class AppLifecycleManager with WidgetsBindingObserver {
       final connectedDevices = ref.read(connectedDevicesProvider);
 
       // Filter out devices that user manually disconnected
-      final deviceIds = connectedDevices.keys.where((deviceId) {
-        final userDisconnected = prefs.getBool("user_disconnected_$deviceId") ?? false;
-        if (userDisconnected) {
-          debugPrint('📱 Foreground: Filtering out user-disconnected device: $deviceId');
-        }
-        return !userDisconnected;
-      }).toList();
+      final deviceIds =
+          connectedDevices.keys.where((deviceId) {
+            final userDisconnected =
+                prefs.getBool("user_disconnected_$deviceId") ?? false;
+            if (userDisconnected) {
+              debugPrint(
+                '📱 Foreground: Filtering out user-disconnected device: $deviceId',
+              );
+            }
+            return !userDisconnected;
+          }).toList();
 
       final deviceNames = <String, String>{};
       for (final deviceId in deviceIds) {
@@ -105,13 +114,14 @@ class AppLifecycleManager with WidgetsBindingObserver {
       }
 
       // Check if any devices are currently disconnected
-      final connectedIds = ref.read(connectedDevicesTrackerProvider).value ?? {};
+      final connectedIds =
+          ref.read(connectedDevicesTrackerProvider).value ?? {};
       final allDeviceIds = deviceIds.toSet();
       final disconnectedIds = allDeviceIds.difference(connectedIds);
 
       debugPrint(
         '📱 Transferring ${deviceIds.length} devices to background service '
-        '(${disconnectedIds.length} disconnected, scan: ${disconnectedIds.isNotEmpty})'
+        '(${disconnectedIds.length} disconnected, scan: ${disconnectedIds.isNotEmpty})',
       );
 
       // Transfer device list to background service
@@ -119,7 +129,8 @@ class AppLifecycleManager with WidgetsBindingObserver {
         'deviceIds': deviceIds,
         'deviceNames': deviceNames,
         'isStreaming': isStreaming && backgroundAudioEnabled,
-        'shouldScan': disconnectedIds.isNotEmpty, // Start scan if any disconnected
+        'shouldScan':
+            disconnectedIds.isNotEmpty, // Start scan if any disconnected
       });
 
       // Only show notification if there are devices to monitor
@@ -136,7 +147,7 @@ class AppLifecycleManager with WidgetsBindingObserver {
     debugPrint('🟢 App resumed (returning to foreground)');
 
     // Refresh background service status (user may have toggled in settings)
-    _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? false;
+    _backgroundServiceActive = prefs.getBool("backgroundMonitoring") ?? true;
 
     if (_backgroundServiceActive) {
       // Set up listener BEFORE sending request to avoid race condition
@@ -151,10 +162,13 @@ class AppLifecycleManager with WidgetsBindingObserver {
           );
 
           if (isStreaming) {
-            debugPrint('🎵 Resuming streaming from background (duration: ${streamingDuration}s)');
+            debugPrint(
+              '🎵 Resuming streaming from background (duration: ${streamingDuration}s)',
+            );
 
             // Resume streaming in foreground with synced duration
-            ref.read(manualMonitoringProvider.notifier)
+            ref
+                .read(manualMonitoringProvider.notifier)
                 .resumeStreaming(streamingDuration);
 
             // Stop background timer (foreground has taken over)
@@ -163,7 +177,9 @@ class AppLifecycleManager with WidgetsBindingObserver {
 
           // Sync disconnected device state from background
           for (final deviceId in disconnectedIds) {
-            ref.read(connectedDevicesTrackerProvider.notifier).markDisconnected(deviceId);
+            ref
+                .read(connectedDevicesTrackerProvider.notifier)
+                .markDisconnected(deviceId);
           }
 
           // One-shot: cancel after first response
@@ -179,7 +195,9 @@ class AppLifecycleManager with WidgetsBindingObserver {
         stateSyncSub?.cancel();
       });
 
-      debugPrint('📱 App resumed - transitioning from background to foreground');
+      debugPrint(
+        '📱 App resumed - transitioning from background to foreground',
+      );
 
       // Stop background scanning (foreground will handle it)
       FlutterBackgroundService().invoke('stopBackgroundScan');
