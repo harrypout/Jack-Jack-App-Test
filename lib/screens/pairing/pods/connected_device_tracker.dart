@@ -4,6 +4,7 @@ import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/connected_status_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:jackjack/utils/foreground_service_manager.dart';
 import 'package:jackjack/utils/notification_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -26,6 +27,7 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
       for (final subscription in _deviceConnections.values) {
         subscription.cancel();
       }
+      ForegroundServiceManager.stop();
     });
 
     return _connectedDeviceIds;
@@ -74,9 +76,20 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
       }
 
       state = AsyncData(Set<String>.from(_connectedDeviceIds));
+      _syncForegroundService();
     });
 
     ref.read(deviceManagerProvider);
+  }
+
+  /// Runs the Android foreground service while at least one device is
+  /// connected, so monitoring survives the app being backgrounded.
+  void _syncForegroundService() {
+    if (_connectedDeviceIds.isEmpty) {
+      ForegroundServiceManager.stop();
+    } else {
+      ForegroundServiceManager.start();
+    }
   }
 
   bool isDeviceConnected(String? deviceId) {
