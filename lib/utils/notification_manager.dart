@@ -17,18 +17,18 @@ class NotificationManager {
 
   NotificationManager._();
 
+  /// Initializes the plugin only. Does NOT prompt for permission, so it can
+  /// run during startup without blocking first frame on a system dialog.
+  /// Call [requestPermission] after the UI is up.
   Future<void> initialize() async {
-    await Permission.notification.request();
-
-    // Initialize notifications
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
         );
 
     const InitializationSettings initializationSettings =
@@ -38,6 +38,11 @@ class NotificationManager {
         );
 
     await _notificationsPlugin.initialize(initializationSettings);
+  }
+
+  /// Requests notification permission. Safe to call after first frame.
+  Future<void> requestPermission() async {
+    await Permission.notification.request();
   }
 
   AndroidNotificationDetails defaultNotificationDetails({

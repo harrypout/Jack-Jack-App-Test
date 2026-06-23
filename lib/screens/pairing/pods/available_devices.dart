@@ -10,7 +10,9 @@ import 'connected_device_tracker.dart';
 
 part 'available_devices.g.dart';
 
-@riverpod
+// keepAlive so scanning runs for the app's lifetime without being watched at
+// the MaterialApp root (which rebuilt the whole tree on every scan result).
+@Riverpod(keepAlive: true)
 class DeviceManager extends _$DeviceManager {
   StreamSubscription? _scanSubscription;
   final Map<String, DiscoveredDevice> _discoveredDevices = {};
