@@ -12,7 +12,7 @@ part 'threshold_alert_provider.g.dart';
 @Riverpod(keepAlive: true)
 class ThresholdAlert extends _$ThresholdAlert {
   final Map<String, StreamSubscription> _subscriptions = {};
-  DateTime? lastAlertTime;
+  final Map<String, DateTime> _lastAlertTimes = {};
 
   @override
   void build() {
@@ -27,6 +27,7 @@ class ThresholdAlert extends _$ThresholdAlert {
       subscription.cancel();
     }
     _subscriptions.clear();
+    _lastAlertTimes.clear();
   }
 
   void setupAlerts() {
@@ -42,6 +43,7 @@ class ThresholdAlert extends _$ThresholdAlert {
 
     for (String deviceId in deviceIdsToRemove) {
       _subscriptions.remove(deviceId);
+      _lastAlertTimes.remove(deviceId);
     }
     for (var entry in devices.entries) {
       setupDeviceAlert(entry.key);
@@ -63,29 +65,31 @@ class ThresholdAlert extends _$ThresholdAlert {
       final subscription = (deviceThresholdAlert.data as Stream<int>)
           .asBroadcastStream()
           .listen((value) {
-            if (lastAlertTime == null ||
-                DateTime.now().difference(lastAlertTime!) >=
-                    notificationTimeout) {
-              if (value > 0) {
-                var device = ref.read(connectedDevicesProvider)[deviceId]!;
-                if (device.getThreshold.data > 0) {
-                  debugPrint(
-                    "value: $value, device.getThreshold.data: ${device.getThreshold.data}",
+            if (value <= 0) return;
+
+            final lastAlertTime = _lastAlertTimes[deviceId];
+            if (lastAlertTime != null &&
+                DateTime.now().difference(lastAlertTime) < notificationTimeout) {
+              return;
+            }
+
+            var device = ref.read(connectedDevicesProvider)[deviceId]!;
+            if (device.getThreshold.data > 0) {
+              debugPrint(
+                "value: $value, device.getThreshold.data: ${device.getThreshold.data}",
+              );
+              final deviceName = device.device.name;
+              NotificationManager.instance.showThresholdAlert(
+                deviceId: deviceId,
+                deviceName: deviceName,
+                threshold: value,
+              );
+              ref
+                  .read(notificationsProvider.notifier)
+                  .addNotification(
+                    NotificationSF(device: deviceName, value: value),
                   );
-                  final deviceName = device.device.name;
-                  NotificationManager.instance.showThresholdAlert(
-                    deviceId: deviceId,
-                    deviceName: deviceName,
-                    threshold: value,
-                  );
-                  ref
-                      .read(notificationsProvider.notifier)
-                      .addNotification(
-                        NotificationSF(device: deviceName, value: value),
-                      );
-                }
-              }
-              lastAlertTime = DateTime.now();
+              _lastAlertTimes[deviceId] = DateTime.now();
             }
           });
       _subscriptions[deviceId] = subscription;

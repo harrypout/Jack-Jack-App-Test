@@ -6,6 +6,7 @@ import 'package:audio_session/audio_session.dart';
 class AudioStreamPlayer {
   final _audioPlayer = AudioPlayer();
   StreamSubscription? _audioStreamSubscription;
+  StreamSubscription<PlayerState>? _playerStateSubscription;
   bool _isPlaying = false;
   //todo: might need to adjust this
   final int _sampleRate = 8000;
@@ -16,12 +17,16 @@ class AudioStreamPlayer {
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
 
-    _audioPlayer.playerStateStream.listen((state) {
-      debugPrint('Audio player state: ${state.processingState} - ${state.playing}');
-    });
-
-    _audioPlayer.positionStream.listen((position) {
-      debugPrint('Audio position: $position');
+    // initialize() can be called repeatedly (once per playback). Cancel any
+    // previous listener so subscriptions don't accumulate. The high-frequency
+    // positionStream logging was removed as it flooded the log.
+    await _playerStateSubscription?.cancel();
+    _playerStateSubscription = _audioPlayer.playerStateStream.listen((state) {
+      if (kDebugMode) {
+        debugPrint(
+          'Audio player state: ${state.processingState} - ${state.playing}',
+        );
+      }
     });
   }
 
@@ -162,6 +167,8 @@ class AudioStreamPlayer {
 
   dispose() {
     stop();
+    _playerStateSubscription?.cancel();
+    _playerStateSubscription = null;
     _audioPlayer.dispose();
   }
 }

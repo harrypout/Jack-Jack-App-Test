@@ -4,6 +4,7 @@ import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/connected_status_provider.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:jackjack/utils/foreground_service_manager.dart';
 import 'package:jackjack/utils/notification_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -26,6 +27,7 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
       for (final subscription in _deviceConnections.values) {
         subscription.cancel();
       }
+      ForegroundServiceManager.stop();
     });
 
     return _connectedDeviceIds;
@@ -33,50 +35,61 @@ class ConnectedDevicesTracker extends _$ConnectedDevicesTracker {
 
   Future<void> _initialize() async {
     debugPrint("Initializing connected devices tracker...");
-    _connectionSubscription = _ble.connectedDeviceStream.listen((connectionStateUpdate) {
-      debugPrint("-----------------------------------------------------------------------$connectionStateUpdate");
-      if (connectionStateUpdate.connectionState == DeviceConnectionState.connected) {
-        debugPrint('Connected to device: ${connectionStateUpdate.deviceId}');
-        _connectedDeviceIds.add(connectionStateUpdate.deviceId);
-        if (!_deviceConnections.containsKey(connectionStateUpdate.deviceId)) {
-          final deviceId = connectionStateUpdate.deviceId;
-          final subscription = _ble.connectToDevice(
-            id: deviceId,
-            connectionTimeout: const Duration(seconds: 5),
-          ).listen((update) {
-            if (update.connectionState == DeviceConnectionState.disconnected) {
-              _connectedDeviceIds.remove(deviceId);
-              state = AsyncData(Set<String>.from(_connectedDeviceIds));
-            }
-          });
+    // Passive observer. The actual connection for each device is owned by
+    // ConnectedDevices.connect() (stored via storeConnectionSubscription);
+    // this stream only mirrors connection state and raises disconnect alerts.
+    // Previously this opened a second connectToDevice per device and then
+    // immediately disconnected it, which tore down freshly-made connections.
+    _connectionSubscription = _ble.connectedDeviceStream.listen((
+      connectionStateUpdate,
+    ) {
+      final deviceId = connectionStateUpdate.deviceId;
+      debugPrint(
+        "Connection update: $deviceId -> ${connectionStateUpdate.connectionState}",
+      );
 
-          _deviceConnections[deviceId] = subscription;
-          disconnectDevice(deviceId);
-        }
-      } else if (connectionStateUpdate.connectionState == DeviceConnectionState.disconnected ||
-                 connectionStateUpdate.connectionState == DeviceConnectionState.disconnecting) {
-        if(_connectedDeviceIds.contains(connectionStateUpdate.deviceId))
-        {
-          final disconnectedDevice = ref.read(
-              connectedDevicesProvider)[connectionStateUpdate.deviceId];
-          NotificationManager.instance.showDisconnectionAlert(
-            deviceId: disconnectedDevice!.device.id,
-            deviceName: disconnectedDevice.device.name,
-          );
-        }
-                                  ref
-                              .read(
-                                connectedStatusProvider(
-                                 connectionStateUpdate.deviceId,
-                                ).notifier,
-                              )
-                              .toggle(false);
-        _connectedDeviceIds.remove(connectionStateUpdate.deviceId);
+      switch (connectionStateUpdate.connectionState) {
+        case DeviceConnectionState.connected:
+          _connectedDeviceIds.add(deviceId);
+          ref.read(connectedStatusProvider(deviceId).notifier).toggle(true);
+          break;
+        case DeviceConnectionState.disconnecting:
+        case DeviceConnectionState.disconnected:
+          if (_connectedDeviceIds.contains(deviceId)) {
+            final disconnectedDevice =
+                ref.read(connectedDevicesProvider)[deviceId];
+            if (disconnectedDevice != null) {
+              NotificationManager.instance.showDisconnectionAlert(
+                deviceId: disconnectedDevice.device.id,
+                deviceName: disconnectedDevice.device.name,
+              );
+            }
+          }
+          ref.read(connectedStatusProvider(deviceId).notifier).toggle(false);
+          _connectedDeviceIds.remove(deviceId);
+          // Release the owning connection subscription for this device.
+          _deviceConnections[deviceId]?.cancel();
+          _deviceConnections.remove(deviceId);
+          break;
+        case DeviceConnectionState.connecting:
+          break;
       }
+
       state = AsyncData(Set<String>.from(_connectedDeviceIds));
+      _syncForegroundService();
     });
 
     ref.read(deviceManagerProvider);
+  }
+
+  /// Runs the Android foreground service while at least one device is
+  /// connected, so monitoring survives the app being backgrounded.
+  void _syncForegroundService() {
+    if (_connectedDeviceIds.isEmpty) {
+      ForegroundServiceManager.stop();
+    } else {
+      ForegroundServiceManager.start();
+    }
   }
 
   bool isDeviceConnected(String? deviceId) {

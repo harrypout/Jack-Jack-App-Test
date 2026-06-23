@@ -14,7 +14,6 @@ dependencies:
   riverpod_annotation: ^2.6.1
   flutter_dotenv: ^5.2.1
   shared_preferences: ^2.5.3
-  google_fonts: ^6.3.0
   syncfusion_flutter_gauges: ^30.2.5
   timeago: ^3.7.1
   flutter_reactive_ble: ^5.4.0
@@ -45,6 +44,12 @@ flutter:
     - assets/svgs/
     - assets/pngs/
     - .env
+  fonts:
+    - family: Lato
+      fonts:
+        - asset: assets/fonts/Lato-Regular.ttf
+        - asset: assets/fonts/Lato-Bold.ttf
+          weight: 700
 
 flutter_launcher_icons:
   image_path_android: "assets/pngs/jackjack_android.png"

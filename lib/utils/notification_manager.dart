@@ -11,20 +11,24 @@ class NotificationManager {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Monotonic id so rapid/successive notifications don't overwrite each other.
+  // DateTime.now().millisecond only spans 0-999 and collided frequently.
+  int _notificationIdCounter = 0;
+
   NotificationManager._();
 
+  /// Initializes the plugin only. Does NOT prompt for permission, so it can
+  /// run during startup without blocking first frame on a system dialog.
+  /// Call [requestPermission] after the UI is up.
   Future<void> initialize() async {
-    await Permission.notification.request();
-
-    // Initialize notifications
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
         );
 
     const InitializationSettings initializationSettings =
@@ -34,6 +38,11 @@ class NotificationManager {
         );
 
     await _notificationsPlugin.initialize(initializationSettings);
+  }
+
+  /// Requests notification permission. Safe to call after first frame.
+  Future<void> requestPermission() async {
+    await Permission.notification.request();
   }
 
   AndroidNotificationDetails defaultNotificationDetails({
@@ -94,7 +103,7 @@ class NotificationManager {
     );
 
     await _notificationsPlugin.show(
-      DateTime.now().millisecond,
+      _notificationIdCounter++,
       title,
       body,
       platformDetails,
