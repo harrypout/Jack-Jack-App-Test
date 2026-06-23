@@ -91,32 +91,43 @@ class BLEService {
       if (qualifiedCharacteristic == null) {
         data = Stream<int>.value(0).asBroadcastStream();
       } else {
-        // Create notification stream using flutter_reactive_ble. The
-        // underlying subscription is owned by this BLEService so it can be
-        // cancelled in dispose(); otherwise a default broadcast stream keeps
-        // its source subscription alive forever and leaks on every reconnect.
-        try {
-          await _notificationSubscription?.cancel();
-          await _streamController?.close();
-          final controller = StreamController<int>.broadcast();
-          _streamController = controller;
-          _notificationSubscription = FlutterReactiveBle()
-              .subscribeToCharacteristic(qualifiedCharacteristic!)
-              .listen(
-                (List<int> values) {
-                  if (!controller.isClosed) {
-                    controller.add(values.isNotEmpty ? values[0] : 0);
-                  }
-                },
-                onError: (e) {
-                  debugPrint("Notification stream error: $e");
-                },
-              );
-          data = controller.stream;
-        } catch (e) {
-          debugPrint("Notification subscription error: $e");
-          data = Stream<int>.value(0).asBroadcastStream();
-        }
+        // Wrap the flutter_reactive_ble notification stream in a broadcast
+        // controller owned by this BLEService. onListen/onCancel keep the
+        // original lazy behaviour (the GATT subscription only runs while
+        // something is listening), while dispose() can tear everything down
+        // so reconnecting a device no longer leaks the underlying
+        // subscription.
+        await _notificationSubscription?.cancel();
+        _notificationSubscription = null;
+        await _streamController?.close();
+        final QualifiedCharacteristic characteristic = qualifiedCharacteristic!;
+        late final StreamController<int> controller;
+        controller = StreamController<int>.broadcast(
+          onListen: () {
+            try {
+              _notificationSubscription = FlutterReactiveBle()
+                  .subscribeToCharacteristic(characteristic)
+                  .listen(
+                    (List<int> values) {
+                      if (!controller.isClosed) {
+                        controller.add(values.isNotEmpty ? values[0] : 0);
+                      }
+                    },
+                    onError: (e) {
+                      debugPrint("Notification stream error: $e");
+                    },
+                  );
+            } catch (e) {
+              debugPrint("Notification subscription error: $e");
+            }
+          },
+          onCancel: () {
+            _notificationSubscription?.cancel();
+            _notificationSubscription = null;
+          },
+        );
+        _streamController = controller;
+        data = controller.stream;
       }
     } else if (type == BLEServiceType.getInt) {
       if (qualifiedCharacteristic != null) {
