@@ -11,6 +11,10 @@ class NotificationManager {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Monotonic id so rapid/successive notifications don't overwrite each other.
+  // DateTime.now().millisecond only spans 0-999 and collided frequently.
+  int _notificationIdCounter = 0;
+
   NotificationManager._();
 
   Future<void> initialize() async {
@@ -94,7 +98,7 @@ class NotificationManager {
     );
 
     await _notificationsPlugin.show(
-      DateTime.now().millisecond,
+      _notificationIdCounter++,
       title,
       body,
       platformDetails,

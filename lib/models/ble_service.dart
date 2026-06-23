@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:jackjack/models/ble_uuids.dart';
 import 'package:jackjack/utils/toast_manager.dart';
@@ -10,6 +12,8 @@ class BLEService {
   QualifiedCharacteristic? qualifiedCharacteristic;
   BLEServiceType type;
   BLEUUIDS uuid;
+  StreamController<int>? _streamController;
+  StreamSubscription<List<int>>? _notificationSubscription;
   dynamic data;
   BLEService({
     required this.deviceId,
@@ -85,26 +89,33 @@ class BLEService {
     debugPrint("Old Get Value: ${toString()}");
     if (type == BLEServiceType.stream) {
       if (qualifiedCharacteristic == null) {
-        data = Stream.value(0).asBroadcastStream();
+        data = Stream<int>.value(0).asBroadcastStream();
       } else {
-        // Create notification stream using flutter_reactive_ble
+        // Create notification stream using flutter_reactive_ble. The
+        // underlying subscription is owned by this BLEService so it can be
+        // cancelled in dispose(); otherwise a default broadcast stream keeps
+        // its source subscription alive forever and leaks on every reconnect.
         try {
-          var newData =
-              FlutterReactiveBle()
-                  .subscribeToCharacteristic(qualifiedCharacteristic!)
-                  .map((List<int> values) => values.isNotEmpty ? values[0] : 0)
-                  .asBroadcastStream();
-
-          if (data != null) {
-            if (!identical(data, newData)) {
-              data = newData;
-            }
-          } else {
-            data = newData;
-          }
+          await _notificationSubscription?.cancel();
+          await _streamController?.close();
+          final controller = StreamController<int>.broadcast();
+          _streamController = controller;
+          _notificationSubscription = FlutterReactiveBle()
+              .subscribeToCharacteristic(qualifiedCharacteristic!)
+              .listen(
+                (List<int> values) {
+                  if (!controller.isClosed) {
+                    controller.add(values.isNotEmpty ? values[0] : 0);
+                  }
+                },
+                onError: (e) {
+                  debugPrint("Notification stream error: $e");
+                },
+              );
+          data = controller.stream;
         } catch (e) {
           debugPrint("Notification subscription error: $e");
-          data = Stream.value(0).asBroadcastStream();
+          data = Stream<int>.value(0).asBroadcastStream();
         }
       }
     } else if (type == BLEServiceType.getInt) {
@@ -148,5 +159,14 @@ class BLEService {
         debugPrint("Cannot write: characteristic is null");
       }
     }
+  }
+
+  /// Cancels the underlying BLE notification subscription (if any) and closes
+  /// the broadcast controller. Safe to call on non-stream services (no-op).
+  Future<void> dispose() async {
+    await _notificationSubscription?.cancel();
+    _notificationSubscription = null;
+    await _streamController?.close();
+    _streamController = null;
   }
 }

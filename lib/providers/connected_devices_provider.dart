@@ -60,9 +60,11 @@ class ConnectedDevices extends _$ConnectedDevices {
   }
 
   Future<void> removeDevice(String deviceId) async {
-    if (state[deviceId] != null) {
+    final device = state[deviceId];
+    if (device != null) {
       ref.read(loadingProvider(deviceId).notifier).toggle(true);
       state = {...state}..remove(deviceId);
+      await device.dispose();
       ref.read(loadingProvider(deviceId).notifier).toggle(false);
     }
   }
@@ -74,6 +76,7 @@ class ConnectedDevices extends _$ConnectedDevices {
   }) async {
     ref.read(loadingProvider(device.id).notifier).toggle(true);
 
+    bool success = true;
     try {
       debugPrint("Should connect: $shouldConnect");
       debugPrint(state.keys.toString());
@@ -106,7 +109,6 @@ class ConnectedDevices extends _$ConnectedDevices {
                   if (!completer.isCompleted) {
                     completer.completeError(error);
                     debugPrint("Error: $error");
-                    throw error;
                   }
                 },
               );
@@ -139,10 +141,13 @@ class ConnectedDevices extends _$ConnectedDevices {
       //get services function here
       await getServices(device, shouldConnect: shouldConnect);
     } catch (e) {
+      success = false;
       debugPrint("Error: $e");
       ToastManager.show("Error: $e");
     }
-    await PairedDevicesUUID.saveToPrefs(device.id);
+    if (success) {
+      await PairedDevicesUUID.saveToPrefs(device.id);
+    }
     ref.read(loadingProvider(device.id).notifier).toggle(false);
     ref.read(deviceManagerProvider.notifier).updateDeviceStreams();
   }
@@ -174,7 +179,7 @@ class ConnectedDevices extends _$ConnectedDevices {
       deviceName: device.name,
       shouldConnect: shouldConnect,
     );
-    if (getThreshold.data is int?) {
+    if (getThreshold.data is int) {
       if (getThreshold.data < 30) {
         await setThreshold.setValue(30);
         await getThreshold.getValue();
@@ -226,6 +231,7 @@ class ConnectedDevices extends _$ConnectedDevices {
       shouldConnect: shouldConnect,
     );
     debugPrint("Update");
+    final BLEDevice? previousDevice = state[device.id];
     Map<String, BLEDevice> oldState = {};
     oldState.addAll(state);
     oldState[device.id] = BLEDevice(
@@ -241,6 +247,9 @@ class ConnectedDevices extends _$ConnectedDevices {
     );
     debugPrint("1");
     state = oldState;
+    // Tear down the previous device's stream subscriptions so re-discovering
+    // or reconnecting a device doesn't leak BLE notification subscriptions.
+    await previousDevice?.dispose();
 
     if (shouldConnect &&
         ref
