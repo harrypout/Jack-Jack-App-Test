@@ -17,9 +17,11 @@ class PeriodicTaskService extends _$PeriodicTaskService {
       final connectedDevices = ref.read(connectedDevicesProvider);
       final connectedDeviceTracker =
           ref.read(connectedDevicesTrackerProvider.notifier).connectedDevices;
-      connectedDevices.keys
-          .where((id) => connectedDeviceTracker.contains(id))
-          .map((id) => connectedDevices[id]?.getBattery.getValue());
+      for (final id in connectedDevices.keys.where(
+        (id) => connectedDeviceTracker.contains(id),
+      )) {
+        connectedDevices[id]?.getBattery.getValue();
+      }
     });
 
     ref.onDispose(() {

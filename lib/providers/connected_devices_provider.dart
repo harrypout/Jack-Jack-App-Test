@@ -62,7 +62,7 @@ class ConnectedDevices extends _$ConnectedDevices {
   Future<void> removeDevice(String deviceId) async {
     if (state[deviceId] != null) {
       ref.read(loadingProvider(deviceId).notifier).toggle(true);
-      state.remove(deviceId);
+      state = {...state}..remove(deviceId);
       ref.read(loadingProvider(deviceId).notifier).toggle(false);
     }
   }
