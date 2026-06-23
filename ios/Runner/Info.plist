@@ -47,8 +47,6 @@
     <true/>
     <key>NSBluetoothAlwaysUsageDescription</key>
     <string>App needs Bluetooth to connect to sound sense devices</string>
-    <key>NSBluetoothPeripheralUsageDescription</key>
-    <string>App needs Bluetooth to monitor sound levels</string>
     <key>UIBackgroundModes</key>
     <array>
       <string>bluetooth-central</string>
