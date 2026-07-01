@@ -70,6 +70,13 @@ post_install do |installer|
     end
 
     target.build_configurations.each do |config|
+      # Xcode 16's "Explicitly Built Modules" fails to compile SwiftProtobuf's
+      # `package`-access code during a Release archive ("cannot find type
+      # 'Message'/'_NameMap'/... in scope"). `flutter build ipa` does not use
+      # explicit modules, which is why the same code compiles fine there.
+      # Disable explicit modules for the pods so a manual Xcode archive matches.
+      config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+
       # permission_handler: only compile in the permissions this app uses.
       # Without these macros every handler (location, contacts, camera, ...)
       # is included, which risks App Store rejection for unused permission
