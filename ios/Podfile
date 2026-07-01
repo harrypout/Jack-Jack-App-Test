@@ -66,6 +66,14 @@ post_install do |installer|
     if target.name == 'SwiftProtobuf'
       target.build_configurations.each do |config|
         config.build_settings['OTHER_SWIFT_FLAGS'] = '$(inherited) -package-name swiftprotobuf'
+        # Force whole-module compilation. SwiftProtobuf's .pb.swift files use
+        # `package`/internal types defined in sibling files (Message, _NameMap,
+        # Visitor, Varint, ...). When the module is compiled in split batches,
+        # those cross-file symbols aren't visible and the build fails with a
+        # cascade of "cannot find type ... in scope" / "value of type 'V' has
+        # no member ...". Whole-module compiles all files as one unit so the
+        # intra-module symbols resolve.
+        config.build_settings['SWIFT_COMPILATION_MODE'] = 'wholemodule'
       end
     end
 
