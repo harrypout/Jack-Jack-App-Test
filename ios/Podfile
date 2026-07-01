@@ -30,23 +30,16 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
 
-  # flutter_reactive_ble's bundled bledata.pb.swift calls
-  # `SwiftProtobuf._NameMap(bytecode:)`. That initializer FIRST appears in
-  # SwiftProtobuf 1.31.0 — 1.30.0 and earlier only have `_NameMap()` /
-  # `_NameMap(reservedNames:...)`, so against them the build fails with
-  # "argument passed to call that takes no arguments" (apple/swift-protobuf#1830).
-  # So SwiftProtobuf must be >= 1.31.0.
-  #
-  # But every version that has `init(bytecode:)` (>= 1.31.0) also ships
-  # BytecodeReader.swift / BytecodeInterpreter.swift using Swift's `package`
-  # access level, which fails to compile under CocoaPods because CocoaPods does
-  # not pass `-package-name` ("the package access level used on 'BytecodeReader'
-  # requires a package name"; apple/swift-protobuf#1334). There is no version
-  # that both has the initializer AND avoids the package-access files, so the
-  # `-package-name` flag is injected for the SwiftProtobuf target in the
-  # post_install hook below. Pin to 1.31.0 for a reproducible resolve that
-  # matches the bytecode format reactive_ble's generated code was built against.
-  pod 'SwiftProtobuf', '1.31.0'
+  # This app pins reactive_ble_mobile to the 5.4.0 generation (see
+  # dependency_overrides in pubspec.yaml), whose bundled bledata.pb.swift uses
+  # the classic SwiftProtobuf `_NameMap` API. That API compiles against
+  # SwiftProtobuf <= 1.29 — which, crucially, predates the Swift `package`
+  # access level SwiftProtobuf adopted in 1.31 (BytecodeReader/Interpreter).
+  # 1.31+ fails to build under CocoaPods (CocoaPods doesn't pass -package-name;
+  # apple/swift-protobuf#1334) and needed a stack of build-setting hacks that
+  # never fully worked. Pinning to 1.29.0 sidesteps all of it: no package-access
+  # code, and it matches the older reactive_ble generated code.
+  pod 'SwiftProtobuf', '1.29.0'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -58,33 +51,7 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
 
-    # SwiftProtobuf >= 1.31.0 uses Swift's `package` access level in its
-    # bytecode decoder, which requires the `-package-name` compiler flag.
-    # CocoaPods doesn't pass one, so inject it for this target (the value is
-    # an arbitrary package identifier). Without this, SwiftProtobuf fails to
-    # build and reactive_ble then can't find `_NameMap(bytecode:)`.
-    if target.name == 'SwiftProtobuf'
-      target.build_configurations.each do |config|
-        config.build_settings['OTHER_SWIFT_FLAGS'] = '$(inherited) -package-name swiftprotobuf'
-        # Force whole-module compilation. SwiftProtobuf's .pb.swift files use
-        # `package`/internal types defined in sibling files (Message, _NameMap,
-        # Visitor, Varint, ...). When the module is compiled in split batches,
-        # those cross-file symbols aren't visible and the build fails with a
-        # cascade of "cannot find type ... in scope" / "value of type 'V' has
-        # no member ...". Whole-module compiles all files as one unit so the
-        # intra-module symbols resolve.
-        config.build_settings['SWIFT_COMPILATION_MODE'] = 'wholemodule'
-      end
-    end
-
     target.build_configurations.each do |config|
-      # Xcode 16's "Explicitly Built Modules" fails to compile SwiftProtobuf's
-      # `package`-access code during a Release archive ("cannot find type
-      # 'Message'/'_NameMap'/... in scope"). `flutter build ipa` does not use
-      # explicit modules, which is why the same code compiles fine there.
-      # Disable explicit modules for the pods so a manual Xcode archive matches.
-      config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
-
       # permission_handler: only compile in the permissions this app uses.
       # Without these macros every handler (location, contacts, camera, ...)
       # is included, which risks App Store rejection for unused permission
