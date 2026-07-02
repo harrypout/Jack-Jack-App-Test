@@ -30,6 +30,15 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
 
+  # This app pins reactive_ble_mobile to the 5.4.0 generation (see
+  # dependency_overrides in pubspec.yaml), whose bundled bledata.pb.swift uses
+  # the classic SwiftProtobuf `_NameMap` API. That API compiles against
+  # SwiftProtobuf <= 1.29 — which predates the Swift `package` access level
+  # SwiftProtobuf adopted in 1.31 (BytecodeReader/Interpreter). 1.31+ fails to
+  # build under CocoaPods (no -package-name is passed; apple/swift-protobuf#1334).
+  # Pinning to 1.29.0 sidesteps all of it.
+  pod 'SwiftProtobuf', '1.29.0'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths
@@ -40,14 +49,34 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
 
-    # Enable permission_handler macros for iOS
+    # permission_handler: only compile in the permissions this app uses
+    # (Bluetooth + Notifications). The =0 macros strip every other handler
+    # (location, contacts, camera, ...) from the binary — without them all
+    # permission APIs are compiled in, which risks App Store rejection for
+    # referencing permission APIs the app never uses.
     target.build_configurations.each do |config|
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
-      unless config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'].include?('PERMISSION_NOTIFICATIONS=1')
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_NOTIFICATIONS=1'
-      end
-      unless config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'].include?('PERMISSION_BLUETOOTH=1')
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_BLUETOOTH=1'
+      %w[
+        PERMISSION_EVENTS=0
+        PERMISSION_EVENTS_FULL_ACCESS=0
+        PERMISSION_REMINDERS=0
+        PERMISSION_CONTACTS=0
+        PERMISSION_CAMERA=0
+        PERMISSION_MICROPHONE=0
+        PERMISSION_SPEECH_RECOGNIZER=0
+        PERMISSION_PHOTOS=0
+        PERMISSION_LOCATION=0
+        PERMISSION_NOTIFICATIONS=1
+        PERMISSION_MEDIA_LIBRARY=0
+        PERMISSION_SENSORS=0
+        PERMISSION_BLUETOOTH=1
+        PERMISSION_APP_TRACKING_TRANSPARENCY=0
+        PERMISSION_CRITICAL_ALERTS=0
+        PERMISSION_ASSISTANT=0
+      ].each do |macro|
+        unless config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'].include?(macro)
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << macro
+        end
       end
     end
   end
