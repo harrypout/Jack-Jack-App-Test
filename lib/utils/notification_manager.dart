@@ -13,6 +13,24 @@ class NotificationManager {
 
   bool _initialized = false;
 
+  // Monotonic id: DateTime.now().millisecond is 0-999 and repeats every
+  // second, so two alerts close together (or a second apart) got the same id
+  // and the newer notification silently replaced the older one.
+  //
+  // Seeded from wall-clock (masked to stay well inside Android's signed
+  // 32-bit id range) so ids also don't repeat across app relaunches while
+  // older alerts are still in the notification shade.
+  int _nextNotificationId = DateTime.now().millisecondsSinceEpoch & 0x3fffffff;
+
+  int _allocateNotificationId() {
+    _nextNotificationId = (_nextNotificationId + 1) & 0x3fffffff;
+    // 888 is reserved by the background service's persistent foreground
+    // notification (background_service_manager.dart); posting an alert with
+    // the same id would replace it.
+    if (_nextNotificationId == 888) _nextNotificationId++;
+    return _nextNotificationId;
+  }
+
   NotificationManager._();
 
   /// Initialize the notifications plugin (fast, no user interaction).
@@ -107,7 +125,7 @@ class NotificationManager {
     );
 
     await _notificationsPlugin.show(
-      DateTime.now().millisecond,
+      _allocateNotificationId(),
       title,
       body,
       platformDetails,

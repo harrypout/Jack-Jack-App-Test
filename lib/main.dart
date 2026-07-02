@@ -16,25 +16,70 @@ late final SharedPreferences prefs;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Only the two hard dependencies before runApp():
-  // - SharedPreferences: needed by NavigationManager.initialRoute
-  // - EnvManager: needed by BLE UUID configs
-  final results = await Future.wait([
-    SharedPreferences.getInstance(),
-    EnvManager.getInstance(),
-  ]);
+  try {
+    // Only the two hard dependencies before runApp():
+    // - SharedPreferences: needed by NavigationManager.initialRoute
+    // - EnvManager: needed by BLE UUID configs
+    final results = await Future.wait([
+      SharedPreferences.getInstance(),
+      EnvManager.getInstance(),
+    ]);
 
-  prefs = results[0] as SharedPreferences;
+    prefs = results[0] as SharedPreferences;
 
-  // Initialize device name manager
-  await DeviceNameManager.instance.initialize();
+    // Initialize device name manager
+    await DeviceNameManager.instance.initialize();
 
-  // Enable background monitoring by default
-  if (!prefs.containsKey("backgroundMonitoring")) {
-    await prefs.setBool("backgroundMonitoring", true);
+    // Enable background monitoring by default
+    if (!prefs.containsKey("backgroundMonitoring")) {
+      await prefs.setBool("backgroundMonitoring", true);
+    }
+  } catch (e, s) {
+    // Without this guard any failure here (e.g. a missing/invalid .env)
+    // throws out of main() and the app crash-loops on launch with no
+    // feedback.
+    debugPrint("Startup initialization failed: $e\n$s");
+    runApp(StartupErrorApp(message: e.toString()));
+    return;
   }
 
   runApp(ProviderScope(child: const BLE()));
+}
+
+class StartupErrorApp extends StatelessWidget {
+  final String message;
+  const StartupErrorApp({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  'Something went wrong while starting the app.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class BLE extends ConsumerStatefulWidget {

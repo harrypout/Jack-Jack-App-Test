@@ -31,9 +31,14 @@ class PeriodicTaskService extends _$PeriodicTaskService {
       final connectedDevices = ref.read(connectedDevicesProvider);
       final connectedDeviceTracker =
           ref.read(connectedDevicesTrackerProvider.notifier).connectedDevices;
-      connectedDevices.keys
-          .where((id) => connectedDeviceTracker.contains(id))
-          .map((id) => connectedDevices[id]?.getBattery.getValue());
+      // A real loop, not `.map`: Iterable.map is lazy and its callbacks never
+      // run unless the result is consumed, so the battery reads silently
+      // never happened.
+      for (final id in connectedDevices.keys) {
+        if (connectedDeviceTracker.contains(id)) {
+          connectedDevices[id]?.getBattery.getValue();
+        }
+      }
     });
   }
 

@@ -13,7 +13,16 @@ part 'threshold_alert_provider.g.dart';
 @Riverpod(keepAlive: true)
 class ThresholdAlert extends _$ThresholdAlert {
   final Map<String, StreamSubscription> _subscriptions = {};
-  DateTime? lastAlertTime;
+
+  // Cooldown per device. A single shared timestamp meant one loud device
+  // suppressed threshold alerts for every other connected device.
+  final Map<String, DateTime> _lastAlertTimes = {};
+
+  bool _inCooldown(String deviceId) {
+    final last = _lastAlertTimes[deviceId];
+    return last != null &&
+        DateTime.now().difference(last) < notificationTimeout;
+  }
 
   @override
   void build() {
@@ -32,14 +41,13 @@ class ThresholdAlert extends _$ThresholdAlert {
         final threshold = event['threshold'] as int;
         final deviceName = event['deviceName'] as String;
 
-        // Apply same cooldown as foreground alerts
-        if (lastAlertTime != null &&
-            DateTime.now().difference(lastAlertTime!) < notificationTimeout) {
-          return;
-        }
-
         if (threshold > 0) {
           final deviceId = event['deviceId'] as String;
+
+          // Apply same per-device cooldown as foreground alerts
+          if (_inCooldown(deviceId)) {
+            return;
+          }
 
           // Show OS notification
           NotificationManager.instance.showThresholdAlert(
@@ -53,7 +61,7 @@ class ThresholdAlert extends _$ThresholdAlert {
                 NotificationSF(device: deviceName, value: threshold),
               );
 
-          lastAlertTime = DateTime.now();
+          _lastAlertTimes[deviceId] = DateTime.now();
         }
       }
     });
@@ -142,29 +150,31 @@ class ThresholdAlert extends _$ThresholdAlert {
     final subscription = (deviceThresholdAlert.data as Stream<int>)
         .asBroadcastStream()
         .listen((value) {
-          if (lastAlertTime == null ||
-              DateTime.now().difference(lastAlertTime!) >=
-                  notificationTimeout) {
-            if (value > 0) {
-              var device = ref.read(connectedDevicesProvider)[deviceId]!;
-              if (device.getThreshold.data > 0) {
-                debugPrint(
-                  "value: $value, device.getThreshold.data: ${device.getThreshold.data}",
-                );
-                final deviceName = device.device.name;
-                NotificationManager.instance.showThresholdAlert(
-                  deviceId: deviceId,
-                  deviceName: deviceName,
-                  threshold: value,
-                );
-                ref
-                    .read(notificationsProvider.notifier)
-                    .addNotification(
-                      NotificationSF(device: deviceName, value: value),
-                    );
-              }
+          // Per-device cooldown, advanced only when an alert actually fires —
+          // previously the shared timestamp advanced even on value == 0
+          // events, which could indefinitely postpone real alerts.
+          if (_inCooldown(deviceId)) {
+            return;
+          }
+          if (value > 0) {
+            var device = ref.read(connectedDevicesProvider)[deviceId]!;
+            if (device.getThreshold.data > 0) {
+              debugPrint(
+                "value: $value, device.getThreshold.data: ${device.getThreshold.data}",
+              );
+              final deviceName = device.device.name;
+              NotificationManager.instance.showThresholdAlert(
+                deviceId: deviceId,
+                deviceName: deviceName,
+                threshold: value,
+              );
+              ref
+                  .read(notificationsProvider.notifier)
+                  .addNotification(
+                    NotificationSF(device: deviceName, value: value),
+                  );
+              _lastAlertTimes[deviceId] = DateTime.now();
             }
-            lastAlertTime = DateTime.now();
           }
         });
 
