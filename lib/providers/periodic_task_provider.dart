@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
+import 'package:jackjack/main.dart';
 
 part 'periodic_task_provider.g.dart';
 
@@ -13,24 +14,42 @@ class PeriodicTaskService extends _$PeriodicTaskService {
   void build() {
     stopPeriodicTask();
 
-    _periodicTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      final connectedDevices = ref.read(connectedDevicesProvider);
-      final connectedDeviceTracker =
-          ref.read(connectedDevicesTrackerProvider.notifier).connectedDevices;
-      for (final id in connectedDevices.keys.where(
-        (id) => connectedDeviceTracker.contains(id),
-      )) {
-        connectedDevices[id]?.getBattery.getValue();
-      }
-    });
+    // Only start foreground polling if background service is NOT active
+    final backgroundActive = prefs.getBool("backgroundMonitoring") ?? true;
+    if (!backgroundActive) {
+      _startForegroundPolling();
+    }
 
     ref.onDispose(() {
       stopPeriodicTask();
     });
   }
 
+  /// Start battery polling in foreground
+  void _startForegroundPolling() {
+    _periodicTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      final connectedDevices = ref.read(connectedDevicesProvider);
+      final connectedDeviceTracker =
+          ref.read(connectedDevicesTrackerProvider.notifier).connectedDevices;
+      // A real loop, not `.map`: Iterable.map is lazy and its callbacks never
+      // run unless the result is consumed, so the battery reads silently
+      // never happened.
+      for (final id in connectedDevices.keys) {
+        if (connectedDeviceTracker.contains(id)) {
+          connectedDevices[id]?.getBattery.getValue();
+        }
+      }
+    });
+  }
+
   void stopPeriodicTask() {
     _periodicTimer?.cancel();
     _periodicTimer = null;
+  }
+
+  /// Resume foreground polling (called when background service stops)
+  void resumeForegroundPolling() {
+    stopPeriodicTask();
+    _startForegroundPolling();
   }
 }

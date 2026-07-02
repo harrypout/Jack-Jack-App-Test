@@ -21,7 +21,7 @@ class NotificationItem extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: ColorManager.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFECEDF3))),
+        border: Border(bottom: BorderSide(color: ColorManager.containerBorder)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -38,6 +38,10 @@ class NotificationItem extends StatelessWidget {
               width: 20,
               height: 20,
               fit: BoxFit.scaleDown,
+              colorFilter: const ColorFilter.mode(
+                ColorManager.accent,
+                BlendMode.srcIn,
+              ),
             ),
           ),
           const SizedBox(
@@ -65,7 +69,7 @@ class NotificationItem extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           if (readTime.isBefore(item.createdAt))
-                            BLEPill(color: Colors.red),
+                            BLEPill(color: ColorManager.error),
 
                         ],
                       ),

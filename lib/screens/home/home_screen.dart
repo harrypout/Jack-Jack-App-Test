@@ -3,11 +3,14 @@ import 'package:jackjack/providers/selected_device_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/screens/home/widgets/selected_device_widget.dart';
 import 'package:jackjack/screens/notifications/notification_screen.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_background.dart';
 import 'package:jackjack/widgets/ble_home_screen_device.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jackjack/services/app_initializer.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   static const String id = 'home_screen';
@@ -22,13 +25,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final connectedDevices = ref.watch(connectedDevicesProvider);
     final selectedDevice = ref.watch(selectedDeviceProvider);
-    if (connectedDevices.isNotEmpty && selectedDevice == null) {
-      Future.microtask(
-        () => ref
-            .read(selectedDeviceProvider.notifier)
-            .setSelectedDevice(connectedDevices.keys.first),
-      );
-    }
+    final bleStatus = ref.watch(bleStatusNotifierProvider);
+    final btOff = bleStatus != BleStatus.ready;
+
     return Scaffold(
       body: BLEBackground(
         child: SafeArea(
@@ -47,14 +46,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Welcome",
+                          "Jack Jack",
                           style: const TextStyle(
-                            color: Color(0xFF121521),
+                            color: ColorManager.primaryText,
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Text("Good Morning!"),
+                        // Text("Good Morning!"),
                       ],
                     ),
                     Badge(
@@ -80,14 +79,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ],
                 ),
+                if (btOff)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: ColorManager.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: ColorManager.containerBorder,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.bluetooth_disabled,
+                          color: ColorManager.tertiaryText,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Bluetooth is turned off. Turn on Bluetooth to connect to devices.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: ColorManager.tertiaryText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 SelectedDeviceHomeWidget(
                   device: connectedDevices[selectedDevice],
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("Other Devices"),
-                    TextButton(onPressed: () {}, child: Text("View All")),
+                    Text("Devices"),
+                    // TextButton(onPressed: () {}, child: Text("View All")),
                   ],
                 ),
                 Expanded(

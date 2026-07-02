@@ -17,15 +17,15 @@ class ThresholdItem extends ConsumerStatefulWidget {
 }
 
 class _ThresholdItemState extends ConsumerState<ThresholdItem> {
-  bool sound = false;
-  bool vibration = false;
+  bool sound = true;
+  bool vibration = true;
 
   @override
   void initState() {
     super.initState();
     setState(() {
-      sound = prefs.getBool("${widget.device.device.id}s") ?? false;
-      vibration = prefs.getBool("${widget.device.device.id}v") ?? false;
+      sound = prefs.getBool("${widget.device.device.id}s") ?? true;
+      vibration = prefs.getBool("${widget.device.device.id}v") ?? true;
     });
   }
 
@@ -107,13 +107,14 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
                   max: 120,
                   min: 30,
                   activeColor: ColorManager.accent,
-                  onChanged: (val){
+                  onChanged: (val) {
                     ref
                         .read(
                           deviceThresholdProvider(
                             widget.device.device.id,
                           ).notifier,
-                        ).change(val.toInt());
+                        )
+                        .change(val.toInt());
                   },
                   onChangeEnd: (value) {
                     ref

@@ -6,7 +6,6 @@ import 'package:audio_session/audio_session.dart';
 class AudioStreamPlayer {
   final _audioPlayer = AudioPlayer();
   StreamSubscription? _audioStreamSubscription;
-  StreamSubscription<PlayerState>? _playerStateSubscription;
   bool _isPlaying = false;
   //todo: might need to adjust this
   final int _sampleRate = 8000;
@@ -15,18 +14,30 @@ class AudioStreamPlayer {
 
   Future<void> initialize() async {
     final session = await AudioSession.instance;
-    await session.configure(AudioSessionConfiguration.speech());
 
-    // initialize() can be called repeatedly (once per playback). Cancel any
-    // previous listener so subscriptions don't accumulate. The high-frequency
-    // positionStream logging was removed as it flooded the log.
-    await _playerStateSubscription?.cancel();
-    _playerStateSubscription = _audioPlayer.playerStateStream.listen((state) {
-      if (kDebugMode) {
-        debugPrint(
-          'Audio player state: ${state.processingState} - ${state.playing}',
-        );
-      }
+    // Configure for background playback
+    await session.configure(
+      AudioSessionConfiguration(
+        avAudioSessionCategory: AVAudioSessionCategory.playback,
+        avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.mixWithOthers,
+        avAudioSessionMode: AVAudioSessionMode.defaultMode,
+        avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
+        avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+        androidAudioAttributes: const AndroidAudioAttributes(
+          contentType: AndroidAudioContentType.speech,
+          usage: AndroidAudioUsage.media, // Allows background playback
+        ),
+        androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+        androidWillPauseWhenDucked: false,
+      ),
+    );
+
+    _audioPlayer.playerStateStream.listen((state) {
+      debugPrint('Audio player state: ${state.processingState} - ${state.playing}');
+    });
+
+    _audioPlayer.positionStream.listen((position) {
+      debugPrint('Audio position: $position');
     });
   }
 
@@ -167,8 +178,6 @@ class AudioStreamPlayer {
 
   dispose() {
     stop();
-    _playerStateSubscription?.cancel();
-    _playerStateSubscription = null;
     _audioPlayer.dispose();
   }
 }

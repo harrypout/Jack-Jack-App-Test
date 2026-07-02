@@ -14,10 +14,10 @@ class FAQScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BLEBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              BLEAppBar(
+        child: Column(
+          children: [
+            SafeArea(
+              child: BLEAppBar(
                 title: "Help",
                 leading: SvgPicture.asset(
                   "assets/svgs/arrow-left.svg",
@@ -28,32 +28,33 @@ class FAQScreen extends StatelessWidget {
                 onLeadingTap: () {
                   Navigator.pop(context);
                 },
+
               ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: faqs.length,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  addAutomaticKeepAlives: false,
-                  addRepaintBoundaries: true,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: ThemeManager.horizontalPadding,
-                  ),
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 8,
-                        top: index == 0 ? 8 : 0,
-                      ),
-                      child: FAQItem(
-                        key: ObjectKey(faqs[index]),
-                        faq: faqs[index],
-                      ),
-                    );
-                  },
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: faqs.length,
+                physics: const AlwaysScrollableScrollPhysics(),
+                addAutomaticKeepAlives: false,
+                addRepaintBoundaries: true,
+                padding: EdgeInsets.symmetric(
+                  horizontal: ThemeManager.horizontalPadding,
                 ),
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: 8,
+                      top: index == 0 ? 8 : 0,
+                    ),
+                    child: FAQItem(
+                      key: ObjectKey(faqs[index]),
+                      faq: faqs[index],
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
