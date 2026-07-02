@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter pub run:*)",
+      "Bash(flutter build:*)",
+      "Bash(flutter run:*)",
+      "Bash(rsvg-convert:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}

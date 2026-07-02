@@ -20,7 +20,7 @@ PODS:
     - FlutterMacOS
   - permission_handler_apple (9.3.0):
     - Flutter
-  - Protobuf (3.29.5)
+  - Protobuf (3.29.6)
   - reactive_ble_mobile (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -29,7 +29,7 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - SwiftProtobuf (1.33.3)
+  - SwiftProtobuf (1.36.1)
   - url_launcher_ios (0.0.1):
     - Flutter
 
@@ -92,10 +92,10 @@ SPEC CHECKSUMS:
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
-  Protobuf: 164aea2ae380c3951abdc3e195220c01d17400e0
+  Protobuf: 8d5596f7468be5400861a6bbfb2dfe9d0d1cde34
   reactive_ble_mobile: ea97709e18fa6f0b0592909725d7ae7e1c595b64
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
-  SwiftProtobuf: e1b437c8e31a4c5577b643249a0bb62ed4f02153
+  SwiftProtobuf: 9e106a71456f4d3f6a3b0c8fd87ef0be085efc38
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
 PODFILE CHECKSUM: 90232219f05e0bc43fa953d3fc0d2eea19800dbc
