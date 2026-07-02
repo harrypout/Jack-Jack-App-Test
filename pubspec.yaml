@@ -14,13 +14,10 @@ dependencies:
   riverpod_annotation: ^2.6.1
   flutter_dotenv: ^5.2.1
   shared_preferences: ^2.5.3
+  google_fonts: ^6.3.0
   syncfusion_flutter_gauges: ^30.2.5
   timeago: ^3.7.1
-  # Pinned to 5.4.0: 5.4.1+ regenerated the iOS protobuf (bledata.pb.swift) to
-  # call SwiftProtobuf._NameMap(bytecode:), which requires SwiftProtobuf >= 1.31
-  # — a version that uses Swift `package` access and fails to compile under
-  # CocoaPods. The 5.4.0 generation uses the classic API and builds cleanly.
-  flutter_reactive_ble: 5.4.0
+  flutter_reactive_ble: ^5.4.0
   permission_handler: ^12.0.1
   flutter_local_notifications: ^19.4.0
   device_info_plus: ^11.5.0
@@ -33,13 +30,12 @@ dependencies:
   disable_battery_optimization: ^1.1.2
   url_launcher: ^6.3.2
 
-dependency_overrides:
-  # Force the iOS/macOS platform implementation to the 5.4.0 generation whose
-  # bundled bledata.pb.swift uses the classic SwiftProtobuf _NameMap API (builds
-  # against SwiftProtobuf 1.29, which predates the CocoaPods-hostile `package`
-  # access level). reactive_ble_mobile 5.4.1+ regenerated that file to call
-  # _NameMap(bytecode:), pulling in the SwiftProtobuf 1.31 build failures.
-  reactive_ble_mobile: 5.4.0
+  # Background service support
+  flutter_background_service: ^5.0.10
+  flutter_background_service_android: ^6.2.7
+  flutter_background_service_ios: ^5.0.3
+
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_test:
@@ -56,18 +52,20 @@ flutter:
     - assets/svgs/
     - assets/pngs/
     - .env
-  fonts:
-    - family: Lato
-      fonts:
-        - asset: assets/fonts/Lato-Regular.ttf
-        - asset: assets/fonts/Lato-Bold.ttf
-          weight: 700
+
+flutter_native_splash:
+  color: "#fdfbf7"
+  image: "assets/pngs/jackjack_ios.png"
+  android: true
+  ios: true
 
 flutter_launcher_icons:
   image_path_android: "assets/pngs/jackjack_android.png"
-  image_path_ios: "assets/pngs/jackjack_android.png"
+  image_path_ios: "assets/pngs/jackjack_ios.png"
   android: "launcher_icon"
-  adaptive_icon_background: "#FCF9F2"
+  adaptive_icon_background: "#f9fafb"
   adaptive_icon_foreground: "assets/pngs/jackjack_android.png"
+  adaptive_icon_monochrome: "assets/pngs/jackjack_mono.png"
   ios: true
+  remove_alpha_ios: true
   min_sdk_android: 21

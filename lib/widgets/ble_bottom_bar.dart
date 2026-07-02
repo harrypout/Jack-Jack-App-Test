@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:jackjack/providers/navigation_provider.dart';
+import 'package:jackjack/utils/platform_channel_manager.dart';
 import 'package:jackjack/screens/home/home_screen.dart';
 import 'package:jackjack/screens/manual_monitoring/manual_monitoring_screen.dart';
 import 'package:jackjack/screens/pairing/pairing_screen.dart';
@@ -22,16 +23,23 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
   @override
   Widget build(BuildContext context) {
     final selectedScreenIndex = ref.watch(navigationProvider);
-    return Stack(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          PlatformChannelManager.moveToBackground();
+        }
+      },
+      child: Stack(
       children: [
         Scaffold(
           resizeToAvoidBottomInset: false,
           body:
               <Widget>[
                 HomeScreen(),
-                ThresholdScreen(),
+                // ThresholdScreen(),
                 PairingScreen(),
-                ManualMonitoringScreen(),
+                // ManualMonitoringScreen(),
                 SettingsScreen(),
               ][selectedScreenIndex],
           bottomNavigationBar: const SizedBox(height: 75, width: 1),
@@ -45,13 +53,14 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
                   ? Container(
                     width: MediaQuery.of(context).size.width,
                     height: 10,
-                    color: ColorManager.white,
+                    color: ColorManager.background,
                   )
                   : Container(),
             ],
           ),
         ),
       ],
+    ),
     );
   }
 }
@@ -76,22 +85,11 @@ class CustomBottomNav extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    NavBarButton(index: 0, title: "Home", icon: "home"),
-                    NavBarButton(
-                      index: 1,
-                      title: "Threshold",
-                      icon: "notificationm",
-                    ),
+                    Expanded(child: NavBarButton(index: 0, title: "Home", icon: "home")),
                     SizedBox(width: 45),
-                    NavBarButton(
-                      index: 3,
-                      title: "Manual Mode",
-                      icon: "toggle",
-                    ),
-                    NavBarButton(index: 4, title: "Settings", icon: "setting"),
+                    Expanded(child: NavBarButton(index: 2, title: "Settings", icon: "setting")),
                   ],
                 ),
               ],
@@ -111,7 +109,7 @@ class CustomBottomNav extends ConsumerWidget {
                 ),
                 child: ElevatedButton(
                   onPressed: () {
-                    ref.read(navigationProvider.notifier).toggle(2);
+                    ref.read(navigationProvider.notifier).toggle(1);
                   },
                   style: ButtonStyle(
                     padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
@@ -129,10 +127,13 @@ class CustomBottomNav extends ConsumerWidget {
                     shape: WidgetStateProperty.all(const CircleBorder()),
                   ),
                   child: SvgPicture.asset(
-                    "assets/svgs/scanner${selectedScreenIndex == 2 ? "_filled" : ""}.svg",
+                    "assets/svgs/scanner${selectedScreenIndex == 1 ? "_filled" : ""}.svg",
                     width: 24,
                     height: 24,
-
+                    colorFilter: const ColorFilter.mode(
+                      ColorManager.white,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),
@@ -180,6 +181,7 @@ class NavBarButton extends ConsumerWidget {
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         ),
+        minimumSize: WidgetStatePropertyAll(Size(0, 40)),
       ),
       onPressed: () {
         ref.read(navigationProvider.notifier).toggle(index);
@@ -192,6 +194,12 @@ class NavBarButton extends ConsumerWidget {
               "assets/svgs/$icon${selectedScreenIndex == index ? "_filled" : ""}.svg",
               width: 24,
               height: 24,
+              colorFilter: ColorFilter.mode(
+                selectedScreenIndex == index
+                    ? ColorManager.accent
+                    : ColorManager.tertiaryText,
+                BlendMode.srcIn,
+              ),
             ),
           ),
           Text(
@@ -216,7 +224,7 @@ class MyCustomPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     Paint paint =
         Paint()
-          ..color = ColorManager.white
+          ..color = ColorManager.background
           ..style = PaintingStyle.fill
           ..invertColors = false;
 
@@ -246,7 +254,7 @@ class MyCustomPainter extends CustomPainter {
 
     canvas.drawShadow(
       path.shift(const Offset(0, -5)),
-      Colors.black,
+      ColorManager.black,
       10.0,
       true,
     );

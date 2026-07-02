@@ -13,6 +13,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:jackjack/providers/threshold_alert_provider.dart';
 
+import '../main.dart';
 import '../utils/audio_stream_player.dart';
 
 part 'connected_devices_provider.g.dart';
@@ -60,11 +61,10 @@ class ConnectedDevices extends _$ConnectedDevices {
   }
 
   Future<void> removeDevice(String deviceId) async {
-    final device = state[deviceId];
-    if (device != null) {
+    if (state[deviceId] != null) {
       ref.read(loadingProvider(deviceId).notifier).toggle(true);
-      state = {...state}..remove(deviceId);
-      await device.dispose();
+      // Create a new Map to trigger state update
+      state = Map.from(state)..remove(deviceId);
       ref.read(loadingProvider(deviceId).notifier).toggle(false);
     }
   }
@@ -76,12 +76,23 @@ class ConnectedDevices extends _$ConnectedDevices {
   }) async {
     ref.read(loadingProvider(device.id).notifier).toggle(true);
 
-    bool success = true;
     try {
+      // Pre-connect BT check: fail fast if Bluetooth is off
+      if (shouldConnect) {
+        final bleStatus = FlutterReactiveBle().status;
+        if (bleStatus != BleStatus.ready) {
+          throw Exception('Bluetooth is turned off. Please enable Bluetooth to connect.');
+        }
+      }
+
       debugPrint("Should connect: $shouldConnect");
       debugPrint(state.keys.toString());
       final completer = Completer<void>();
       if (shouldConnect) {
+        // Clear user disconnect flag before connecting so the tracker
+        // doesn't ignore the incoming "connected" event
+        prefs.remove("user_disconnected_${device.id}");
+
         debugPrint("connect");
         if (!ref
             .read(connectedDevicesTrackerProvider.notifier)
@@ -109,6 +120,7 @@ class ConnectedDevices extends _$ConnectedDevices {
                   if (!completer.isCompleted) {
                     completer.completeError(error);
                     debugPrint("Error: $error");
+                    throw error;
                   }
                 },
               );
@@ -117,14 +129,16 @@ class ConnectedDevices extends _$ConnectedDevices {
               .read(connectedDevicesTrackerProvider.notifier)
               .storeConnectionSubscription(device.id, subscription);
         } else {
-          debugPrint("not connected");
+          // Device already connected, just complete successfully
+          debugPrint("Device already connected, proceeding to service discovery");
           if (!completer.isCompleted) {
-            completer.completeError("not connected");
-            debugPrint("Error: not connected");
-            throw "not connected";
+            completer.complete();
           }
         }
       } else {
+        // Mark as user-initiated disconnect
+        await prefs.setBool("user_disconnected_${device.id}", true);
+
         if (ref
             .read(connectedDevicesTrackerProvider.notifier)
             .isDeviceConnected(device.id)) {
@@ -141,13 +155,10 @@ class ConnectedDevices extends _$ConnectedDevices {
       //get services function here
       await getServices(device, shouldConnect: shouldConnect);
     } catch (e) {
-      success = false;
       debugPrint("Error: $e");
       ToastManager.show("Error: $e");
     }
-    if (success) {
-      await PairedDevicesUUID.saveToPrefs(device.id);
-    }
+    await PairedDevicesUUID.saveToPrefs(device.id);
     ref.read(loadingProvider(device.id).notifier).toggle(false);
     ref.read(deviceManagerProvider.notifier).updateDeviceStreams();
   }
@@ -179,7 +190,7 @@ class ConnectedDevices extends _$ConnectedDevices {
       deviceName: device.name,
       shouldConnect: shouldConnect,
     );
-    if (getThreshold.data is int) {
+    if (getThreshold.data is int?) {
       if (getThreshold.data < 30) {
         await setThreshold.setValue(30);
         await getThreshold.getValue();
@@ -231,7 +242,6 @@ class ConnectedDevices extends _$ConnectedDevices {
       shouldConnect: shouldConnect,
     );
     debugPrint("Update");
-    final BLEDevice? previousDevice = state[device.id];
     Map<String, BLEDevice> oldState = {};
     oldState.addAll(state);
     oldState[device.id] = BLEDevice(
@@ -247,9 +257,6 @@ class ConnectedDevices extends _$ConnectedDevices {
     );
     debugPrint("1");
     state = oldState;
-    // Tear down the previous device's stream subscriptions so re-discovering
-    // or reconnecting a device doesn't leak BLE notification subscriptions.
-    await previousDevice?.dispose();
 
     if (shouldConnect &&
         ref

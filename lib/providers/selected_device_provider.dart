@@ -4,10 +4,31 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'selected_device_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class SelectedDevice extends _$SelectedDevice {
   @override
-  String? build() => null;
+  String? build() {
+    ref.listen(connectedDevicesProvider, (previous, next) {
+      // No device selected yet — auto-select the first connected device
+      if (state == null && next.isNotEmpty) {
+        setSelectedDevice(next.keys.first);
+        return;
+      }
+
+      // If current selection is still connected, keep it
+      if (state != null && next.containsKey(state)) return;
+
+      // If current selection is disconnected but no other devices, keep it
+      if (state != null && next.isEmpty) return;
+
+      // If current selection is disconnected and others exist, pick the first
+      if (state != null && next.isNotEmpty) {
+        setSelectedDevice(next.keys.first);
+      }
+    });
+    return null;
+  }
+
   Future<void> setSelectedDevice(String? deviceId) async {
     try {
       if (state != null) {

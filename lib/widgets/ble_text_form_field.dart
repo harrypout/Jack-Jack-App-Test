@@ -134,6 +134,8 @@ class BleTextFormFieldWithTitle extends StatelessWidget {
   final int? maxLines;
   final bool obscure;
   final void Function(String)? onChanged;
+  final String? Function(String?)? validator;
+
   const BleTextFormFieldWithTitle({
     super.key,
     required this.title,
@@ -144,6 +146,7 @@ class BleTextFormFieldWithTitle extends StatelessWidget {
     this.maxLines,
     this.obscure = false,
     this.onChanged,
+    this.validator,
   });
 
   @override
@@ -172,6 +175,7 @@ class BleTextFormFieldWithTitle extends StatelessWidget {
             minLines: minLines,
             maxLines: maxLines,
             onChanged: onChanged,
+            validator: validator,
           ),
         ),
       ],

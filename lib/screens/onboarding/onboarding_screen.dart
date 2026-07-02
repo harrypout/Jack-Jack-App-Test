@@ -153,7 +153,7 @@ class OnboardingScreen extends ConsumerWidget {
                                     color:
                                         isSelected
                                             ? ColorManager.accent
-                                            : Colors.grey,
+                                            : ColorManager.pill,
                                   ),
                                 ),
                               ],

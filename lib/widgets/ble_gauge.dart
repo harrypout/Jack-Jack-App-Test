@@ -25,13 +25,6 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
   StreamSubscription<int>? _streamSubscription;
   double gaugeRangeWidth = 10;
 
-  // Throttle gauge repaints to ~15fps. The sound-level characteristic can
-  // push values much faster, and rebuilding SfRadialGauge on every
-  // notification saturates the UI thread.
-  static const Duration _throttleInterval = Duration(milliseconds: 66);
-  Timer? _throttleTimer;
-  int? _pendingValue;
-
   @override
   void initState() {
     super.initState();
@@ -42,43 +35,19 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
 
   void _setupStreamListener() {
     _streamSubscription?.cancel();
-    _throttleTimer?.cancel();
-    _throttleTimer = null;
-    _pendingValue = null;
 
     if (widget.valueStream != null) {
       try {
-        _streamSubscription = widget.valueStream!.listen(_onValue);
+        _streamSubscription = widget.valueStream!.listen((value) {
+          if (mounted) {
+            setState(() {
+              _currentValue = value.toDouble();
+            });
+          }
+        });
       } catch (e) {
         debugPrint("Stream listening error: $e");
       }
-    }
-  }
-
-  void _onValue(int value) {
-    _pendingValue = value;
-    // Leading edge: apply the first value immediately, then coalesce
-    // subsequent values into at most one update per interval.
-    if (_throttleTimer == null) {
-      _flushPending();
-      _throttleTimer = Timer.periodic(_throttleInterval, (_) {
-        if (_pendingValue == null) {
-          _throttleTimer?.cancel();
-          _throttleTimer = null;
-        } else {
-          _flushPending();
-        }
-      });
-    }
-  }
-
-  void _flushPending() {
-    final value = _pendingValue;
-    _pendingValue = null;
-    if (value != null && mounted) {
-      setState(() {
-        _currentValue = value.toDouble();
-      });
     }
   }
 
@@ -94,7 +63,6 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
   @override
   void dispose() {
     _streamSubscription?.cancel();
-    _throttleTimer?.cancel();
     super.dispose();
   }
 
@@ -197,7 +165,7 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
                                   : 120) *
                               2.25)) *
                       ((22 / 7) / 180),
-                  child: Icon(Icons.arrow_back, color: Colors.green, size: 20),
+                  child: Icon(Icons.arrow_back, color: ColorManager.success, size: 20),
                 ),
                 positionFactor: 1.09,
               ),

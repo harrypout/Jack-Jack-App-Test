@@ -114,4 +114,27 @@ class ManualMonitoring extends _$ManualMonitoring {
   void skipCountdown() {
     startStreaming();
   }
+
+  /// Pause the streaming timer (for background handoff)
+  void pauseTimer() {
+    state.streamingTimer?.cancel();
+    state = state.copyWith(streamingTimer: null);
+  }
+
+  /// Resume streaming with a given duration (from background)
+  void resumeStreaming(int duration) {
+    // Resume with existing duration from background
+    final timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      state = state.copyWith(streamingDuration: state.streamingDuration + 1);
+    });
+
+    state = state.copyWith(
+      isStreaming: true,
+      streamingDuration: duration,
+      streamingTimer: timer,
+      showCountdown: false,
+    );
+
+    // Audio is already playing (OS maintains it), no need to restart
+  }
 }
