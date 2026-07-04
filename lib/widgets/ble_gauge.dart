@@ -99,6 +99,11 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
     super.dispose();
   }
 
+  // Ring geometry: the arc thickness must match between the axis line
+  // (the sage-20 track) and the RangePointer (the active arc).
+  static const double _gaugeSize = 170;
+  static const double _arcThickness = 16;
+
   @override
   Widget build(BuildContext context) {
     // 270° ring from 225° (Syncfusion: 135 → 45), active arc coloured by
@@ -109,8 +114,8 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 170,
-          width: 170,
+          height: _gaugeSize,
+          width: _gaugeSize,
           child: SfRadialGauge(
             axes: <RadialAxis>[
               RadialAxis(
@@ -122,14 +127,14 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
                 showLabels: false,
                 radiusFactor: 1,
                 axisLineStyle: const AxisLineStyle(
-                  thickness: 16,
+                  thickness: _arcThickness,
                   color: ColorManager.inactiveGauge,
                   cornerStyle: CornerStyle.bothCurve,
                 ),
                 pointers: <GaugePointer>[
                   RangePointer(
                     value: _currentValue,
-                    width: 16,
+                    width: _arcThickness,
                     color: arcColor,
                     cornerStyle: CornerStyle.bothCurve,
                     enableAnimation: false,
@@ -176,7 +181,7 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
         Text(
           "Threshold · ${widget.selectedValue} dB",
           maxLines: 1,
-          style: const TextStyle(fontSize: 11, color: ColorManager.slate60),
+          style: ThemeManager.meta,
         ),
       ],
     );

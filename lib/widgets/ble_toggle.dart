@@ -39,13 +39,7 @@ class BLEToggle extends StatelessWidget {
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: ColorManager.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x0F4A5568),
-                      offset: Offset(0, 1),
-                      blurRadius: 2,
-                    ),
-                  ],
+                  boxShadow: ThemeManager.shadowSm,
                 ),
               ),
             ),

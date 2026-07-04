@@ -195,6 +195,8 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                 Expanded(
                   child: BLEFilledButton(
                     data: "Forget Device",
+                    // Destructive action — no recommended-CTA glow.
+                    glow: false,
                     onPressed: () async {
                       await ref
                           .read(connectedDevicesTrackerProvider.notifier)

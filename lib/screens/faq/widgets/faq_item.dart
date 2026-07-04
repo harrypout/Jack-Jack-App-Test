@@ -32,8 +32,9 @@ class FAQItem extends StatelessWidget {
       children: [
         Text(
           faq.answer,
+          // Body copy reads at slate-70; slate-60 is for captions/icons.
           style: const TextStyle(
-            color: ColorManager.tertiaryText,
+            color: ColorManager.slate70,
             fontSize: 12,
             fontWeight: FontWeight.w400,
           ),

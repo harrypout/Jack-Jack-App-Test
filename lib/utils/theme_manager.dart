@@ -65,22 +65,24 @@ class ThemeManager {
 
   // Display type: Fredoka for titles/gauge value; body stays Nunito Sans.
   // Fredoka is only imported at weights 400/500/600 — never request w700.
-  static TextStyle get displayTitle => GoogleFonts.fredoka(
+  // static final (not getters): gaugeValue sits on the gauge's ~15fps
+  // rebuild path, and a GoogleFonts call allocates per invocation.
+  static final TextStyle displayTitle = GoogleFonts.fredoka(
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: ColorManager.slate,
   );
-  static TextStyle get displaySub => GoogleFonts.fredoka(
+  static final TextStyle displaySub = GoogleFonts.fredoka(
     fontSize: 17,
     fontWeight: FontWeight.w600,
     color: ColorManager.slate,
   );
-  static TextStyle get displayOnboardingTitle => GoogleFonts.fredoka(
+  static final TextStyle displayOnboardingTitle = GoogleFonts.fredoka(
     fontSize: 23,
     fontWeight: FontWeight.w600,
     color: ColorManager.slate,
   );
-  static TextStyle get gaugeValue => GoogleFonts.fredoka(
+  static final TextStyle gaugeValue = GoogleFonts.fredoka(
     fontSize: 36,
     fontWeight: FontWeight.w500,
     color: ColorManager.slate,

@@ -1,8 +1,8 @@
 import 'package:jackjack/screens/onboarding/widgets/onboarding_mini_card.dart';
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Page 3 hero: a mini "monitor" preview card — waveform + threshold track.
 class OnboardingHeroMonitor extends StatelessWidget {
@@ -35,14 +35,7 @@ class OnboardingHeroMonitor extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          "Quiet",
-          style: GoogleFonts.fredoka(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: ColorManager.slate,
-          ),
-        ),
+        Text("Quiet", style: ThemeManager.displaySub),
         SizedBox(
           height: 42,
           child: Row(
@@ -87,13 +80,7 @@ class OnboardingHeroMonitor extends StatelessWidget {
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: ColorManager.sage,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x0F4A5568),
-                            offset: Offset(0, 1),
-                            blurRadius: 2,
-                          ),
-                        ],
+                        boxShadow: ThemeManager.shadowSm,
                       ),
                     ),
                   ),

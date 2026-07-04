@@ -10,6 +10,9 @@ class BLEFilledButton extends StatelessWidget {
   final bool maxButton;
   final Color? buttonColor;
   final Widget? icon;
+  // The sage CTA glow marks the recommended action — turn it off for
+  // destructive buttons so they don't read as the primary choice.
+  final bool glow;
   const BLEFilledButton({
     super.key,
     required this.data,
@@ -18,6 +21,7 @@ class BLEFilledButton extends StatelessWidget {
     this.maxButton = false,
     this.buttonColor,
     this.icon,
+    this.glow = true,
   });
 
   @override
@@ -25,8 +29,7 @@ class BLEFilledButton extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: ThemeManager.brFull,
-        // Sage CTA glow, only while the button is enabled.
-        boxShadow: onPressed != null ? ThemeManager.sageGlow : null,
+        boxShadow: glow && onPressed != null ? ThemeManager.sageGlow : null,
       ),
       child: BLEButton(
         key: key,

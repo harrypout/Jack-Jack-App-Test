@@ -3,10 +3,11 @@ import 'package:jackjack/widgets/ble_pulse_rings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-/// Scan/monitor hero: a sage disc with the glyph and pulsing DS rings.
+/// Scan/monitor hero: a sage disc with the glyph and the DS pulse rings.
+/// With animate false the rings hold a static frame (no ticker), matching
+/// the pre-redesign behaviour both call sites rely on.
 class Scanner extends StatelessWidget {
   final String asset;
-  // Kept for call-site compatibility; the DS hero rings always pulse.
   final bool animate;
 
   const Scanner({super.key, required this.asset, this.animate = true});
@@ -18,11 +19,12 @@ class Scanner extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const BLEPulseRings(
+          BLEPulseRings(
             count: 2,
             diameter: 78,
-            period: Duration(milliseconds: 2400),
-            stagger: Duration(milliseconds: 1200),
+            period: const Duration(milliseconds: 2400),
+            stagger: const Duration(milliseconds: 1200),
+            animate: animate,
           ),
           Container(
             width: 118,

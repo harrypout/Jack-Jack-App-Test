@@ -39,6 +39,7 @@ class BluetoothDeviceWidget extends ConsumerWidget {
     final displayName = deviceNames[device.id] ?? device.name;
     final tone = deviceTone(id: device.id, isPrimary: isPaired);
     final hasSignal = device.rssi < 0;
+    final signal = hasSignal ? signalPercent(device.rssi) : 0;
 
     return Container(
       width: double.maxFinite,
@@ -91,14 +92,11 @@ class BluetoothDeviceWidget extends ConsumerWidget {
                       ),
                       if (hasSignal)
                         Text(
-                          signalPercent(device.rssi) >= 70
-                              ? "Signal strong · ${signalPercent(device.rssi)}%"
-                              : "Signal · ${signalPercent(device.rssi)}%",
+                          signal >= 70
+                              ? "Signal strong · $signal%"
+                              : "Signal · $signal%",
                           maxLines: 1,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: ColorManager.slate60,
-                          ),
+                          style: ThemeManager.meta,
                         ),
                     ],
                   ),
@@ -121,9 +119,10 @@ class BluetoothDeviceWidget extends ConsumerWidget {
                                 );
                               },
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        // Keep the pill visual small but preserve the old
+                        // info button's ~48px hit area.
+                        minimumSize: const Size(48, 44),
                       ),
                       child: const BLEStatusPill("Paired"),
                     )

@@ -20,6 +20,9 @@ class OnboardingHeroConnect extends StatelessWidget {
           height: 80,
           child: Stack(
             alignment: Alignment.center,
+            // Let the expanding ring overflow softly instead of hard-clipping
+            // at the box edge mid-pulse.
+            clipBehavior: Clip.none,
             children: [
               const BLEPulseRings(
                 count: 1,

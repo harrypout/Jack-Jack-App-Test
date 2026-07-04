@@ -1,4 +1,5 @@
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -24,11 +25,7 @@ class SettingsItem extends StatelessWidget {
         title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          color: ColorManager.slate,
-          fontSize: 12.5,
-          fontWeight: FontWeight.w600,
-        ),
+        style: ThemeManager.rowLabel,
       ),
       leading: SvgPicture.asset(
         "assets/svgs/$assetName.svg",

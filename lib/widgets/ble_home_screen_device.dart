@@ -108,27 +108,16 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
             BLEPill(),
             Text(
               isConnected ? "Connected" : "Disconnected",
-              style: TextStyle(
-                fontWeight: FontWeight.w400,
-                fontSize: 11,
-                color: ColorManager.slate60,
-              ),
+              style: ThemeManager.meta,
             ),
             BLEPill(),
-            Text(
-              "$threshold dB",
-              style: TextStyle(
-                fontWeight: FontWeight.w400,
-                fontSize: 11,
-                color: ColorManager.slate60,
-              ),
-            ),
+            Text("$threshold dB", style: ThemeManager.meta),
           ],
         ),
-        trailing: const Icon(
-          Icons.keyboard_arrow_down_rounded,
-          color: ColorManager.slate60,
-        ),
+        // Default trailing chevron (styled slate) keeps the built-in
+        // expand/collapse rotation affordance.
+        iconColor: ColorManager.slate60,
+        collapsedIconColor: ColorManager.slate60,
         backgroundColor: ColorManager.white,
         collapsedBackgroundColor: ColorManager.white,
         shape: RoundedRectangleBorder(

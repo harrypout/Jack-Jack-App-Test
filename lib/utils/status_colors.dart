@@ -22,10 +22,12 @@ Color batteryValueColor(int? pct) {
   return ColorManager.slate60;
 }
 
-/// Device identity tints: the primary device is always sage; other devices
-/// keep one stable identity everywhere (coral or yellow) derived from their
-/// id, so the colour survives list reorders and app restarts. String.hashCode
-/// is deliberately avoided — Dart does not guarantee it stable across runs.
+/// Device identity tints. What counts as "primary" is per-screen, matching
+/// the design mock: the selected device on Home, paired devices on Connect —
+/// so the same device may be sage on one screen and tinted on another.
+/// Non-primary devices get a coral/yellow identity derived from their id,
+/// stable across list reorders and app restarts. String.hashCode is
+/// deliberately avoided — Dart does not guarantee it stable across runs.
 enum DeviceTone {
   sage(
     tintBg: ColorManager.sageTint10,

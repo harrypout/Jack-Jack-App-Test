@@ -69,14 +69,21 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
 class CustomBottomNav extends ConsumerWidget {
   const CustomBottomNav({super.key});
 
+  // Geometry derives from these four; the composites stay in sync.
+  static const double _barHeight = 62;
+  static const double _fabOverhang = 24;
+  static const double _fabButtonSize = 56;
+  static const double _ringWidth = 4;
+  static const double _fabSize = _fabButtonSize + 2 * _ringWidth;
+  static const double _navHeight = _barHeight + _fabOverhang;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var size = MediaQuery.of(context).size;
     var selectedScreenIndex = ref.watch(navigationProvider);
     return SizedBox(
       width: size.width,
-      // 62px bar + 24px FAB overhang above it.
-      height: 86,
+      height: _navHeight,
       child: Stack(
         children: [
           Positioned(
@@ -84,7 +91,7 @@ class CustomBottomNav extends ConsumerWidget {
             left: 0,
             right: 0,
             child: Container(
-              height: 62,
+              height: _barHeight,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: const BoxDecoration(
                 color: ColorManager.white,
@@ -107,13 +114,16 @@ class CustomBottomNav extends ConsumerWidget {
             right: 0,
             child: Center(
               child: Container(
-                width: 64,
-                height: 64,
+                width: _fabSize,
+                height: _fabSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: ColorManager.accent,
-                  // 4px page-background ring separating the FAB from the bar.
-                  border: Border.all(color: ColorManager.background, width: 4),
+                  // Page-background ring separating the FAB from the bar.
+                  border: Border.all(
+                    color: ColorManager.background,
+                    width: _ringWidth,
+                  ),
                   boxShadow:
                       selectedScreenIndex == 1
                           ? ThemeManager.sageGlow
@@ -125,7 +135,9 @@ class CustomBottomNav extends ConsumerWidget {
                   },
                   style: ButtonStyle(
                     padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
-                    minimumSize: WidgetStateProperty.all(Size(56, 56)),
+                    minimumSize: WidgetStateProperty.all(
+                      Size(_fabButtonSize, _fabButtonSize),
+                    ),
                     backgroundColor: const WidgetStatePropertyAll<Color?>(
                       ColorManager.transparent,
                     ),

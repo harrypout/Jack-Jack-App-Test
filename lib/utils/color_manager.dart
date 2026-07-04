@@ -70,9 +70,11 @@ class ColorManager {
   // Misc
   static const pill = slate20;
 
-  // Status colors
+  // Status colors. error is icon-strength coral: its consumers are small
+  // foreground marks (the unread dot), and the design's rule is that dots
+  // and icons use the darker accent variants for legibility.
   static const success = sage;
-  static const error = coral;
+  static const error = coralIcon;
   static const warning = yellow;
 
   // Shadow color
