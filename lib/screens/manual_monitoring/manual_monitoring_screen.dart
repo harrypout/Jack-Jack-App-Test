@@ -13,7 +13,7 @@ import 'package:jackjack/widgets/ble_filled_button.dart';
 import 'package:jackjack/widgets/ble_gauge.dart';
 import 'package:jackjack/widgets/ble_indicator_box.dart';
 import 'package:jackjack/widgets/ble_outlined_button.dart';
-import 'package:jackjack/widgets/ble_pill.dart';
+import 'package:jackjack/widgets/ble_status_pill.dart';
 import 'package:jackjack/widgets/ble_toggle.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:jackjack/main.dart';
@@ -93,16 +93,11 @@ class _ManualMonitoringScreenState
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                spacing: 6,
                                 children: [
-                                  BLEPill(color: ColorManager.error),
-                                  Text(
-                                    "Streaming ${_formatDuration(manualMonitoringPod.streamingDuration)}",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                      color: ColorManager.quaternaryText,
-                                    ),
+                                  BLEStatusPill(
+                                    "Streaming · ${_formatDuration(manualMonitoringPod.streamingDuration)}",
+                                    tone: PillTone.coral,
+                                    leadingDot: true,
                                   ),
                                 ],
                               ),
@@ -144,18 +139,16 @@ class _ManualMonitoringScreenState
                               // height: 74,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
-                                vertical: 4,
+                                vertical: 8,
                               ),
                               clipBehavior: Clip.antiAlias,
-                              decoration: ShapeDecoration(
+                              decoration: BoxDecoration(
                                 color: ColorManager.white,
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    width: 1,
-                                    color: ColorManager.containerBorder,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: ColorManager.containerBorder,
                                 ),
+                                borderRadius: ThemeManager.brLg,
+                                boxShadow: ThemeManager.shadowSm,
                               ),
                               child: Row(
                                 mainAxisAlignment:
@@ -164,13 +157,21 @@ class _ManualMonitoringScreenState
                                   Row(
                                     spacing: 12,
                                     children: [
-                                      SvgPicture.asset("assets/svgs/sound.svg"),
+                                      SvgPicture.asset(
+                                        "assets/svgs/sound.svg",
+                                        width: 20,
+                                        height: 20,
+                                        colorFilter: const ColorFilter.mode(
+                                          ColorManager.slate60,
+                                          BlendMode.srcIn,
+                                        ),
+                                      ),
                                       Text(
                                         "Background Audio",
                                         style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                          color: ColorManager.primaryText,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14,
+                                          color: ColorManager.slate,
                                         ),
                                       ),
                                     ],
@@ -216,7 +217,7 @@ class _ManualMonitoringScreenState
   }
 
   Widget _buildHeader() {
-    return BLEAppBar(title: "Manual Monitoring Mode",);
+    return BLEAppBar(title: "Manual Monitoring",);
     //   Padding(
     //   padding: const EdgeInsets.only(top: 12.0),
     //   child: Row(
@@ -283,8 +284,6 @@ class _ManualMonitoringScreenState
             data: "Skip Countdown",
             onPressed:
                 ref.read(manualMonitoringProvider.notifier).startStreaming,
-            textColor: ColorManager.primaryText,
-            borderColor: ColorManager.containerBorder,
           ),
           const SizedBox(height: 10),
         ],
@@ -305,6 +304,12 @@ class _ManualMonitoringScreenState
       },
       icon: SvgPicture.asset(
         "assets/svgs/${manualMonitoringPod.isStreaming ? "stop" : "play"}.svg",
+        width: 18,
+        height: 18,
+        colorFilter: const ColorFilter.mode(
+          ColorManager.white,
+          BlendMode.srcIn,
+        ),
       ),
     );
   }
