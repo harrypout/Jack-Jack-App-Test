@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/status_colors.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
@@ -23,7 +25,6 @@ class BLEGauge extends ConsumerStatefulWidget {
 class _BLEGaugeState extends ConsumerState<BLEGauge> {
   double _currentValue = 0.0;
   StreamSubscription<int>? _streamSubscription;
-  double gaugeRangeWidth = 10;
 
   // Throttle gauge repaints to ~15fps. The sound-level characteristic can
   // push values much faster, and rebuilding SfRadialGauge on every
@@ -100,121 +101,84 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 210,
-      width: 210,
-      child: SfRadialGauge(
-        axes: <RadialAxis>[
-          RadialAxis(
-            startAngle: 135,
-            endAngle: 45,
-            minimum: 0,
-            maximum: 120.3,
-            interval: 20,
-            minorTicksPerInterval: 10,
-            axisLabelStyle: GaugeTextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w400,
-              color: ColorManager.gaugeAxisLabelText,
-            ),
-            ranges: <GaugeRange>[
-              GaugeRange(
-                startValue: 0,
-                endValue: _currentValue,
-                color: ColorManager.inactiveGauge,
-                gradient: SweepGradient(
-                  colors: <Color>[
-                    ColorManager.inactiveGauge,
-                    ColorManager.accent,
-                  ],
-                  stops: <double>[0.25, 0.75],
+    // 270° ring from 225° (Syncfusion: 135 → 45), active arc coloured by
+    // sound level vs threshold, remainder sage-20. The threshold text below
+    // replaces the old (broken) threshold-arrow annotation.
+    final arcColor = gaugeArcColor(_currentValue, widget.selectedValue);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 170,
+          width: 170,
+          child: SfRadialGauge(
+            axes: <RadialAxis>[
+              RadialAxis(
+                startAngle: 135,
+                endAngle: 45,
+                minimum: 0,
+                maximum: 120,
+                showTicks: false,
+                showLabels: false,
+                radiusFactor: 1,
+                axisLineStyle: const AxisLineStyle(
+                  thickness: 16,
+                  color: ColorManager.inactiveGauge,
+                  cornerStyle: CornerStyle.bothCurve,
                 ),
-                startWidth: gaugeRangeWidth,
-                endWidth: gaugeRangeWidth,
-              ),
-              GaugeRange(
-                startValue: _currentValue,
-                endValue: 120.1,
-                color: ColorManager.inactiveGauge,
-                startWidth: gaugeRangeWidth,
-                endWidth: gaugeRangeWidth,
-              ),
-            ],
-            pointers: <GaugePointer>[
-              NeedlePointer(
-                value: _currentValue,
-                needleColor: ColorManager.accent,
-                needleLength: 0.5,
-                needleStartWidth: 0,
-                needleEndWidth: 5,
-                knobStyle: const KnobStyle(
-                  color: ColorManager.white,
-                  borderColor: ColorManager.accent,
-                  sizeUnit: GaugeSizeUnit.factor,
-                  knobRadius: 0.05,
-                ),
-                tailStyle: const TailStyle(
-                  width: 5,
-                  lengthUnit: GaugeSizeUnit.factor,
-                  length: 0.125,
-                  color: ColorManager.accent,
-                ),
-              ),
-            ],
-            annotations: <GaugeAnnotation>[
-              GaugeAnnotation(
-                widget: Text(
-                  "${_currentValue.toStringAsFixed(0)} dB",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: ColorManager.secondaryText,
+                pointers: <GaugePointer>[
+                  RangePointer(
+                    value: _currentValue,
+                    width: 16,
+                    color: arcColor,
+                    cornerStyle: CornerStyle.bothCurve,
+                    enableAnimation: false,
                   ),
-                ),
-                angle: 90,
-                positionFactor: 0.65,
-              ),
-              GaugeAnnotation(
-                widget: Text(
-                  widget.selectedDevice,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: ColorManager.tertiaryText,
+                ],
+                annotations: <GaugeAnnotation>[
+                  GaugeAnnotation(
+                    angle: 90,
+                    positionFactor: 0,
+                    widget: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _currentValue.toStringAsFixed(0),
+                          style: ThemeManager.gaugeValue,
+                        ),
+                        const Text(
+                          "dB",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: ColorManager.slate60,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                angle: 90,
-                positionFactor: 0.85,
-              ),
-              //todo: broken
-              GaugeAnnotation(
-                axisValue: widget.selectedValue.toDouble(),
-                widget: Transform.rotate(
-                  angle:
-                      (135 +
-                          ((widget.selectedValue <= 120
-                                  ? widget.selectedValue
-                                  : 120) *
-                              2.25)) *
-                      ((22 / 7) / 180),
-                  child: Icon(Icons.arrow_back, color: ColorManager.success, size: 20),
-                ),
-                positionFactor: 1.09,
+                ],
               ),
             ],
-            majorTickStyle: MajorTickStyle(
-              length: 10,
-              thickness: 2,
-              color: ColorManager.pill,
-            ),
-            minorTickStyle: MinorTickStyle(
-              length: 6,
-              thickness: 1,
-              color: ColorManager.pill,
-            ),
           ),
-        ],
-      ),
+        ),
+        Text(
+          widget.selectedDevice,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w700,
+            color: ColorManager.slate,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          "Threshold · ${widget.selectedValue} dB",
+          maxLines: 1,
+          style: const TextStyle(fontSize: 11, color: ColorManager.slate60),
+        ),
+      ],
     );
   }
 }
