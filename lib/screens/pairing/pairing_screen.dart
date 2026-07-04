@@ -44,14 +44,7 @@ class PairingScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "Connect Device",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                          color: ColorManager.primaryText,
-                        ),
-                      ),
+                      Text("Connect Device", style: ThemeManager.displayTitle),
                       TextButton(
                         onPressed: btOff
                             ? null
@@ -62,7 +55,7 @@ class PairingScreen extends ConsumerWidget {
                           "Refresh",
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                            fontSize: 13,
                             color: btOff ? ColorManager.tertiaryText : ColorManager.accent,
                           ),
                         ),
@@ -80,11 +73,7 @@ class PairingScreen extends ConsumerWidget {
                       children: [
                         Text(
                           btOff ? 'Bluetooth is turned off' : 'Scan Complete',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 18,
-                            color: ColorManager.primaryText,
-                          ),
+                          style: ThemeManager.displaySub,
                         ),
                         if (btOff) ...[
                           const SizedBox(height: 4),
