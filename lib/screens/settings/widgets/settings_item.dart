@@ -5,12 +5,14 @@ import 'package:flutter_svg/svg.dart';
 class SettingsItem extends StatelessWidget {
   final String assetName;
   final String title;
+  final Color iconColor;
   final Widget? trailing;
   final void Function()? onTap;
   const SettingsItem({
     super.key,
     required this.assetName,
     required this.title,
+    this.iconColor = ColorManager.slate60,
     this.trailing,
     this.onTap,
   });
@@ -20,15 +22,32 @@ class SettingsItem extends StatelessWidget {
     return ListTile(
       title: Text(
         title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          color: ColorManager.tertiaryText,
-          fontSize: 12,
+          color: ColorManager.slate,
+          fontSize: 12.5,
           fontWeight: FontWeight.w600,
         ),
       ),
-      leading: SvgPicture.asset("assets/svgs/$assetName.svg"),
-      trailing: trailing ?? SvgPicture.asset("assets/svgs/arrow-right.svg"),
-      contentPadding: EdgeInsets.zero,
+      leading: SvgPicture.asset(
+        "assets/svgs/$assetName.svg",
+        width: 18,
+        height: 18,
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+      ),
+      trailing:
+          trailing ??
+          SvgPicture.asset(
+            "assets/svgs/arrow-right.svg",
+            width: 16,
+            height: 16,
+            colorFilter: const ColorFilter.mode(
+              ColorManager.slate60,
+              BlendMode.srcIn,
+            ),
+          ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
       onTap: onTap,
     );
   }
