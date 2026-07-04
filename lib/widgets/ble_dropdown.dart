@@ -28,8 +28,17 @@ class DropdownWithMap<T> extends StatefulWidget {
 class _DropdownWithMap<T> extends State<DropdownWithMap<T>> {
   @override
   Widget build(BuildContext context) {
+    // Compact menu rows: the framework default is 48px-tall interactive
+    // entries, which reads oversized next to the 11.5px chip text.
+    final entryStyle = MenuItemButton.styleFrom(
+      visualDensity: VisualDensity.compact,
+      minimumSize: const Size(0, 34),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      foregroundColor: ColorManager.slate70,
+      textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
+    );
     return DropdownMenu<T>(
-      menuHeight: 210,
+      menuHeight: 180,
       width: widget.width,
       initialSelection: widget.initialSelection,
       controller: widget.controller,
@@ -42,6 +51,7 @@ class _DropdownWithMap<T> extends State<DropdownWithMap<T>> {
         (i) => DropdownMenuEntry(
           label: (widget.items.entries.toList())[i].key,
           value: (widget.items.entries.toList())[i].value,
+          style: entryStyle,
         ),
       ),
       textStyle: const TextStyle(
@@ -51,18 +61,16 @@ class _DropdownWithMap<T> extends State<DropdownWithMap<T>> {
       ),
       trailingIcon: const Icon(
         Icons.keyboard_arrow_down_rounded,
-        size: 18,
+        size: 16,
         color: ColorManager.slate60,
       ),
       selectedTrailingIcon: const Icon(
         Icons.keyboard_arrow_up_rounded,
-        size: 18,
+        size: 16,
         color: ColorManager.slate60,
       ),
-      // Dropdown chip: 1px slate-20 border, radius-md.
-      // (The InputDecorationTheme.visualDensity param the previous version
-      // set does not exist in Flutter 3.32.7, and its (0,0) value was the
-      // mobile default anyway.)
+      // Dropdown chip: 1px slate-20 border, radius-md, dense field so the
+      // closed chip stays scale-appropriate inside a settings row.
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: ThemeManager.brMd,
@@ -78,11 +86,11 @@ class _DropdownWithMap<T> extends State<DropdownWithMap<T>> {
         ),
         contentPadding: const EdgeInsets.only(
           left: 10,
-          top: 12,
-          bottom: 12,
+          top: 8,
+          bottom: 8,
           right: 4,
         ),
-        isDense: false,
+        isDense: true,
       ),
       menuStyle: MenuStyle(
         backgroundColor: WidgetStateProperty.all(Colors.white),
