@@ -7,6 +7,7 @@ import 'package:jackjack/services/device_name_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:jackjack/main.dart';
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_bottom_sheet.dart';
 import 'package:jackjack/widgets/ble_filled_button.dart';
 import 'package:jackjack/widgets/ble_outlined_button.dart';
@@ -84,7 +85,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
               color: ColorManager.greyContainerBackground,
               shape: RoundedRectangleBorder(
                 side: BorderSide(width: 1, color: ColorManager.containerBorder),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: ThemeManager.brLg,
               ),
             ),
             child: Column(
