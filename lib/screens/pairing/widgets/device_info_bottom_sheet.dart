@@ -1,3 +1,4 @@
+import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/providers/paired_devices.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
@@ -204,6 +205,12 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                       await PairedDevicesUUID.removeFromPrefs(device.id);
                       // Clean up user disconnect flag when forgetting device
                       await prefs.remove("user_disconnected_${device.id}");
+                      // Drop it from the device registry too, so the home
+                      // screen's device list stops showing it (the selected-
+                      // device provider re-selects automatically).
+                      await ref
+                          .read(connectedDevicesProvider.notifier)
+                          .removeDevice(device.id);
 
                       ref
                           .read(deviceManagerProvider.notifier)
