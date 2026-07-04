@@ -6,8 +6,10 @@ import 'package:jackjack/screens/notifications/notification_screen.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_background.dart';
+import 'package:jackjack/widgets/ble_eyebrow.dart';
 import 'package:jackjack/widgets/ble_home_screen_device.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jackjack/services/app_initializer.dart';
@@ -45,37 +47,65 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Jack Jack",
-                          style: const TextStyle(
-                            color: ColorManager.primaryText,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text("Jack Jack", style: ThemeManager.displayTitle),
                         // Text("Good Morning!"),
                       ],
                     ),
-                    Badge(
-                      isLabelVisible:
-                          ref.watch(notificationsProvider).isNotEmpty
-                              ? true
-                              : false,
-                      label:
-                          ref.watch(notificationsProvider).isNotEmpty
-                              ? Container()
-                              : null,
-                      offset: Offset(-4, 4),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, NotificationScreen.id);
-                        },
-                        style: ButtonStyle(
-                          padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                          minimumSize: WidgetStatePropertyAll(Size.zero),
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                context,
+                                NotificationScreen.id,
+                              );
+                            },
+                            style: ButtonStyle(
+                              padding: WidgetStatePropertyAll(
+                                EdgeInsets.zero,
+                              ),
+                              minimumSize: WidgetStatePropertyAll(Size.zero),
+                              backgroundColor: WidgetStatePropertyAll(
+                                ColorManager.white,
+                              ),
+                              side: WidgetStatePropertyAll(
+                                BorderSide(color: ColorManager.slate10),
+                              ),
+                              shape: WidgetStatePropertyAll(CircleBorder()),
+                            ),
+                            child: SvgPicture.asset(
+                              "assets/svgs/notification.svg",
+                              width: 20,
+                              height: 20,
+                              colorFilter: const ColorFilter.mode(
+                                ColorManager.slate,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Icon(Icons.notifications),
-                      ),
+                        if (ref.watch(notificationsProvider).isNotEmpty)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: ColorManager.coral,
+                                border: Border.all(
+                                  color: ColorManager.white,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -85,10 +115,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: ColorManager.white,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: ThemeManager.brLg,
                       border: Border.all(
                         color: ColorManager.containerBorder,
                       ),
+                      boxShadow: ThemeManager.shadowSm,
                     ),
                     child: Row(
                       children: [
@@ -116,7 +147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("Devices"),
+                    BLEEyebrow("Devices"),
                     // TextButton(onPressed: () {}, child: Text("View All")),
                   ],
                 ),
