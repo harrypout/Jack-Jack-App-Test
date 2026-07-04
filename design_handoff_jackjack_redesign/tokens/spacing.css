@@ -1,0 +1,40 @@
+/* Jack Jack — Spacing
+   Base unit 4px. Use multiples only; avoid arbitrary values.
+   Section rhythm does the vertical work between sections. */
+
+:root {
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ---- Layout ---- */
+  --container-max: 1280px; /* max-w-7xl */
+  --container-pad-mobile: 16px;
+  --container-pad-sm:     24px;
+  --container-pad-lg:     32px;
+
+  /* ---- Vertical rhythm ---- */
+  --section-py:   80px; /* default section top/bottom */
+  --hero-pt:      48px;
+  --hero-pb:      96px;
+
+  /* ---- Common gaps ---- */
+  --grid-gap:     32px; /* feature grids */
+  --hero-gap:     48px; /* split hero */
+
+  /* ---- Component padding ---- */
+  --pad-card:     32px;
+  --pad-faq:      24px;
+  --pad-input-y:  12px;
+  --pad-input-x:  16px;
+  --pad-btn-y:    16px;
+  --pad-btn-x:    32px;
+  --nav-height:   80px;
+}

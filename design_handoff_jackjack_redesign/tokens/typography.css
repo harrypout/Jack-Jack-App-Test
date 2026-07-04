@@ -1,0 +1,52 @@
+/* Jack Jack — Typography
+   Display: Fredoka (friendly, rounded). Body/UI: Nunito Sans.
+   Both loaded from Google Fonts (see fonts.css). */
+
+:root {
+  /* ---- Families ---- */
+  --font-display: 'Fredoka', system-ui, sans-serif;    /* headings, logo wordmark */
+  --font-body:    'Nunito Sans', system-ui, sans-serif; /* body, UI, buttons */
+
+  /* ---- Weights ---- */
+  --weight-light:    300; /* reserved — very large display only */
+  --weight-regular:  400; /* default body */
+  --weight-medium:   500;
+  --weight-semibold: 600; /* default headings + logo wordmark */
+  --weight-bold:     700; /* button labels, eyebrows, emphasis */
+
+  /* ---- Type scale (desktop) ---- */
+  --display-xl: 4.5rem;   /* 72px — hero H1 */
+  --display-lg: 3rem;     /* 48px — section H1 */
+  --display-md: 2.25rem;  /* 36px — sub-section H2 */
+  --display-sm: 1.5rem;   /* 24px — card H3 */
+  --body-lg:    1.25rem;  /* 20px — hero body, intros */
+  --body-md:    1rem;     /* 16px — default body */
+  --body-sm:    0.875rem; /* 14px — card body, secondary */
+  --caption:    0.75rem;  /* 12px — fine print, labels */
+  --eyebrow:    0.75rem;  /* 12px — UPPERCASE section eyebrows */
+
+  /* ---- Line height ---- */
+  --leading-display: 1.1;  /* tight */
+  --leading-body:    1.6;  /* relaxed */
+  --leading-snug:    1.5;
+  --leading-caption: 1.4;
+
+  /* ---- Letter spacing ---- */
+  --tracking-wide:    0.02em;  /* logo wordmark */
+  --tracking-widest:  0.15em;  /* eyebrows, pills, uppercase labels */
+
+  /* ---- Semantic roles ---- */
+  --text-display-font: var(--font-display);
+  --text-body-font:    var(--font-body);
+}
+
+/* Responsive: mobile scale */
+@media (max-width: 640px) {
+  :root {
+    --display-xl: 3rem;      /* 48px */
+    --display-lg: 2.25rem;   /* 36px */
+    --display-md: 1.875rem;  /* 30px */
+    --display-sm: 1.375rem;  /* 22px */
+    --body-lg:    1.125rem;  /* 18px */
+  }
+}

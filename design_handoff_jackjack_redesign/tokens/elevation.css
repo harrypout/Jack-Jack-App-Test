@@ -1,0 +1,24 @@
+/* Jack Jack — Elevation & motion
+   Shadows are soft and warm; the pebble/card system leans on hairline borders,
+   using shadow for lift on hero + product surfaces. Motion is functional, never
+   decorative: colour 200ms, transform 300ms. No parallax, springs, or cursor-follow. */
+
+:root {
+  /* ---- Shadows ---- */
+  --shadow-sm:  0 1px 2px rgba(74, 85, 104, 0.06);
+  --shadow-md:  0 4px 6px -1px rgba(74, 85, 104, 0.08);
+  --shadow-lg:  0 20px 25px -5px rgba(0, 0, 0, 0.10);  /* primary button, cards */
+  --shadow-xl:  0 25px 50px -12px rgba(0, 0, 0, 0.12); /* hero product frame */
+  --shadow-2xl: 0 35px 60px -15px rgba(0, 0, 0, 0.18);
+
+  /* ---- Motion ---- */
+  --ease-standard: ease;   /* @kind other */
+  --dur-color:     200ms;  /* @kind other */ /* colour changes (hover, focus) */
+  --dur-transform: 300ms;  /* @kind other */ /* scale / translate */
+  --dur-fade:      400ms;  /* @kind other */ /* section fade-in */
+
+  --transition-colors:    color var(--dur-color) var(--ease-standard),
+                          background-color var(--dur-color) var(--ease-standard),
+                          border-color var(--dur-color) var(--ease-standard);
+  --transition-transform: transform var(--dur-transform) var(--ease-standard);
+}

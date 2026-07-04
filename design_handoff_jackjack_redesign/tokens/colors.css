@@ -1,0 +1,63 @@
+/* Jack Jack — Colour system
+   Warm, calm, reassuring. Off-white surfaces, slate text, three punctuation accents.
+   Never pure #FFFFFF for a full page. Accents are punctuation, not fields. */
+
+:root {
+  /* ---- Base palette ---- */
+  --color-sage:   #8EB8A8; /* primary accent — CTAs, links, positive states */
+  --color-coral:  #E8A89C; /* secondary accent — selection, warm highlights */
+  --color-yellow: #F4D35E; /* tertiary accent — badges, eyebrows, small moments */
+  --color-slate:  #4A5568; /* primary text, dark backgrounds, buttons on light */
+  --color-bg:     #FDFBF7; /* page background — warm off-white */
+  --color-white:  #FFFFFF; /* card surfaces on off-white only */
+
+  /* ---- Slate opacity ramp (text + hairlines) ---- */
+  --slate-90: rgba(74, 85, 104, 0.90);
+  --slate-80: rgba(74, 85, 104, 0.80);
+  --slate-70: rgba(74, 85, 104, 0.70); /* secondary body copy */
+  --slate-60: rgba(74, 85, 104, 0.60);
+  --slate-20: rgba(74, 85, 104, 0.20); /* input borders */
+  --slate-10: rgba(74, 85, 104, 0.10); /* secondary button borders, nav rule */
+  --slate-05: rgba(74, 85, 104, 0.05); /* card hairline borders */
+
+  /* ---- Accent alpha overlays (tinted backgrounds only) ---- */
+  --sage-50:   rgba(142, 184, 168, 0.50); /* card hover border */
+  --sage-20:   rgba(142, 184, 168, 0.20); /* icon block fill */
+  --sage-10:   rgba(142, 184, 168, 0.10);
+  --coral-50:  rgba(232, 168, 156, 0.50);
+  --coral-20:  rgba(232, 168, 156, 0.20);
+  --coral-10:  rgba(232, 168, 156, 0.10);
+  --yellow-50: rgba(244, 211, 94, 0.50);
+  --yellow-20: rgba(244, 211, 94, 0.20);
+  --yellow-10: rgba(244, 211, 94, 0.10);
+  --white-10:  rgba(255, 255, 255, 0.10); /* decorative blurs on dark */
+  --white-05:  rgba(255, 255, 255, 0.05);
+
+  /* ---- Semantic aliases ---- */
+  --surface-page:    var(--color-bg);
+  --surface-card:    var(--color-white);
+  --surface-card-alt: var(--color-bg); /* card on a white section */
+  --surface-dark:    var(--color-slate);
+
+  --text-heading:    var(--color-slate);
+  --text-body:       var(--color-slate);
+  --text-secondary:  var(--slate-70);
+  --text-on-dark:    var(--color-white);
+  --text-on-dark-secondary: rgba(255, 255, 255, 0.80);
+
+  --accent-primary:  var(--color-sage);
+  --accent-warm:     var(--color-coral);
+  --accent-highlight: var(--color-yellow);
+
+  --border-card:     var(--slate-05);
+  --border-input:    var(--slate-20);
+  --border-nav:      var(--slate-10);
+
+  --focus-ring:      var(--color-sage);
+
+  /* Selection: coral background, white text */
+  --selection-bg:    var(--color-coral);
+  --selection-fg:    var(--color-white);
+}
+
+::selection { background: var(--selection-bg); color: var(--selection-fg); }

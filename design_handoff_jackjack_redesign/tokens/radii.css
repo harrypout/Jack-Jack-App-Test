@@ -1,0 +1,18 @@
+/* Jack Jack — Shape language & radii
+   The pebble — asymmetric, soft, organic — is the ownable primitive.
+   One pebble per surface. Alternate radii for adjacent pebble shapes.
+   Never rotate the pebble radius. Everything else uses standard rounding. */
+
+:root {
+  /* ---- Signature pebble radii ---- */
+  --radius-pebble:     40% 60% 70% 30% / 40% 50% 60% 50%;
+  --radius-pebble-alt: 60% 40% 30% 70% / 60% 30% 70% 40%;
+
+  /* ---- Standard radii ---- */
+  --radius-sm:   8px;    /* small inputs, tags */
+  --radius-md:   12px;   /* buttons, form fields, small cards */
+  --radius-lg:   16px;   /* icon blocks, tinted callouts */
+  --radius-xl:   24px;   /* feature cards, FAQ items */
+  --radius-2xl:  32px;   /* large content cards */
+  --radius-full: 9999px; /* pills, buttons, badges */
+}

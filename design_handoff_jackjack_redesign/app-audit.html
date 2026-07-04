@@ -1,0 +1,119 @@
+<!-- @dsCard group="Mobile App" viewport="1560x1180" name="App screens — DS compliance audit" subtitle="The 3 live tabs + Manual Monitoring, rebuilt to design-system spec. Structure & functionality unchanged; only styling amended." -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jack Jack — App Compliance Audit</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--color-bg); font-family: var(--font-body); color: var(--color-slate); -webkit-font-smoothing: antialiased; }
+  .wrap { padding: 44px 40px 60px; display: flex; flex-direction: column; align-items: center; gap: 34px; }
+  .head { max-width: 940px; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .head h1 { font-family: var(--font-display); font-weight: 600; font-size: 34px; color: var(--color-slate); margin: 0; }
+  .head p { font-size: 15px; line-height: 1.6; color: var(--slate-70); margin: 0; }
+  .findings { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 1000px; }
+  .find { background: var(--color-white); border: 1px solid var(--border-card); box-shadow: var(--shadow-sm); border-radius: var(--radius-lg); padding: 12px 15px; width: 236px; text-align: left; }
+  .find .k { font-size: 12px; font-weight: 700; color: var(--color-slate); display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+  .find .k::before { content: ''; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .find.f1 .k::before { background: var(--color-slate); }
+  .find.f2 .k::before { background: var(--color-sage); }
+  .find.f3 .k::before { background: var(--color-coral); }
+  .find.f4 .k::before { background: var(--color-yellow); }
+  .find p { margin: 0; font-size: 11.5px; line-height: 1.5; color: var(--slate-60); }
+  .seg { display: inline-flex; gap: 4px; padding: 4px; background: var(--color-white); border: 1px solid var(--border-card); border-radius: var(--radius-full); box-shadow: var(--shadow-sm); }
+  .seg button { border: none; background: none; font-family: var(--font-body); font-weight: 700; font-size: 13px; color: var(--slate-60); padding: 8px 18px; border-radius: var(--radius-full); cursor: pointer; transition: background .18s, color .18s; }
+  .seg button.on { background: var(--color-sage); color: #fff; box-shadow: 0 6px 14px -7px rgba(142,184,168,.9); }
+  .segnote { font-size: 12px; color: var(--slate-60); max-width: 620px; min-height: 32px; margin: 2px 0 0; }
+  .row { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 320px; }
+  .cap { font-family: ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-sage); background: var(--sage-10); padding: 5px 12px; border-radius: var(--radius-full); }
+  .amend { width: 100%; display: flex; flex-direction: column; gap: 9px; }
+  .amend h3 { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: var(--tracking-widest); text-transform: uppercase; color: var(--slate-60); }
+  .amend .it { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.45; color: var(--slate-70); }
+  .amend .it b { color: var(--color-slate); font-weight: 700; }
+  .amend .it::before { content: ''; margin-top: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--color-sage); flex-shrink: 0; }
+  @keyframes jjpulse { from { transform: scale(.7); opacity: .9; } to { transform: scale(1.5); opacity: 0; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel" src="frame.jsx"></script>
+<script type="text/babel" src="app-audit.jsx"></script>
+<script type="text/babel">
+  const COLS = [
+    ['Home', 'AuditHome', [
+      ['Header “Jack Jack” set in Fredoka display (was Nunito Sans)', 1],
+      ['Cool grays → warm slate ramp for all text', 1],
+      ['“Current” chip uses coral accent, not sage-on-sage', 1],
+      ['Cards on radius-lg + shadow-sm (was flat radius 8)', 1],
+    ]],
+    ['Connect Device', 'AuditConnect', [
+      ['Title in Fredoka; “Refresh” in sage', 1],
+      ['Section labels as tracked eyebrows', 1],
+      ['Device rows unified to radius-lg card + icon block', 1],
+      ['“Paired” pill sage, chevron actions in slate-60', 1],
+    ]],
+    ['Manual Monitoring', 'AuditManual', [
+      ['Streaming pill uses coral (was hue-rotated red)', 1],
+      ['Gauge value set in Fredoka; slate labels', 1],
+      ['Indicator boxes → radius-lg + shadow-sm', 1],
+      ['Stop button pill radius-full, token shadow', 1],
+    ]],
+    ['Settings', 'AuditSettings', [
+      ['Grouped cards w/ hairline rows (was bare ListTiles)', 1],
+      ['Row titles slate w600 14px (was 12px tertiary gray)', 1],
+      ['Dropdowns use radius-md + border-input token', 1],
+      ['Section headers as consistent eyebrows', 1],
+    ]],
+  ];
+  function App() {
+    const [rich, setRich] = React.useState(false);
+    return (
+      <div className="wrap">
+        <div className="head">
+          <h1>App screens · design-system audit</h1>
+          <p>The three live tabs plus Manual Monitoring, rebuilt to spec. Layout and behaviour are untouched — every change below is cosmetic, bringing the shipped screens onto the design system’s tokens.</p>
+          <div className="findings">
+            <div className="find f1"><div className="k">Text colour</div><p>Shipped app uses cool Untitled-UI grays. Migrate every text role to the warm <b>slate</b> opacity ramp.</p></div>
+            <div className="find f2"><div className="k">Display type</div><p>Titles are Nunito Sans throughout. Screen headers &amp; gauge values should use <b>Fredoka</b>.</p></div>
+            <div className="find f3"><div className="k">Status accents</div><p>error/warning are HSL-rotated from sage. Use <b>coral</b> for alerts/streaming, <b>yellow</b> for warnings.</p></div>
+            <div className="find f4"><div className="k">Shape &amp; radii</div><p>Hardcoded <code>radius 8</code> everywhere. Adopt the token scale — <b>lg</b> cards, <b>full</b> pills, <b>md</b> fields.</p></div>
+          </div>
+          <div className="seg" role="tablist">
+            <button className={rich ? '' : 'on'} onClick={() => setRich(false)}>Current · mono-sage</button>
+            <button className={rich ? 'on' : ''} onClick={() => setRich(true)}>Colour-diverse</button>
+          </div>
+          <p className="segnote">{rich
+            ? 'Gauge tracks state vs threshold · Settings sections colour-coded · yellow eyebrow ticks · devices tinted by identity · battery warns in yellow/coral.'
+            : 'Flip the toggle to preview the five subtle colour additions across all four screens.'}</p>
+        </div>
+        <div className="row">
+          {COLS.map(([name, comp, items]) => {
+            const Comp = window[comp];
+            return (
+              <div className="col" key={name}>
+                <span className="cap">{name}</span>
+                <window.JJPaletteCtx.Provider value={rich}>
+                  <window.Phone><Comp /></window.Phone>
+                </window.JJPaletteCtx.Provider>
+                <div className="amend">
+                  <h3>Amendments</h3>
+                  {items.map((it, i) => <div className="it" key={i} dangerouslySetInnerHTML={{ __html: it[0].replace(/“|”/g, '"') }} />)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

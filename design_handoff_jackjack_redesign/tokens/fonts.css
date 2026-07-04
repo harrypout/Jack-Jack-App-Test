@@ -1,0 +1,5 @@
+/* Jack Jack — Webfonts
+   Fredoka (display) + Nunito Sans (body), loaded from Google Fonts.
+   No self-hosted binaries; the design source specifies Google Fonts delivery. */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600&family=Nunito+Sans:wght@300;400;600;700&display=swap');
