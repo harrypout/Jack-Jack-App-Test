@@ -1,6 +1,7 @@
 # Session Handoff — jackjack (Jack Jack BLE sound monitor)
 
-Last updated: 2026-07-04. State: **building, uploading, and running on TestFlight.**
+Last updated: 2026-07-04 (post UI-redesign merge). State: **UI redesign merged
+(PR #11); v1.0.2+3 ready to build and upload to TestFlight.**
 
 ## Where things stand
 
@@ -14,9 +15,21 @@ Last updated: 2026-07-04. State: **building, uploading, and running on TestFligh
      polling loop, unique notification IDs, ~15fps gauge throttle, per-device alert
      cooldown, startup failure guard (`StartupErrorApp`).
   4. Version **1.0.1+2** (PR #9) — uploaded to TestFlight and verified on-device.
-  5. `design_handoff_jackjack_redesign/` — a **UI redesign spec** (tokens, mockups)
-     uploaded 2026-07-04. **This is the likely next body of work.**
-- PR history: #1 bug fixes (old base) · #2–#7 the iOS build saga · #8 new base+pins+fixes · #9 version bump.
+  5. The **UI redesign** (PR #11, merged 2026-07-04) implementing
+     `design_handoff_jackjack_redesign/`: warm-slate/coral/yellow token pass in
+     `ColorManager`/`ThemeManager` (legacy names kept, values retargeted), Fredoka
+     display type (google_fonts runtime, like Nunito Sans), radius token scale,
+     all five colour treatments, rebuilt onboarding (stale `onboarding0–2` assets
+     deleted; heroes are rendered widgets), restyled Home/Connect/Monitoring/
+     Settings/bottom-nav, new primitives (`BLEPebble`, `BLEEyebrow`,
+     `BLEStatusPill`, `BLEPulseRings`), plus a full multi-agent review pass
+     (details in PR #11 comments). Strictly UI-only with **one deliberate
+     functional fix**: Forget Device now also removes the device from the home
+     screen (its card previously lingered in the `ConnectedDevices` registry).
+     The spec folder stays in-repo as reference.
+  6. Version **1.0.2+3** — bumped for the redesign's TestFlight build (not yet
+     uploaded at the time of writing).
+- PR history: #1 bug fixes (old base) · #2–#7 the iOS build saga · #8 new base+pins+fixes · #9 version bump · #10 handoff doc · #11 UI redesign · #12 handoff refresh + version bump.
 
 ## ⚠️ Critical: the SwiftProtobuf pins (do not "upgrade" these)
 
@@ -63,20 +76,33 @@ Gotchas that have each cost a build cycle before:
   above"** (no custom crypto).
 - Deprecation warnings in the archive log (permission_handler, fluttertoast,
   deployment-target 9.0/11.0 notices) are normal — only errors matter.
+- **Check which Flutter actually builds.** Stock 3.32.7 rejects
+  `InputDecorationTheme.visualDensity`, which the pre-redesign code used
+  (removed in PR #11) — yet earlier archives succeeded, so the Mac was likely
+  building with a newer system Flutter rather than FVM's pinned 3.32.7. Use
+  `fvm flutter …` (or verify `flutter --version`) if you want the pin honoured.
 
 ## Known follow-ups (open, in rough priority order)
 
-1. **UI redesign** from `design_handoff_jackjack_redesign/` (tokens + JSX/HTML mockups).
+1. **On-device pass of the redesign build (1.0.2+3)**: Fredoka first-launch fetch
+   (needs network once; falls back to system font offline), gauge ring + pulse
+   rings, FAB/bottom-bar geometry incl. iOS bottom strip, onboarding (fresh
+   install to replay it), and the Forget Device flow (card should drop off Home,
+   device reappears under Available Devices after refresh).
 2. Add `ITSAppUsesNonExemptEncryption = false` to `ios/Runner/Info.plist` to skip the
    export-compliance question on every upload (offered, never applied).
-3. Bundle the Nunito Sans font instead of `google_fonts` runtime fetch (network
-   download on first launch).
+3. Bundle the fonts instead of `google_fonts` runtime fetch — now covers **both**
+   Nunito Sans and Fredoka (each downloads on first launch).
 4. Stream/GATT-subscription leak hardening from PR #1 was **not** ported — the
    developer restructured subscription ownership around his background service;
    verify on-device before touching.
 5. UIScene lifecycle migration (Flutter warns it will become required).
 6. `origin/dev-snapshot-1` branch can be deleted once nobody needs the pristine
    snapshot for reference.
+7. Minor accepted trade-offs from the redesign review (fix only if they bite):
+   the onboarding sheet can overflow at ~2× OS text scale on short devices, and
+   the custom 44×26 toggle lacks hardware-keyboard focus (the Material Switch it
+   replaced had it; touch + screen readers work).
 
 ## Context that is easy to lose
 
