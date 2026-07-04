@@ -65,7 +65,7 @@ class ColorManager {
 
   // Container colors
   static const containerBorder = slate05;
-  static const greyContainerBackground = background;
+  static const greyContainerBackground = white; // card surfaces are white
 
   // Misc
   static const pill = slate20;
