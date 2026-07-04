@@ -31,7 +31,7 @@ class BLEBottomSheet extends StatelessWidget {
             height: 6,
             margin: const EdgeInsets.only(top: 8),
             decoration: BoxDecoration(
-              color: ColorManager.containerBorder,
+              color: ColorManager.slate20,
               borderRadius: BorderRadius.circular(6),
             ),
           ),

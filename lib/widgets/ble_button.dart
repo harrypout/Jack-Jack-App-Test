@@ -1,4 +1,5 @@
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 
 class BLEButton extends StatelessWidget {
@@ -29,7 +30,7 @@ class BLEButton extends StatelessWidget {
       onPressed: onPressed,
       style: ButtonStyle(
         padding: WidgetStateProperty.all(
-          EdgeInsets.symmetric(horizontal: 8, vertical: maxButton ? 12 : 0),
+          EdgeInsets.symmetric(horizontal: 16, vertical: maxButton ? 13 : 0),
         ),
         visualDensity: VisualDensity.compact,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -46,7 +47,7 @@ class BLEButton extends StatelessWidget {
           BorderSide(color: borderColor ?? ColorManager.secondary, width: 1.0),
         ),
         shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          RoundedRectangleBorder(borderRadius: ThemeManager.brFull),
         ),
       ),
       child:
@@ -56,7 +57,7 @@ class BLEButton extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: textColor ?? ColorManager.primaryText,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),
               )
@@ -71,8 +72,8 @@ class BLEButton extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: textColor ?? ColorManager.primaryText,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
                     ),
                   ),
                 ],
