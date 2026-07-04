@@ -41,6 +41,11 @@ List<FAQ> faqs = [
     answer:
         "Yes, you can fine-tune detection for cry-like sounds or general loud noises.",
   ),
+  FAQ(
+    question: "What dB should I set the threshold to?",
+    answer:
+        "There's no single right number—it depends on your situation, your environment, and your baby. We suggest starting toward the low end of the range, then refining it from there based on your observations and real-world use.",
+  ),
 
   // Power & Battery
   FAQ(

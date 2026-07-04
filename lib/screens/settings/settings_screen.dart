@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               title: "Notification Timeout",
                               iconColor: ColorManager.sage,
                               trailing: Container(
-                                height: 50,
+                                height: 38,
                                 // width: 150,
                                 child: DropdownWithMap(
                                   hintText: "Select Timeout",
@@ -145,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               title: "Connect Sound",
                               iconColor: ColorManager.yellowIcon,
                               trailing: Container(
-                                height: 50,
+                                height: 38,
                                 child: DropdownWithMap(
                                   hintText: "Select Sound",
                                   items: notificationSoundOptions,
@@ -172,7 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               title: "Disconnect Sound",
                               iconColor: ColorManager.yellowIcon,
                               trailing: Container(
-                                height: 50,
+                                height: 38,
                                 child: DropdownWithMap(
                                   hintText: "Select Sound",
                                   items: notificationSoundOptions,
@@ -199,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               title: "Threshold Sound",
                               iconColor: ColorManager.yellowIcon,
                               trailing: Container(
-                                height: 50,
+                                height: 38,
                                 child: DropdownWithMap(
                                   hintText: "Select Sound",
                                   items: notificationSoundOptions,

@@ -107,8 +107,9 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
   @override
   Widget build(BuildContext context) {
     // 270° ring from 225° (Syncfusion: 135 → 45), active arc coloured by
-    // sound level vs threshold, remainder sage-20. The threshold text below
-    // replaces the old (broken) threshold-arrow annotation.
+    // sound level vs threshold, remainder sage-20. A white thumb with a sage
+    // ring marks the threshold position on the arc — same treatment as the
+    // onboarding mock's threshold-track thumb.
     final arcColor = gaugeArcColor(_currentValue, widget.selectedValue);
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -138,6 +139,17 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
                     color: arcColor,
                     cornerStyle: CornerStyle.bothCurve,
                     enableAnimation: false,
+                  ),
+                  // Threshold thumb: sits on the arc at the set threshold so
+                  // the boundary the alert fires at is visible at a glance.
+                  MarkerPointer(
+                    value: widget.selectedValue.clamp(0, 120).toDouble(),
+                    markerType: MarkerType.circle,
+                    markerHeight: 11,
+                    markerWidth: 11,
+                    color: ColorManager.white,
+                    borderColor: ColorManager.sage,
+                    borderWidth: 2.5,
                   ),
                 ],
                 annotations: <GaugeAnnotation>[
