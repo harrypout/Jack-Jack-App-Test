@@ -23,7 +23,7 @@ class BleToggleRow extends StatelessWidget {
           style: const TextStyle(
             color: ColorManager.secondaryText,
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
         BLEToggle(value: value, onChanged: onChanged),

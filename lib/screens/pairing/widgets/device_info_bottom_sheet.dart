@@ -1,3 +1,4 @@
+import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/providers/paired_devices.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
@@ -7,6 +8,7 @@ import 'package:jackjack/services/device_name_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:jackjack/main.dart';
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_bottom_sheet.dart';
 import 'package:jackjack/widgets/ble_filled_button.dart';
 import 'package:jackjack/widgets/ble_outlined_button.dart';
@@ -84,7 +86,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
               color: ColorManager.greyContainerBackground,
               shape: RoundedRectangleBorder(
                 side: BorderSide(width: 1, color: ColorManager.containerBorder),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: ThemeManager.brLg,
               ),
             ),
             child: Column(
@@ -194,6 +196,8 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                 Expanded(
                   child: BLEFilledButton(
                     data: "Forget Device",
+                    // Destructive action — no recommended-CTA glow.
+                    glow: false,
                     onPressed: () async {
                       await ref
                           .read(connectedDevicesTrackerProvider.notifier)
@@ -201,6 +205,12 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                       await PairedDevicesUUID.removeFromPrefs(device.id);
                       // Clean up user disconnect flag when forgetting device
                       await prefs.remove("user_disconnected_${device.id}");
+                      // Drop it from the device registry too, so the home
+                      // screen's device list stops showing it (the selected-
+                      // device provider re-selects automatically).
+                      await ref
+                          .read(connectedDevicesProvider.notifier)
+                          .removeDevice(device.id);
 
                       ref
                           .read(deviceManagerProvider.notifier)

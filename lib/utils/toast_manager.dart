@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:jackjack/utils/color_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class ToastManager {
@@ -7,8 +7,8 @@ class ToastManager {
       msg: message,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
-      backgroundColor: Colors.black,
-      textColor:Colors.white,
+      backgroundColor: ColorManager.slate,
+      textColor: ColorManager.white,
       fontSize: 16.0,
     );
   }

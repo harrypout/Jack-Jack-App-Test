@@ -2,9 +2,11 @@
 
 import 'package:jackjack/main.dart';
 import 'package:jackjack/screens/onboarding/pods/onboarding_status_provider.dart';
-import 'package:jackjack/screens/onboarding/widgets/onboarding_overlay_clipper.dart';
+import 'package:jackjack/screens/onboarding/widgets/onboarding_hero_connect.dart';
+import 'package:jackjack/screens/onboarding/widgets/onboarding_hero_monitor.dart';
+import 'package:jackjack/screens/onboarding/widgets/onboarding_hero_welcome.dart';
 import 'package:jackjack/utils/color_manager.dart';
-import 'package:jackjack/widgets/ble_background.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_bottom_bar.dart';
 import 'package:jackjack/widgets/ble_filled_button.dart';
 import 'package:jackjack/widgets/ble_outlined_button.dart';
@@ -14,216 +16,177 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class OnboardingScreen extends ConsumerWidget {
   static const String id = 'onboarding_screen';
   static const List<String> titles = [
-    'Welcome to Sound Sensing App',
-    'Seamless Device Connection',
-    'Live Sound Monitoring',
+    'Meet Jack Jack',
+    'Pairs in seconds',
+    'Listen in, anytime',
   ];
   static const List<String> subtitles = [
-    'Quickly connect to your sound sensing device via Bluetooth and gain instant access to real-time sound levels, live audio monitoring, and alerts.',
-    'Effortlessly connect your sound-sensing device via Bluetooth and start monitoring sound levels in real time & ensures a hassle-free setup.',
-    'Experience real-time audio streaming from your device, allowing you to monitor sound levels with precision and take control with live audio playback anytime.',
+    'Your Pebble listens to the room so you don\'t have to — real-time sound levels, live audio, and a gentle nudge only when it matters.',
+    'Hold your phone close and connect the Pebble over Bluetooth. No accounts, no cables — just tap and you\'re listening.',
+    'Watch live sound, set a threshold that fits your home, and stream audio straight from the Pebble whenever you want to check in.',
   ];
-  static const animationDurationInMilliseconds = 200;
+
   const OnboardingScreen({super.key});
+
+  Widget _fadeRise(Widget child, Animation<double> animation) {
+    return FadeTransition(
+      opacity: animation,
+      child: AnimatedBuilder(
+        animation: animation,
+        child: child,
+        builder:
+            (context, child) => Transform.translate(
+              offset: Offset(0, (1 - animation.value) * 6),
+              child: child,
+            ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedPage = ref.watch(onboardingStatusProvider);
+    const heroes = [
+      OnboardingHeroWelcome(),
+      OnboardingHeroConnect(),
+      OnboardingHeroMonitor(),
+    ];
+
     return Scaffold(
-      body: BLEBackground(
-        secondChild: SafeArea(
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              height: 325, //370
-              child: ClipPath(
-                clipper: OnboardingOverlayClipper(),
-                child: Container(
-                  color: ColorManager.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(
-                          milliseconds: animationDurationInMilliseconds,
-                        ),
-                        transitionBuilder: (
-                          Widget child,
-                          Animation<double> animation,
-                        ) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            titles[selectedPage],
-                            key: ValueKey<int>(selectedPage),
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: ColorManager.primaryText,
-                            ),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                      ),
-                      AnimatedSwitcher(
-                        duration: const Duration(
-                          milliseconds: animationDurationInMilliseconds,
-                        ),
-                        transitionBuilder: (
-                          Widget child,
-                          Animation<double> animation,
-                        ) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            subtitles[selectedPage],
-                            key: ValueKey<int>(selectedPage),
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: ColorManager.tertiaryText,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(3, (index) {
-                          bool isSelected = selectedPage == index;
-                          return AnimatedContainer(
-                            duration: const Duration(
-                              milliseconds: animationDurationInMilliseconds,
-                            ),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: 16,
-                            height: 16,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(
-                                    milliseconds:
-                                        animationDurationInMilliseconds,
-                                  ),
-                                  width: 16,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color:
-                                        isSelected
-                                            ? ColorManager.accent
-                                            : ColorManager.transparent,
-                                  ),
-                                ),
-                                AnimatedContainer(
-                                  duration: const Duration(
-                                    milliseconds:
-                                        animationDurationInMilliseconds,
-                                  ),
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: ColorManager.white,
-                                  ),
-                                ),
-                                AnimatedContainer(
-                                  duration: const Duration(
-                                    milliseconds:
-                                        animationDurationInMilliseconds,
-                                  ),
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color:
-                                        isSelected
-                                            ? ColorManager.accent
-                                            : ColorManager.pill,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (selectedPage < 2)
-                            BLEOutlinedButton(
-                              data: 'Skip',
-                              onPressed: () async {
-                                Navigator.pushNamed(context, BLEBottomBar.id);
-                                prefs.setBool('onboarding_status', true);
-                              },
-                            ),
-                          SizedBox(
-                            width:
-                                selectedPage > 1
-                                    ? MediaQuery.of(context).size.width - 48
-                                    : null,
-                            child: BLEFilledButton(
-                              data:
-                                  selectedPage > 1 ? 'Get Started' : 'Continue',
-                              maxButton: selectedPage > 1,
-                              onPressed: () async {
-                                if (await ref
-                                    .read(onboardingStatusProvider.notifier)
-                                    .next()) {
-                                  Navigator.pushNamed(context, BLEBottomBar.id);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+      body: Column(
+        children: [
+          // Hero stage on a soft radial sage wash.
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0, -0.64),
+                  radius: 1.2,
+                  colors: [ColorManager.sageTint10, ColorManager.transparent],
+                  stops: [0, 0.7],
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: ThemeManager.durPage,
+                    switchInCurve: Curves.ease,
+                    transitionBuilder: _fadeRise,
+                    child: KeyedSubtree(
+                      key: ValueKey<int>(selectedPage),
+                      child: heroes[selectedPage],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        child: SafeArea(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 32),
-              child: AnimatedSwitcher(
-                duration: const Duration(
-                  milliseconds: animationDurationInMilliseconds,
-                ),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                child: Image.asset(
-                  "assets/pngs/onboarding$selectedPage.png",
-                  key: ValueKey<int>(selectedPage),
-                  fit: BoxFit.fitWidth,
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  height: MediaQuery.of(context).size.height * 0.7,
-                ),
+          // White sheet with 34px top corners.
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: ColorManager.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
+              boxShadow: ThemeManager.sheetShadow,
+            ),
+            padding: const EdgeInsets.fromLTRB(26, 26, 26, 0),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AnimatedSwitcher(
+                    duration: ThemeManager.durPage,
+                    switchInCurve: Curves.ease,
+                    transitionBuilder: _fadeRise,
+                    child: Text(
+                      titles[selectedPage],
+                      key: ValueKey<int>(selectedPage),
+                      style: ThemeManager.displayOnboardingTitle,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 64),
+                    child: AnimatedSwitcher(
+                      duration: ThemeManager.durPage,
+                      switchInCurve: Curves.ease,
+                      transitionBuilder: _fadeRise,
+                      child: Text(
+                        subtitles[selectedPage],
+                        key: ValueKey<int>(selectedPage),
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          height: 1.55,
+                          color: ColorManager.slate70,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(3, (index) {
+                      final isSelected = selectedPage == index;
+                      return GestureDetector(
+                        onTap:
+                            () => ref
+                                .read(onboardingStatusProvider.notifier)
+                                .setPage(index),
+                        child: AnimatedContainer(
+                          duration: ThemeManager.durDots,
+                          curve: Curves.ease,
+                          margin: const EdgeInsets.symmetric(horizontal: 3.5),
+                          width: isSelected ? 22 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            borderRadius: ThemeManager.brFull,
+                            color:
+                                isSelected
+                                    ? ColorManager.sage
+                                    : ColorManager.slate20,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      if (selectedPage < 2) ...[
+                        BLEOutlinedButton(
+                          data: 'Skip',
+                          onPressed: () async {
+                            Navigator.pushNamed(context, BLEBottomBar.id);
+                            prefs.setBool('onboarding_status', true);
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                        child: BLEFilledButton(
+                          data: selectedPage > 1 ? 'Get Started' : 'Continue',
+                          maxButton: true,
+                          onPressed: () async {
+                            if (await ref
+                                .read(onboardingStatusProvider.notifier)
+                                .next()) {
+                              Navigator.pushNamed(context, BLEBottomBar.id);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

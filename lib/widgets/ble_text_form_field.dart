@@ -68,7 +68,7 @@ class _BleTextFormFieldState extends State<BleTextFormField> {
         fillColor: ColorManager.white,
         hintText: widget.hintText,
         hintStyle: TextStyle(
-          color: ColorManager.gaugeAxisLabelText,
+          color: ColorManager.slate60,
           fontSize: 16,
           fontWeight: FontWeight.w400,
         ),
@@ -109,16 +109,10 @@ class _BleTextFormFieldState extends State<BleTextFormField> {
         // labelText: "Age",
         border: customOutlineInputBorder(),
         enabledBorder: customOutlineInputBorder(
-          borderSide: const BorderSide(
-            color: ColorManager.containerBorder,
-            width: 2.0,
-          ),
+          borderSide: const BorderSide(color: ColorManager.slate20),
         ),
         focusedBorder: customOutlineInputBorder(
-          borderSide: const BorderSide(
-            color: ColorManager.containerBorder,
-            width: 2.0,
-          ),
+          borderSide: const BorderSide(color: ColorManager.sage),
         ),
       ),
     );

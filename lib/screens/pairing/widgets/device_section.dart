@@ -1,4 +1,4 @@
-import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/widgets/ble_eyebrow.dart';
 import 'package:flutter/material.dart';
 
 class DeviceSection extends StatelessWidget {
@@ -18,20 +18,10 @@ class DeviceSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              if(children.isNotEmpty)
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                  color: ColorManager.primaryText,
-                ),
-              ),
-            ],
+            children: [if (children.isNotEmpty) BLEEyebrow(title)],
           ),
         ),
         ...children,

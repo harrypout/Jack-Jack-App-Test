@@ -1,4 +1,5 @@
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 
 class BLEAppBar extends StatelessWidget {
@@ -50,9 +51,7 @@ class BLEAppBar extends StatelessWidget {
                       child: Text(
                         title ?? "",
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                        style: ThemeManager.displaySub.copyWith(
                           color: titleColor,
                         ),
                       ),

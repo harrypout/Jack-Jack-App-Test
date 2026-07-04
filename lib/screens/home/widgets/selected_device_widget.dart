@@ -2,6 +2,7 @@ import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/providers/connected_status_provider.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/services/device_name_manager.dart';
+import 'package:jackjack/utils/status_colors.dart';
 import 'package:jackjack/widgets/ble_gauge.dart';
 import 'package:jackjack/widgets/ble_indicator_box.dart';
 import 'package:flutter/material.dart';
@@ -37,8 +38,11 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
           children: [
             IndicatorBox(
               title: "Battery",
-              subtitle: "${device?.getBattery.data ?? "0"} %",
+              subtitle: "${device?.getBattery.data ?? "0"}%",
               asset: "battery",
+              valueColor: batteryValueColor(
+                int.tryParse("${device?.getBattery.data}"),
+              ),
             ),
             IndicatorBox(
               title: "Status",

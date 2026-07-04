@@ -19,4 +19,12 @@ class OnboardingStatus extends _$OnboardingStatus {
       return true;
     }
   }
+
+  /// Jump straight to a page (tappable dots). Pure page state — completion
+  /// is only ever persisted by [next] / the Skip handler.
+  void setPage(int page) {
+    if (page >= 0 && page <= 2) {
+      state = page;
+    }
+  }
 }

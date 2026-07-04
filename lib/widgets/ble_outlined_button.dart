@@ -28,9 +28,9 @@ class BLEOutlinedButton extends StatelessWidget {
     return BLEButton(
       data: data,
       onPressed: onPressed,
-      // backgroundColor: ColorManager.white,
-      borderColor: borderColor ?? buttonColor,
-      textColor: textColor ?? ColorManager.accent,
+      backgroundColor: buttonColor ?? ColorManager.white,
+      borderColor: borderColor ?? ColorManager.slate10,
+      textColor: textColor ?? ColorManager.slate70,
       buttonSize: buttonSize,
       maxButton: maxButton,
       icon: icon,

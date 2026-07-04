@@ -1,4 +1,5 @@
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -6,11 +7,13 @@ class IndicatorBox extends StatelessWidget {
   final String title;
   final String subtitle;
   final String asset;
+  final Color? valueColor;
   const IndicatorBox({
     super.key,
     required this.title,
     required this.subtitle,
     required this.asset,
+    this.valueColor,
   });
 
   @override
@@ -18,39 +21,46 @@ class IndicatorBox extends StatelessWidget {
     return Expanded(
       child: Container(
         width: double.maxFinite,
-        // height: 74,
         padding: const EdgeInsets.all(14),
         clipBehavior: Clip.antiAlias,
-        decoration: ShapeDecoration(
+        decoration: BoxDecoration(
           color: ColorManager.white,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(width: 1, color: ColorManager.containerBorder),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          border: Border.all(color: ColorManager.containerBorder),
+          borderRadius: ThemeManager.brLg,
+          boxShadow: ThemeManager.shadowSm,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-                color: ColorManager.tertiaryText,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 11.5,
+                color: ColorManager.slate60,
               ),
             ),
+            const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     fontSize: 14,
-                    color: ColorManager.quaternaryText,
+                    color: valueColor ?? ColorManager.slate,
                   ),
                 ),
-                SvgPicture.asset("assets/svgs/$asset.svg"),
+                SvgPicture.asset(
+                  "assets/svgs/$asset.svg",
+                  width: 18,
+                  height: 18,
+                  colorFilter: const ColorFilter.mode(
+                    ColorManager.sage,
+                    BlendMode.srcIn,
+                  ),
+                ),
               ],
             ),
           ],

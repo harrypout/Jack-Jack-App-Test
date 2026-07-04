@@ -1,6 +1,7 @@
 import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_pill.dart';
 import 'package:jackjack/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
@@ -73,11 +74,11 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
           collapsedBackgroundColor: ColorManager.white,
           shape: RoundedRectangleBorder(
             side: BorderSide(width: 1, color: ColorManager.containerBorder),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: ThemeManager.brLg,
           ),
           collapsedShape: RoundedRectangleBorder(
             side: BorderSide(width: 1, color: ColorManager.containerBorder),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: ThemeManager.brLg,
           ),
           childrenPadding: EdgeInsets.all(16),
           expandedCrossAxisAlignment: CrossAxisAlignment.start,

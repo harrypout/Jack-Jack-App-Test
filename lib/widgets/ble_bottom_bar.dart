@@ -7,6 +7,7 @@ import 'package:jackjack/screens/pairing/pairing_screen.dart';
 import 'package:jackjack/screens/settings/settings_screen.dart';
 import 'package:jackjack/screens/threshold/threshold_screen.dart';
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -53,7 +54,7 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
                   ? Container(
                     width: MediaQuery.of(context).size.width,
                     height: 10,
-                    color: ColorManager.background,
+                    color: ColorManager.white,
                   )
                   : Container(),
             ],
@@ -68,44 +69,65 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
 class CustomBottomNav extends ConsumerWidget {
   const CustomBottomNav({super.key});
 
+  // Geometry derives from these four; the composites stay in sync.
+  static const double _barHeight = 62;
+  static const double _fabOverhang = 24;
+  static const double _fabButtonSize = 56;
+  static const double _ringWidth = 4;
+  static const double _fabSize = _fabButtonSize + 2 * _ringWidth;
+  static const double _navHeight = _barHeight + _fabOverhang;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var size = MediaQuery.of(context).size;
     var selectedScreenIndex = ref.watch(navigationProvider);
-    return Stack(
-      children: [
-        CustomPaint(size: Size(size.width, 110), painter: MyCustomPainter()),
-        Positioned(
-          bottom: 0,
-          child: Container(
-            height: 75,
-            width: MediaQuery.of(context).size.width,
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(child: NavBarButton(index: 0, title: "Home", icon: "home")),
-                    SizedBox(width: 45),
-                    Expanded(child: NavBarButton(index: 2, title: "Settings", icon: "setting")),
-                  ],
+    return SizedBox(
+      width: size.width,
+      height: _navHeight,
+      child: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: _barHeight,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: const BoxDecoration(
+                color: ColorManager.white,
+                border: Border(
+                  top: BorderSide(color: ColorManager.slate10),
                 ),
-              ],
+              ),
+              child: const Row(
+                children: [
+                  Expanded(child: NavBarButton(index: 0, title: "Home", icon: "home")),
+                  SizedBox(width: 72),
+                  Expanded(child: NavBarButton(index: 2, title: "Settings", icon: "setting")),
+                ],
+              ),
             ),
           ),
-        ),
-        Positioned(
-          top: 0,
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
             child: Center(
               child: Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(100)),
+                width: _fabSize,
+                height: _fabSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   color: ColorManager.accent,
+                  // Page-background ring separating the FAB from the bar.
+                  border: Border.all(
+                    color: ColorManager.background,
+                    width: _ringWidth,
+                  ),
+                  boxShadow:
+                      selectedScreenIndex == 1
+                          ? ThemeManager.sageGlow
+                          : ThemeManager.shadowMd,
                 ),
                 child: ElevatedButton(
                   onPressed: () {
@@ -113,9 +135,8 @@ class CustomBottomNav extends ConsumerWidget {
                   },
                   style: ButtonStyle(
                     padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
-                    minimumSize: WidgetStateProperty.all(Size(59, 59)),
-                    textStyle: WidgetStateProperty.all(
-                      const TextStyle(color: ColorManager.white),
+                    minimumSize: WidgetStateProperty.all(
+                      Size(_fabButtonSize, _fabButtonSize),
                     ),
                     backgroundColor: const WidgetStatePropertyAll<Color?>(
                       ColorManager.transparent,
@@ -139,8 +160,8 @@ class CustomBottomNav extends ConsumerWidget {
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -156,20 +177,18 @@ class NavBarButton extends ConsumerWidget {
     required this.index,
     required this.title,
     required this.icon,
-    this.color = ColorManager.tertiaryText,
+    this.color = ColorManager.slate60,
     this.onPressed,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var selectedScreenIndex = ref.watch(navigationProvider);
+    final active = selectedScreenIndex == index;
     return ElevatedButton(
       style: ButtonStyle(
         padding: WidgetStateProperty.all(
           const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-        textStyle: WidgetStateProperty.all(
-          const TextStyle(color: ColorManager.white),
         ),
         backgroundColor: const WidgetStatePropertyAll<Color?>(
           ColorManager.transparent,
@@ -179,7 +198,7 @@ class NavBarButton extends ConsumerWidget {
         ),
         elevation: WidgetStateProperty.all(0.0),
         shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          RoundedRectangleBorder(borderRadius: ThemeManager.brLg),
         ),
         minimumSize: WidgetStatePropertyAll(Size(0, 40)),
       ),
@@ -187,17 +206,16 @@ class NavBarButton extends ConsumerWidget {
         ref.read(navigationProvider.notifier).toggle(index);
       },
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 4.0),
+            padding: const EdgeInsets.only(bottom: 3.0),
             child: SvgPicture.asset(
-              "assets/svgs/$icon${selectedScreenIndex == index ? "_filled" : ""}.svg",
-              width: 24,
-              height: 24,
+              "assets/svgs/$icon${active ? "_filled" : ""}.svg",
+              width: 22,
+              height: 22,
               colorFilter: ColorFilter.mode(
-                selectedScreenIndex == index
-                    ? ColorManager.accent
-                    : ColorManager.tertiaryText,
+                active ? ColorManager.accent : ColorManager.slate60,
                 BlendMode.srcIn,
               ),
             ),
@@ -205,64 +223,13 @@ class NavBarButton extends ConsumerWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              color:
-                  selectedScreenIndex == index
-                      ? ColorManager.accent
-                      : ColorManager.tertiaryText,
+              fontSize: 10,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+              color: active ? ColorManager.accent : ColorManager.slate60,
             ),
           ),
         ],
       ),
     );
-  }
-}
-
-class MyCustomPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint =
-        Paint()
-          ..color = ColorManager.background
-          ..style = PaintingStyle.fill
-          ..invertColors = false;
-
-    Rect box = Rect.fromLTRB(0, 110, size.width, 35);
-    Rect box2 = Rect.fromLTRB(0, 110, size.width, 90);
-    RRect roundBox = RRect.fromRectAndRadius(box, const Radius.circular(10));
-    Path path = Path();
-    path.addRRect(roundBox);
-    path.addRect(box2);
-    path.addRect(box2);
-
-    path.moveTo((size.width * 0.5) - 45, 35);
-    path.arcToPoint(
-      Offset((size.width * 0.5) - 30, 42),
-      radius: const Radius.circular(16),
-      clockwise: true,
-    );
-    path.arcToPoint(
-      Offset((size.width * 0.5) + 30, 42),
-      radius: const Radius.circular(32),
-      clockwise: false,
-    );
-    path.arcToPoint(
-      Offset((size.width * 0.5) + 45, 35),
-      radius: const Radius.circular(20),
-    );
-
-    canvas.drawShadow(
-      path.shift(const Offset(0, -5)),
-      ColorManager.black,
-      10.0,
-      true,
-    );
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }

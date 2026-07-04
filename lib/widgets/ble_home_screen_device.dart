@@ -6,7 +6,11 @@ import 'package:jackjack/providers/selected_device_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/services/device_name_manager.dart';
 import 'package:jackjack/utils/color_manager.dart';
+import 'package:jackjack/utils/status_colors.dart';
+import 'package:jackjack/utils/theme_manager.dart';
+import 'package:jackjack/widgets/ble_pebble.dart';
 import 'package:jackjack/widgets/ble_pill.dart';
+import 'package:jackjack/widgets/ble_status_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jackjack/widgets/ble_toggle_row.dart';
@@ -57,32 +61,33 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
     return Skeletonizer(
       enabled: isLoading,
       child: ExpansionTile(
+        leading: BLEPebble(
+          size: 34,
+          tone: deviceTone(
+            id: widget.device.device.id,
+            isPrimary: widget.isSelected,
+          ),
+        ),
         title: Row(
-          spacing: 12,
+          spacing: 8,
           children: [
-            Text(
-              displayName,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: ColorManager.primaryText,
+            Flexible(
+              child: Text(
+                displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: ColorManager.slate,
+                ),
               ),
             ),
             if (widget.isSelected)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 4,
-                children: [
-                  BLEPill(color: ColorManager.success),
-                  Text(
-                    "Current",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      color: ColorManager.secondaryText,
-                    ),
-                  ),
-                ],
+              const BLEStatusPill(
+                "Current",
+                tone: PillTone.coral,
+                leadingDot: true,
               ),
           ],
         ),
@@ -94,39 +99,34 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
               "${widget.device.getBattery.data}%",
               style: TextStyle(
                 fontWeight: FontWeight.w400,
-                fontSize: 12,
-                color: ColorManager.tertiaryText,
+                fontSize: 11,
+                color: batteryValueColor(
+                  int.tryParse("${widget.device.getBattery.data}"),
+                ),
               ),
             ),
             BLEPill(),
             Text(
               isConnected ? "Connected" : "Disconnected",
-              style: TextStyle(
-                fontWeight: FontWeight.w400,
-                fontSize: 12,
-                color: ColorManager.tertiaryText,
-              ),
+              style: ThemeManager.meta,
             ),
             BLEPill(),
-            Text(
-              "$threshold DB",
-              style: TextStyle(
-                fontWeight: FontWeight.w400,
-                fontSize: 12,
-                color: ColorManager.tertiaryText,
-              ),
-            ),
+            Text("$threshold dB", style: ThemeManager.meta),
           ],
         ),
+        // Default trailing chevron (styled slate) keeps the built-in
+        // expand/collapse rotation affordance.
+        iconColor: ColorManager.slate60,
+        collapsedIconColor: ColorManager.slate60,
         backgroundColor: ColorManager.white,
         collapsedBackgroundColor: ColorManager.white,
         shape: RoundedRectangleBorder(
           side: BorderSide(width: 1, color: ColorManager.containerBorder),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: ThemeManager.brLg,
         ),
         collapsedShape: RoundedRectangleBorder(
           side: BorderSide(width: 1, color: ColorManager.containerBorder),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: ThemeManager.brLg,
         ),
         childrenPadding: EdgeInsets.all(16),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
@@ -203,11 +203,11 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                       style: const TextStyle(
                         color: ColorManager.secondaryText,
                         fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
-                      "${threshold?.toInt()} DB",
+                      "${threshold?.toInt()} dB",
                       style: TextStyle(
                         fontWeight: FontWeight.w400,
                         fontSize: 14,

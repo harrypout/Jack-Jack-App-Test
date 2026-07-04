@@ -66,14 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   horizontal: ThemeManager.horizontalPadding,
                   vertical: 8,
                 ),
-                child: Text(
-                  "Settings",
-                  style: const TextStyle(
-                    color: ColorManager.primaryText,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: Text("Settings", style: ThemeManager.displayTitle),
               ),
               Expanded(
                 child: Padding(
@@ -86,10 +79,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         SettingsSection(
                           section: "General",
                           divider: false,
+                          accentDot: ColorManager.sage,
                           children: [
                             SettingsItem(
                               assetName: "bluetooth",
                               title: "BLE Auto Connect",
+                              iconColor: ColorManager.sage,
                               trailing: BLEToggle(
                                 value: autoConnect,
                                 onChanged: (value) {
@@ -110,6 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             SettingsItem(
                               assetName: "help",
                               title: "Notification Timeout",
+                              iconColor: ColorManager.sage,
                               trailing: Container(
                                 height: 50,
                                 // width: 150,
@@ -142,10 +138,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         SettingsSection(
                           section: "Notification Sounds",
+                          accentDot: ColorManager.yellowDot,
                           children: [
                             SettingsItem(
                               assetName: "sound",
                               title: "Connect Sound",
+                              iconColor: ColorManager.yellowIcon,
                               trailing: Container(
                                 height: 50,
                                 child: DropdownWithMap(
@@ -172,6 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             SettingsItem(
                               assetName: "sound",
                               title: "Disconnect Sound",
+                              iconColor: ColorManager.yellowIcon,
                               trailing: Container(
                                 height: 50,
                                 child: DropdownWithMap(
@@ -198,6 +197,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             SettingsItem(
                               assetName: "sound",
                               title: "Threshold Sound",
+                              iconColor: ColorManager.yellowIcon,
                               trailing: Container(
                                 height: 50,
                                 child: DropdownWithMap(
@@ -225,10 +225,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         SettingsSection(
                           section: "Support",
+                          accentDot: ColorManager.coralDot,
                           children: [
                             SettingsItem(
                               assetName: "help",
                               title: "Help",
+                              iconColor: ColorManager.coralIcon,
                               onTap: () {
                                 Navigator.pushNamed(context, FAQScreen.id);
                               },
@@ -236,6 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             SettingsItem(
                               assetName: "contact-us",
                               title: "Contact Us",
+                              iconColor: ColorManager.coralIcon,
                               onTap: () {
                                 Navigator.pushNamed(
                                   context,
@@ -246,16 +249,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             SettingsItem(
                               assetName: "rate-app",
                               title: "Rate App",
+                              iconColor: ColorManager.coralIcon,
                               onTap: () {},
                             ),
                           ],
                         ),
                         SettingsSection(
                           section: "About App",
+                          accentDot: ColorManager.sage,
                           children: [
                             SettingsItem(
                               assetName: "app-info",
                               title: "App Info",
+                              iconColor: ColorManager.sage,
                               onTap: () {},
                             ),
                             // SettingsItem(
