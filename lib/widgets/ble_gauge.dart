@@ -24,14 +24,25 @@ class BLEGauge extends ConsumerStatefulWidget {
 
 class _BLEGaugeState extends ConsumerState<BLEGauge> {
   double _currentValue = 0.0;
+  double _targetValue = 0.0;
   StreamSubscription<int>? _streamSubscription;
 
-  // Throttle gauge repaints to ~15fps. The sound-level characteristic can
-  // push values much faster, and rebuilding SfRadialGauge on every
-  // notification saturates the UI thread.
-  static const Duration _throttleInterval = Duration(milliseconds: 66);
-  Timer? _throttleTimer;
-  int? _pendingValue;
+  // Display smoothing. The firmware notifies raw instantaneous samples, so
+  // painting the latest one each frame makes the gauge jitter. Instead the
+  // gauge eases toward the newest sample with a fast attack (rises register
+  // in ~half a second, so a cry still reads immediately) and a slow decay
+  // (falls settle over ~1.5s instead of flickering back down). Display-only:
+  // threshold alerts come from a separate firmware-driven characteristic,
+  // so smoothing here cannot delay or suppress an alert.
+  //
+  // The ~15fps tick also keeps the old repaint throttle: samples arriving
+  // faster than the tick just move the target without rebuilding
+  // SfRadialGauge, which previously saturated the UI thread.
+  static const Duration _tickInterval = Duration(milliseconds: 66);
+  // Per-tick EMA weights, 1 - e^(-tick/tau): tau 150ms rising, 1.5s falling.
+  static const double _attackAlpha = 0.36;
+  static const double _decayAlpha = 0.043;
+  Timer? _ticker;
 
   @override
   void initState() {
@@ -43,9 +54,8 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
 
   void _setupStreamListener() {
     _streamSubscription?.cancel();
-    _throttleTimer?.cancel();
-    _throttleTimer = null;
-    _pendingValue = null;
+    _ticker?.cancel();
+    _ticker = null;
 
     if (widget.valueStream != null) {
       try {
@@ -57,28 +67,29 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
   }
 
   void _onValue(int value) {
-    _pendingValue = value;
-    // Leading edge: apply the first value immediately, then coalesce
-    // subsequent values into at most one update per interval.
-    if (_throttleTimer == null) {
-      _flushPending();
-      _throttleTimer = Timer.periodic(_throttleInterval, (_) {
-        if (_pendingValue == null) {
-          _throttleTimer?.cancel();
-          _throttleTimer = null;
-        } else {
-          _flushPending();
-        }
-      });
-    }
+    _targetValue = value.toDouble();
+    _ticker ??= Timer.periodic(_tickInterval, (_) => _tick());
   }
 
-  void _flushPending() {
-    final value = _pendingValue;
-    _pendingValue = null;
-    if (value != null && mounted) {
+  void _tick() {
+    if (!mounted) {
+      _ticker?.cancel();
+      _ticker = null;
+      return;
+    }
+    final delta = _targetValue - _currentValue;
+    if (delta.abs() < 0.5) {
+      // Close enough: snap, and idle the ticker until the next sample.
+      _ticker?.cancel();
+      _ticker = null;
+      if (_currentValue != _targetValue) {
+        setState(() {
+          _currentValue = _targetValue;
+        });
+      }
+    } else {
       setState(() {
-        _currentValue = value.toDouble();
+        _currentValue += delta * (delta > 0 ? _attackAlpha : _decayAlpha);
       });
     }
   }
@@ -95,7 +106,7 @@ class _BLEGaugeState extends ConsumerState<BLEGauge> {
   @override
   void dispose() {
     _streamSubscription?.cancel();
-    _throttleTimer?.cancel();
+    _ticker?.cancel();
     super.dispose();
   }
 
