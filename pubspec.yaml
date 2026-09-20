@@ -4,7 +4,7 @@ publish_to: 'none'
 # Bump the +buildNumber on EVERY TestFlight upload — App Store Connect
 # rejects a binary whose version+build was already uploaded, and the
 # TestFlight app keeps serving the old build.
-version: 1.0.2+4
+version: 1.0.2+5
 
 environment:
   sdk: ^3.7.0
@@ -17,7 +17,6 @@ dependencies:
   riverpod_annotation: ^2.6.1
   flutter_dotenv: ^5.2.1
   shared_preferences: ^2.5.3
-  google_fonts: ^6.3.0
   syncfusion_flutter_gauges: ^30.2.5
   timeago: ^3.7.1
   # Pinned to 5.4.0: 5.4.1+ regenerated the iOS protobuf (bledata.pb.swift) to
@@ -53,6 +52,8 @@ dependency_overrides:
   reactive_ble_mobile: 5.4.0
 
 dev_dependencies:
+  fake_async: 1.3.3
+  flutter_background_service_platform_interface: 5.1.2
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
@@ -63,9 +64,31 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/fredoka-400.ttf
+          weight: 400
+        - asset: assets/fonts/fredoka-500.ttf
+          weight: 500
+        - asset: assets/fonts/fredoka-600.ttf
+          weight: 600
+    - family: Nunito Sans
+      fonts:
+        - asset: assets/fonts/nunitosans-400.ttf
+          weight: 400
+        - asset: assets/fonts/nunitosans-500.ttf
+          weight: 500
+        - asset: assets/fonts/nunitosans-600.ttf
+          weight: 600
+        - asset: assets/fonts/nunitosans-700.ttf
+          weight: 700
+        - asset: assets/fonts/nunitosans-800.ttf
+          weight: 800
   assets:
     - assets/svgs/
     - assets/pngs/
+    - assets/fonts/
     - .env
 
 flutter_native_splash:

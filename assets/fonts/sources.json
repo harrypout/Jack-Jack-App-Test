@@ -1,0 +1,58 @@
+[
+  {
+    "file": "fredoka-400.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/fredoka/Fredoka%5Bwdth%2Cwght%5D.ttf",
+    "source_sha256": "2ba02e68b152868aef9ba28e24b3648c7d457fe6f25c761f2c2c53fb61a73fc8",
+    "weight": 400,
+    "sha256": "0baabbf3ffaf0160ba531c37cfa850e5b8cccf818f09ea40b21ab3a65f790bec"
+  },
+  {
+    "file": "fredoka-500.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/fredoka/Fredoka%5Bwdth%2Cwght%5D.ttf",
+    "source_sha256": "2ba02e68b152868aef9ba28e24b3648c7d457fe6f25c761f2c2c53fb61a73fc8",
+    "weight": 500,
+    "sha256": "eb968fd0e62fa657fc59832f45d56fbc63d507c9ec2782664ad5ac562b1f3e41"
+  },
+  {
+    "file": "fredoka-600.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/fredoka/Fredoka%5Bwdth%2Cwght%5D.ttf",
+    "source_sha256": "2ba02e68b152868aef9ba28e24b3648c7d457fe6f25c761f2c2c53fb61a73fc8",
+    "weight": 600,
+    "sha256": "f232f80653ac3d10189e554aae68462c27bc1f67d7f7d30a365ad63c0338aea7"
+  },
+  {
+    "file": "nunitosans-400.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+    "source_sha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+    "weight": 400,
+    "sha256": "e1a4212e195f1e5bf9c0d29acc89115621250c6c83ac53294b3b155ca351519e"
+  },
+  {
+    "file": "nunitosans-500.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+    "source_sha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+    "weight": 500,
+    "sha256": "c2cd45519cd63af284488afa8df17a00c416c5ac5837f5b0cc9e216852848e84"
+  },
+  {
+    "file": "nunitosans-600.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+    "source_sha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+    "weight": 600,
+    "sha256": "25161678e7f0601b8c876b1eb3b99fdc567fbde648ce72e0e1dc663db7fb1743"
+  },
+  {
+    "file": "nunitosans-700.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+    "source_sha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+    "weight": 700,
+    "sha256": "8026fbc3c26313d09d92d077d405a0f9555d979c1518928af20486dfd8ca38fb"
+  },
+  {
+    "file": "nunitosans-800.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+    "source_sha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+    "weight": 800,
+    "sha256": "fa2e23e8b1d0212445427d5cf26470192db4bf381bd15a3b2a9da018dea6c6ce"
+  }
+]

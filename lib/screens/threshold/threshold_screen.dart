@@ -55,6 +55,7 @@ class ThresholdScreen extends ConsumerWidget {
                         )
                         .elementAt(index);
                     return Padding(
+                      key: ValueKey(id),
                       padding: EdgeInsets.symmetric(
                         horizontal: ThemeManager.horizontalPadding,
                       ),

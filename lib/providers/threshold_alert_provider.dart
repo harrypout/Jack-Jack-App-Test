@@ -1,184 +1,169 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:jackjack/utils/notification_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:jackjack/models/ble_device.dart';
-import 'package:jackjack/models/notification_sf.dart';
+import 'package:jackjack/main.dart';
+import 'package:jackjack/providers/alert_clock_provider.dart';
+import 'package:jackjack/providers/last_recorded_alert_provider.dart';
 import 'package:jackjack/providers/notifications_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
-import 'package:jackjack/screens/settings/settings_screen.dart';
-import 'package:jackjack/utils/notification_manager.dart';
+import 'package:jackjack/services/alert_recorder.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'threshold_alert_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 class ThresholdAlert extends _$ThresholdAlert {
-  final Map<String, StreamSubscription> _subscriptions = {};
-
-  // Cooldown per device. A single shared timestamp meant one loud device
-  // suppressed threshold alerts for every other connected device.
-  final Map<String, DateTime> _lastAlertTimes = {};
-
-  bool _inCooldown(String deviceId) {
-    final last = _lastAlertTimes[deviceId];
-    return last != null &&
-        DateTime.now().difference(last) < notificationTimeout;
-  }
+  final Map<String, StreamSubscription<int>> _subscriptions = {};
+  final Map<String, Stream<int>> _sources = {};
+  final List<StreamSubscription> _background = [];
+  bool _disposed = false;
+  late AlertRecorder _recorder;
 
   @override
   void build() {
-    // Listen to threshold alerts from background service
-    _listenToBackgroundAlerts();
-
-    ref.onDispose(() {
-      _cancelAllSubscriptions();
-    });
-  }
-
-  /// Subscribe to alerts from background service
-  void _listenToBackgroundAlerts() {
-    FlutterBackgroundService().on('thresholdAlert').listen((event) {
-      if (event != null) {
-        final threshold = event['threshold'] as int;
-        final deviceName = event['deviceName'] as String;
-
-        if (threshold > 0) {
-          final deviceId = event['deviceId'] as String;
-
-          // Apply same per-device cooldown as foreground alerts
-          if (_inCooldown(deviceId)) {
-            return;
-          }
-
-          // Show OS notification
-          NotificationManager.instance.showThresholdAlert(
-            deviceId: deviceId,
-            deviceName: deviceName,
-            threshold: threshold,
-          );
-
-          // Add to in-app notification list
-          ref.read(notificationsProvider.notifier).addNotification(
-                NotificationSF(device: deviceName, value: threshold),
-              );
-
-          _lastAlertTimes[deviceId] = DateTime.now();
-        }
-      }
-    });
-
-    FlutterBackgroundService().on('deviceDisconnected').listen((event) {
-      if (event != null) {
-        final deviceId = event['deviceId'] as String;
-        final deviceName = event['deviceName'] as String? ?? 'Unknown Device';
-        debugPrint('📱 Background disconnect notification for $deviceName ($deviceId)');
-        NotificationManager.instance.showDisconnectionAlert(
-          deviceId: deviceId,
-          deviceName: deviceName,
-        );
-      }
-    });
-
-    FlutterBackgroundService().on('deviceConnected').listen((event) {
-      if (event != null) {
-        final deviceId = event['deviceId'] as String;
-        final deviceName = event['deviceName'] as String? ?? 'Unknown Device';
-        debugPrint('📱 Background connect notification for $deviceName ($deviceId)');
-        NotificationManager.instance.showConnectionAlert(
-          deviceId: deviceId,
-          deviceName: deviceName,
-        );
-      }
-    });
-  }
-
-  void _cancelAllSubscriptions() {
-    debugPrint("Canceling all threshold alert notifications");
-    for (var subscription in _subscriptions.values) {
-      subscription.cancel();
+    _disposed = false;
+    _recorder = AlertRecorder(prefs, now: ref.read(alertClockProvider));
+    for (final channel in [
+      'thresholdAlert',
+      'deviceDisconnected',
+      'deviceConnected',
+    ]) {
+      _background.add(
+        FlutterBackgroundService()
+            .on(channel)
+            .listen(
+              (event) async {
+                if (_disposed || event == null) return;
+                final id = event['deviceId'];
+                if (id is! String ||
+                    prefs.getBool('user_disconnected_$id') == true ||
+                    prefs.getBool('forgotten_$id') == true) {
+                  return;
+                }
+                if (event['handled'] == true) {
+                  await ref.read(notificationsProvider.notifier).reload();
+                  if (!_disposed && channel == 'thresholdAlert') {
+                    ref.read(lastRecordedAlertProvider(id).notifier).state =
+                        DateTime.tryParse(event['createdAt'] as String? ?? '');
+                  }
+                  return;
+                }
+                // Compatibility with events emitted by an older service while the app
+                // updates. New Android service records and delivers before emitting.
+                if (channel == 'deviceDisconnected') {
+                  try {
+                    await NotificationManager.instance.showDisconnectionAlert(
+                      deviceId: id,
+                      deviceName: event['deviceName'] as String? ?? id,
+                    );
+                  } catch (error) {
+                    debugPrint('Connection notification failed: $error');
+                  }
+                } else if (channel == 'deviceConnected') {
+                  try {
+                    await NotificationManager.instance.showConnectionAlert(
+                      deviceId: id,
+                      deviceName: event['deviceName'] as String? ?? id,
+                    );
+                  } catch (error) {
+                    debugPrint('Connection notification failed: $error');
+                  }
+                }
+                if (channel == 'thresholdAlert' && event['threshold'] is int) {
+                  await record(
+                    id,
+                    event['deviceName'] as String? ?? id,
+                    event['threshold'] as int,
+                  );
+                }
+              },
+              onError: (Object error) {
+                debugPrint('Background event error: $error');
+              },
+            ),
+      );
     }
-    _subscriptions.clear();
+    ref.onDispose(() {
+      _disposed = true;
+      for (final subscription in _background) {
+        unawaited(subscription.cancel());
+      }
+      _background.clear();
+      for (final id in _subscriptions.keys.toList()) {
+        cancelDevice(id);
+      }
+    });
+  }
+
+  Future<void> record(String id, String name, int flag) async {
+    try {
+      final event = await _recorder.sound(id, name, flag);
+      if (_disposed || event == null) return;
+      ref.read(lastRecordedAlertProvider(id).notifier).state = event.createdAt;
+      ref.invalidate(notificationsProvider);
+    } catch (error) {
+      debugPrint('Alert delivery failed: $error');
+    }
+  }
+
+  Future<void> battery(String id, String name, int value) async {
+    try {
+      final event = await _recorder.battery(id, name, value);
+      if (!_disposed && event != null) ref.invalidate(notificationsProvider);
+    } catch (error) {
+      debugPrint('Battery alert failed: $error');
+    }
+  }
+
+  Future<void> drain() => _recorder.drain();
+
+  void cancelDevice(String id) {
+    unawaited(_subscriptions.remove(id)?.cancel());
+    _sources.remove(id);
   }
 
   void setupAlerts() {
-    Map<String, BLEDevice> devices = ref.read(connectedDevicesProvider);
-
-    List<String> deviceIdsToRemove = [];
-    for (String deviceId in _subscriptions.keys) {
-      if (!devices.containsKey(deviceId)) {
-        _subscriptions[deviceId]?.cancel();
-        deviceIdsToRemove.add(deviceId);
-      }
+    final devices = ref.read(connectedDevicesProvider);
+    for (final id in _subscriptions.keys.toList()) {
+      if (!devices.containsKey(id)) cancelDevice(id);
     }
-
-    for (String deviceId in deviceIdsToRemove) {
-      _subscriptions.remove(deviceId);
-    }
-    for (var entry in devices.entries) {
-      setupDeviceAlert(entry.key);
+    for (final id in devices.keys) {
+      setupDeviceAlert(id);
     }
   }
 
-  void setupDeviceAlert(String deviceId) {
-    debugPrint("creating alert for $deviceId");
-
-    if (_subscriptions.containsKey(deviceId)) {
-      debugPrint("cancelling existing subscription for $deviceId");
-      _subscriptions[deviceId]?.cancel();
-      _subscriptions.remove(deviceId);
-    }
-
-    final deviceConnection = ref.read(connectedDevicesProvider)[deviceId];
-    if (deviceConnection == null) {
-      debugPrint("⚠️ Device $deviceId not in connected devices, skipping alert setup");
+  void setupDeviceAlert(String id) {
+    final device = ref.read(connectedDevicesProvider)[id];
+    final stream = device?.thresholdAlert.data;
+    if (stream is! Stream<int> ||
+        device?.thresholdAlert.qualifiedCharacteristic == null) {
+      cancelDevice(id);
       return;
     }
-
-    var deviceThresholdAlert = deviceConnection.thresholdAlert;
-
-    if (deviceThresholdAlert.data == null ||
-        deviceThresholdAlert.qualifiedCharacteristic == null) {
-      debugPrint("⚠️ Threshold alert data not ready for $deviceId, retrying in 200ms");
-
-      // Retry after a delay
-      Future.delayed(const Duration(milliseconds: 200), () {
-        setupDeviceAlert(deviceId);
-      });
-      return;
-    }
-
-    // Normal alert setup continues...
-    final subscription = (deviceThresholdAlert.data as Stream<int>)
-        .asBroadcastStream()
-        .listen((value) {
-          // Per-device cooldown, advanced only when an alert actually fires —
-          // previously the shared timestamp advanced even on value == 0
-          // events, which could indefinitely postpone real alerts.
-          if (_inCooldown(deviceId)) {
-            return;
-          }
-          if (value > 0) {
-            var device = ref.read(connectedDevicesProvider)[deviceId]!;
-            if (device.getThreshold.data > 0) {
-              debugPrint(
-                "value: $value, device.getThreshold.data: ${device.getThreshold.data}",
-              );
-              final deviceName = device.device.name;
-              NotificationManager.instance.showThresholdAlert(
-                deviceId: deviceId,
-                deviceName: deviceName,
-                threshold: value,
-              );
-              ref
-                  .read(notificationsProvider.notifier)
-                  .addNotification(
-                    NotificationSF(device: deviceName, value: value),
-                  );
-              _lastAlertTimes[deviceId] = DateTime.now();
-            }
-          }
-        });
-
-    _subscriptions[deviceId] = subscription;
-    debugPrint("✅ Alert subscription active for $deviceId");
+    if (identical(_sources[id], stream)) return;
+    cancelDevice(id);
+    _sources[id] = stream;
+    _subscriptions[id] = stream.listen(
+      (value) {
+        if (_disposed ||
+            !identical(ref.read(connectedDevicesProvider)[id], device)) {
+          return;
+        }
+        unawaited(record(id, device!.device.name, value));
+      },
+      onError: (Object error) {
+        if (!_disposed &&
+            identical(ref.read(connectedDevicesProvider)[id], device)) {
+          ref.read(connectedDevicesProvider.notifier).recover(id, error);
+        }
+      },
+      onDone: () {
+        if (!_disposed && identical(_sources[id], stream)) {
+          ref
+              .read(connectedDevicesProvider.notifier)
+              .recover(id, StateError('Alert stream ended'));
+        }
+      },
+    );
   }
 }

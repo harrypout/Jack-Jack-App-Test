@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../main.dart';
+import 'package:jackjack/utils/toast_manager.dart';
 
 class ThresholdItem extends ConsumerStatefulWidget {
   final BLEDevice device;
@@ -35,8 +36,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
     final threshold = ref.watch(
       deviceThresholdProvider(widget.device.device.id),
     );
-    return threshold == null ||
-            (threshold != null && (threshold < 30 || threshold > 120))
+    return threshold == null || ((threshold < 30 || threshold > 120))
         ? Container()
         : ExpansionTile(
           title: Text(
@@ -61,7 +61,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
                 ),
               if (sound || vibration) BLEPill(),
               Text(
-                "${threshold?.toInt()} DB",
+                "${threshold.toInt()} DB",
                 style: TextStyle(
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
@@ -96,7 +96,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "${threshold?.toInt()} DB",
+                  "${threshold.toInt()} DB",
                   style: TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 14,
@@ -104,7 +104,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
                   ),
                 ),
                 Slider(
-                  value: threshold!.toDouble(),
+                  value: threshold.toDouble(),
                   max: 120,
                   min: 30,
                   activeColor: ColorManager.accent,
@@ -117,14 +117,20 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
                         )
                         .change(val.toInt());
                   },
-                  onChangeEnd: (value) {
-                    ref
-                        .read(
-                          deviceThresholdProvider(
-                            widget.device.device.id,
-                          ).notifier,
-                        )
-                        .saveToDevice(widget.device.device.id, value.toInt());
+                  onChangeEnd: (value) async {
+                    try {
+                      await ref
+                          .read(
+                            deviceThresholdProvider(
+                              widget.device.device.id,
+                            ).notifier,
+                          )
+                          .saveToDevice(widget.device.device.id, value.toInt());
+                    } catch (_) {
+                      ToastManager.show(
+                        'Threshold could not be saved. Last confirmed value restored.',
+                      );
+                    }
                   },
                 ),
                 Row(

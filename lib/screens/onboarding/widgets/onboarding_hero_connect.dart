@@ -5,7 +5,6 @@ import 'package:jackjack/widgets/ble_pebble.dart';
 import 'package:jackjack/widgets/ble_pulse_rings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Page 2 hero: a mini "pairing" preview card.
 class OnboardingHeroConnect extends StatelessWidget {
@@ -51,7 +50,8 @@ class OnboardingHeroConnect extends StatelessWidget {
         ),
         Text(
           "Pebble found",
-          style: GoogleFonts.fredoka(
+          style: TextStyle(
+            fontFamily: 'Fredoka',
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: ColorManager.slate,

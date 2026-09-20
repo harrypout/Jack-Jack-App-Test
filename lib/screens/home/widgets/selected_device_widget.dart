@@ -1,4 +1,5 @@
 import 'package:jackjack/models/ble_device.dart';
+import 'package:jackjack/providers/last_recorded_alert_provider.dart';
 import 'package:jackjack/providers/connected_status_provider.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/services/device_name_manager.dart';
@@ -19,6 +20,12 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
       deviceThresholdProvider(device?.device.id ?? ""),
     );
     final deviceNames = ref.watch(deviceNamesProvider);
+    final soundData = device?.getSoundLevel.data;
+    final deviceId = device?.device.id;
+    final lastAlert =
+        deviceId == null
+            ? null
+            : ref.watch(lastRecordedAlertProvider(deviceId));
     final displayName =
         deviceNames[device?.device.id ?? ""] ??
         device?.device.name ??
@@ -28,17 +35,22 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         BLEGauge(
+          deviceId: deviceId,
           selectedDevice: displayName,
-          valueStream: device?.getSoundLevel.data,
-          //todo:test
-          selectedValue: threshold ?? 0,
+          valueStream:
+              isConnected && soundData is Stream<int> ? soundData : null,
+          selectedValue: threshold,
+          lastAlertAt: lastAlert,
         ),
         Row(
           spacing: 16,
           children: [
             IndicatorBox(
               title: "Battery",
-              subtitle: "${device?.getBattery.data ?? "0"}%",
+              subtitle:
+                  device?.getBattery.data is int
+                      ? '${device!.getBattery.data}%'
+                      : 'Unknown',
               asset: "battery",
               valueColor: batteryValueColor(
                 int.tryParse("${device?.getBattery.data}"),

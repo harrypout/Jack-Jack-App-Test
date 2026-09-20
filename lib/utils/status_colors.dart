@@ -5,14 +5,30 @@ import 'package:flutter/material.dart';
 /// treatments. Pure functions of values the UI already displays — no state,
 /// no side effects.
 
-/// Gauge arc: sage below 82% of threshold, yellow approaching, coral over.
-Color gaugeArcColor(double value, int threshold) {
-  if (threshold <= 0) return ColorManager.sage;
-  final ratio = value / threshold;
-  if (ratio >= 1.0) return ColorManager.coral;
-  if (ratio >= 0.82) return ColorManager.yellow;
-  return ColorManager.sage;
+/// The visual warning margin is five displayed dB at every alert setting.
+/// It does not change the firmware threshold or alert timing.
+enum GaugeLevelBand {
+  unknown('Alert setting unavailable', ColorManager.slate60),
+  below('Below alert setting', ColorManager.sage),
+  near('Near alert setting', ColorManager.yellow),
+  above('At or above alert setting', ColorManager.coral);
+
+  const GaugeLevelBand(this.label, this.color);
+  final String label;
+  final Color color;
 }
+
+GaugeLevelBand gaugeLevelBand(double? value, int? threshold) {
+  if (value == null || threshold == null || threshold <= 0 || threshold > 120) {
+    return GaugeLevelBand.unknown;
+  }
+  if (value >= threshold) return GaugeLevelBand.above;
+  if (value >= threshold - 5) return GaugeLevelBand.near;
+  return GaugeLevelBand.below;
+}
+
+Color gaugeArcColor(double value, int? threshold) =>
+    gaugeLevelBand(value, threshold).color;
 
 /// Battery-as-status: coral under 30%, yellow under 50%, otherwise neutral.
 Color batteryValueColor(int? pct) {

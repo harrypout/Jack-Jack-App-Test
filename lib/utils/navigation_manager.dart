@@ -1,7 +1,6 @@
 import 'package:jackjack/screens/contact_us/contact_us_screen.dart';
 import 'package:jackjack/screens/faq/faq_screen.dart';
 import 'package:jackjack/main.dart';
-import 'package:jackjack/screens/manual_monitoring/manual_monitoring_screen.dart';
 import 'package:jackjack/screens/notifications/notification_screen.dart';
 import 'package:jackjack/screens/pairing/pairing_screen.dart';
 import 'package:jackjack/screens/settings/settings_screen.dart';
@@ -26,7 +25,6 @@ class NavigationManager {
     FAQScreen.id: (context) => const FAQScreen(),
     SettingsScreen.id: (context) => const SettingsScreen(),
     PairingScreen.id: (context) => const PairingScreen(),
-    ManualMonitoringScreen.id: (context) => const ManualMonitoringScreen(),
     BLEBottomBar.id: (context) => const BLEBottomBar(),
     ContactUsScreen.id: (context) => const ContactUsScreen(),
   };

@@ -1,0 +1,5 @@
+# Known regressions are deliberately not excluded or skipped by default.
+# Their assertions describe correct behaviour and must pass before release.
+tags:
+  known_issue: {}
+timeout: 30s

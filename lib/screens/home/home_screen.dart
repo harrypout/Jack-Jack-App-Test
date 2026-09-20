@@ -10,9 +10,8 @@ import 'package:jackjack/widgets/ble_eyebrow.dart';
 import 'package:jackjack/widgets/ble_home_screen_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:jackjack/widgets/monitoring_readiness.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jackjack/services/app_initializer.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   static const String id = 'home_screen';
@@ -27,8 +26,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final connectedDevices = ref.watch(connectedDevicesProvider);
     final selectedDevice = ref.watch(selectedDeviceProvider);
-    final bleStatus = ref.watch(bleStatusNotifierProvider);
-    final btOff = bleStatus != BleStatus.ready;
 
     return Scaffold(
       body: BLEBackground(
@@ -65,9 +62,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               );
                             },
                             style: ButtonStyle(
-                              padding: WidgetStatePropertyAll(
-                                EdgeInsets.zero,
-                              ),
+                              padding: WidgetStatePropertyAll(EdgeInsets.zero),
                               minimumSize: WidgetStatePropertyAll(Size.zero),
                               backgroundColor: WidgetStatePropertyAll(
                                 ColorManager.white,
@@ -109,38 +104,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ],
                 ),
-                if (btOff)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: ColorManager.white,
-                      borderRadius: ThemeManager.brLg,
-                      border: Border.all(
-                        color: ColorManager.containerBorder,
-                      ),
-                      boxShadow: ThemeManager.shadowSm,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.bluetooth_disabled,
-                          color: ColorManager.tertiaryText,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Bluetooth is turned off. Turn on Bluetooth to connect to devices.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: ColorManager.tertiaryText,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                const MonitoringReadiness(),
                 SelectedDeviceHomeWidget(
                   device: connectedDevices[selectedDevice],
                 ),
@@ -153,10 +117,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 Expanded(
                   child: ListView.builder(
+                    findChildIndexCallback: (key) {
+                      if (key is! ValueKey<String>) return null;
+                      final index = connectedDevices.keys.toList().indexOf(
+                        key.value,
+                      );
+                      return index < 0 ? null : index;
+                    },
                     itemCount: connectedDevices.length,
                     itemBuilder: (context, index) {
                       final id = connectedDevices.keys.elementAt(index);
                       return Padding(
+                        key: ValueKey(id),
                         padding: EdgeInsets.only(
                           bottom: id == connectedDevices.keys.last ? 45 : 0,
                         ),

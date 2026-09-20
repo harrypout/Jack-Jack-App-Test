@@ -8,6 +8,8 @@ import 'package:jackjack/utils/env_manager.dart';
 import 'package:jackjack/utils/navigation_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +17,14 @@ late final SharedPreferences prefs;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'Fredoka',
+    ], await rootBundle.loadString('assets/fonts/fredoka-OFL.txt'));
+    yield LicenseEntryWithLineBreaks([
+      'Nunito Sans',
+    ], await rootBundle.loadString('assets/fonts/nunitosans-OFL.txt'));
+  });
 
   try {
     // Only the two hard dependencies before runApp():

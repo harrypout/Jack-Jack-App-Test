@@ -1,84 +1,69 @@
 import 'package:jackjack/models/faq.dart';
 
-List<FAQ> faqs = [
-  // Getting Started
+final faqs = [
   FAQ(
-    question: "How do I set up the Jack Jack monitor?",
+    question: 'How do I connect?',
     answer:
-        "Plug in the device, download the Jack Jack app, and follow the in-app pairing instructions via Bluetooth. The process takes less than 2 minutes.",
+        'Power on your Pebble, enable Bluetooth and allow Bluetooth access. Open Connect Device and choose your Pebble. Keep it nearby during setup.',
   ),
   FAQ(
-    question: "Does Jack Jack require Wi-Fi?",
+    question: 'Is an internet connection needed?',
     answer:
-        "No, Jack Jack uses Bluetooth Low Energy (BLE) to connect to your phone. No Wi-Fi or internet is needed for core functionality.",
-  ),
-
-  // Functionality
-  FAQ(
-    question: "What does the Jack Jack monitor do?",
-    answer:
-        "It listens for key sounds (like crying or sudden noise spikes) and sends real-time alerts to your phone, helping you monitor your baby’s sleep from anywhere nearby.",
+        'No. Sound levels, settings and alert history work locally over Bluetooth.',
   ),
   FAQ(
-    question: "Does it monitor breathing or movement?",
+    question: 'What triggers a sound alert?',
     answer:
-        "No. Jack Jack is sound-based only. It’s designed to be simple, low-intervention, and focused on sleep-related sounds.",
+        'The Pebble measures sound level. Sound above your threshold for about two seconds starts an alert window lasting two minutes. Brief quiet gaps are allowed during confirmation. The app repeats alerts at your selected interval during that window, even if the room becomes quiet.',
   ),
   FAQ(
-    question: "How far away can I be from the device?",
+    question: 'Does it identify crying or monitor breathing?',
     answer:
-        "Typical range is 10–15 meters indoors, depending on walls and interference.",
-  ),
-
-  // Notifications & Sensitivity
-  FAQ(
-    question: "How do alerts work?",
-    answer:
-        "The app will notify you when specific sound thresholds are crossed. You can adjust the sensitivity in the app settings.",
+        'It measures sound level; it does not classify crying, breathing or movement.',
   ),
   FAQ(
-    question: "Can I adjust what sounds trigger an alert?",
+    question: 'Can I listen to live audio?',
     answer:
-        "Yes, you can fine-tune detection for cry-like sounds or general loud noises.",
+        'Live listening is not available in this version. The meter shows sound-level readings from your Pebble.',
   ),
   FAQ(
-    question: "What dB should I set the threshold to?",
+    question: 'How should I set the threshold?',
     answer:
-        "There's no single right number—it depends on your situation, your environment, and your baby. We suggest starting toward the low end of the range, then refining it from there based on your observations and real-world use.",
-  ),
-
-  // Power & Battery
-  FAQ(
-    question: "How long does the battery last?",
-    answer:
-        "Jack Jack runs for ~24–36 hours on a single charge. You’ll receive battery alerts through the app.",
+        'Compare the meter with normal sounds in your room, then set the threshold on that device’s card. The saved value is confirmed by the Pebble. Readings depend on the microphone and calibration.',
   ),
   FAQ(
-    question: "Can I use it while charging?",
-    answer: "Yes, it can operate while plugged in via USB-C.",
-  ),
-
-  // Troubleshooting
-  FAQ(
-    question: "My app isn’t connecting—what should I do?",
+    question: 'What does Alerts off do?',
     answer:
-        "Ensure Bluetooth is enabled, the device is powered on, and you’re within range. You can also try restarting both the app and device.",
+        'It stops phone notifications, sound and vibration for that Pebble. Detected events continue to appear in history while connected.',
   ),
   FAQ(
-    question: "I’m not receiving alerts—why?",
+    question: 'How does battery monitoring work?',
     answer:
-        "Check notification settings in the app and on your phone. Make sure the app has Bluetooth and notification permissions enabled.",
-  ),
-
-  // Privacy & Safety
-  FAQ(
-    question: "Is any audio stored or uploaded?",
-    answer:
-        "No. Audio is processed locally on the device and never recorded or sent to the cloud.",
+        'The app checks the connected Pebble’s reported battery level and records one warning below 20% per low-battery episode. The warning resets after the level reaches 25%. Battery updates can be delayed while the phone is suspended.',
   ),
   FAQ(
-    question: "Is Jack Jack safe for my baby?",
+    question: 'Will I receive alerts with the screen locked?',
     answer:
-        "Yes. It emits no radiation, has no cameras, and complies with relevant safety standards.",
+        'Keep the Pebble connected, Bluetooth enabled and notification permission allowed. Phone Focus and silent settings can affect notification presentation. Reopen Jack Jack after force-closing it or restarting the phone and check the connection status.',
+  ),
+  FAQ(
+    question: 'What if the device is disconnected?',
+    answer:
+        'Bring the phone and Pebble closer and check Bluetooth and power. Jack Jack retries enabled connections. A disconnected or unavailable meter is not evidence of a quiet room.',
+  ),
+  FAQ(
+    question: 'How much history is stored?',
+    answer:
+        'Up to 30 days or the newest 1,000 events, whichever limit is reached first. History is stored on your phone and can be cleared in the app.',
+  ),
+  FAQ(
+    question: 'Is audio recorded or uploaded?',
+    answer:
+        'The app receives sound-level readings and alert events, not audio recordings. It keeps alert history locally.',
+  ),
+  FAQ(
+    question: 'Where should I place the Pebble?',
+    answer:
+        'Keep the device and charging cables outside your baby’s reach. Follow the supplied hardware instructions. Jack Jack does not replace adult supervision.',
   ),
 ];

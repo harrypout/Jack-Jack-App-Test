@@ -65,9 +65,7 @@ class ManualMonitoring extends _$ManualMonitoring {
 
     final timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (state.remainingTime > 1) {
-        state = state.copyWith(
-          remainingTime: state.remainingTime - 1,
-        );
+        state = state.copyWith(remainingTime: state.remainingTime - 1);
       } else {
         startStreaming();
       }
@@ -85,9 +83,7 @@ class ManualMonitoring extends _$ManualMonitoring {
     ref.read(connectedDevicesProvider.notifier).playAudio();
 
     final timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      state = state.copyWith(
-        streamingDuration: state.streamingDuration + 1,
-      );
+      state = state.copyWith(streamingDuration: state.streamingDuration + 1);
     });
 
     state = state.copyWith(
@@ -99,6 +95,7 @@ class ManualMonitoring extends _$ManualMonitoring {
   }
 
   void stopStreaming() {
+    state.countdownTimer?.cancel();
     ref.read(connectedDevicesProvider.notifier).stopAudio();
 
     state.streamingTimer?.cancel();
@@ -123,6 +120,8 @@ class ManualMonitoring extends _$ManualMonitoring {
 
   /// Resume streaming with a given duration (from background)
   void resumeStreaming(int duration) {
+    state.countdownTimer?.cancel();
+    state.streamingTimer?.cancel();
     // Resume with existing duration from background
     final timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       state = state.copyWith(streamingDuration: state.streamingDuration + 1);
