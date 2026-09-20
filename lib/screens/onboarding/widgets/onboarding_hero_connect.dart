@@ -1,7 +1,7 @@
 import 'package:jackjack/screens/onboarding/widgets/onboarding_mini_card.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
-import 'package:jackjack/widgets/ble_pebble.dart';
+import 'package:jackjack/widgets/ble_device_shape.dart';
 import 'package:jackjack/widgets/ble_pulse_rings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -49,7 +49,7 @@ class OnboardingHeroConnect extends StatelessWidget {
           ),
         ),
         Text(
-          "Pebble found",
+          "Jack Jack found",
           style: TextStyle(
             fontFamily: 'Fredoka',
             fontSize: 15,
@@ -66,14 +66,14 @@ class OnboardingHeroConnect extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const BLEPebble(size: 26),
+              const BLEDeviceShape(size: 26),
               const SizedBox(width: 8),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "The Pebble",
+                      "The Jack Jack",
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,

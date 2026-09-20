@@ -4,7 +4,7 @@ publish_to: 'none'
 # Bump the +buildNumber on EVERY TestFlight upload — App Store Connect
 # rejects a binary whose version+build was already uploaded, and the
 # TestFlight app keeps serving the old build.
-version: 1.0.2+5
+version: 1.0.2+6
 
 environment:
   sdk: ^3.7.0

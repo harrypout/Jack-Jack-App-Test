@@ -61,7 +61,7 @@ void main() {
   );
 
   test(
-    'each Pebble has its own cooldown even when advertised names match',
+    'each Jack Jack has its own cooldown even when advertised names match',
     () async {
       final container = harness.container();
       container.read(thresholdAlertProvider);

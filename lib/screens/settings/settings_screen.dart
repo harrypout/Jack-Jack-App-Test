@@ -5,7 +5,7 @@ import 'package:jackjack/screens/settings/widgets/settings_section.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_background.dart';
-import 'package:jackjack/widgets/ble_dropdown.dart';
+import 'package:jackjack/screens/settings/widgets/settings_selection.dart';
 import 'package:jackjack/widgets/ble_toggle.dart';
 import 'package:flutter/material.dart';
 import '../../main.dart';
@@ -50,6 +50,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       autoConnect = prefs.getBool("autoConnect") ?? true;
     });
+  }
+
+  Widget _soundSelection(String title, String preference, String selected) {
+    return SettingsSelection<String>(
+      assetName: 'sound',
+      title: title,
+      iconColor: ColorManager.yellowIcon,
+      options: notificationSoundOptions,
+      value: notificationSoundOptions[selected] ?? 'default',
+      onSelected: (value) {
+        if (value == null) return;
+        final key = notificationSoundOptions.keys.firstWhere(
+          (key) => notificationSoundOptions[key] == value,
+          orElse: () => 'Default',
+        );
+        prefs.setString(preference, key);
+        setState(() {});
+      },
+    );
   }
 
   @override
@@ -102,124 +121,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 prefs.setBool("autoConnect", value);
                               },
                             ),
-                            SettingsItem(
-                              assetName: "help",
-                              title: "Notification Timeout",
+                            SettingsSelection<Duration>(
+                              assetName: 'help',
+                              title: 'Notification Timeout',
                               iconColor: ColorManager.sage,
-                              trailing: SizedBox(
-                                height: 38,
-                                // width: 150,
-                                child: DropdownWithMap(
-                                  hintText: "Select Timeout",
-                                  items: notificationTimeoutOptions,
-                                  initialSelection: notificationTimeout,
-                                  onSelected: (Duration? duration) {
-                                    if (duration != null) {
-                                      String key = notificationTimeoutOptions
-                                          .keys
-                                          .firstWhere(
-                                            (k) =>
-                                                notificationTimeoutOptions[k] ==
-                                                duration,
-                                          );
-                                      prefs.setString(
-                                        "notificationTimeout",
-                                        key,
-                                      );
-                                      setState(() {});
-                                    }
-                                  },
-                                  width: 125,
-                                ),
-                              ),
-                              onTap: () {},
+                              options: notificationTimeoutOptions,
+                              value: notificationTimeout,
+                              onSelected: (duration) {
+                                if (duration == null) return;
+                                final key = notificationTimeoutOptions.keys
+                                    .firstWhere(
+                                      (key) =>
+                                          notificationTimeoutOptions[key] ==
+                                          duration,
+                                    );
+                                prefs.setString('notificationTimeout', key);
+                                setState(() {});
+                              },
                             ),
                           ],
                         ),
                         SettingsSection(
-                          section: "Notification Sounds",
+                          section: 'Notification Sounds',
                           accentDot: ColorManager.yellowDot,
                           children: [
-                            SettingsItem(
-                              assetName: "sound",
-                              title: "Connect Sound",
-                              iconColor: ColorManager.yellowIcon,
-                              trailing: SizedBox(
-                                height: 38,
-                                child: DropdownWithMap(
-                                  hintText: "Select Sound",
-                                  items: notificationSoundOptions,
-                                  initialSelection:
-                                      notificationSoundOptions[connectSound],
-                                  onSelected: (String? value) {
-                                    String key = notificationSoundOptions.keys
-                                        .firstWhere(
-                                          (k) =>
-                                              notificationSoundOptions[k] ==
-                                              value,
-                                          orElse: () => "Default",
-                                        );
-                                    prefs.setString("connectSound", key);
-                                    setState(() {});
-                                  },
-                                  width: 125,
-                                ),
-                              ),
-                              onTap: () {},
+                            _soundSelection(
+                              'Connect Sound',
+                              'connectSound',
+                              connectSound,
                             ),
-                            SettingsItem(
-                              assetName: "sound",
-                              title: "Disconnect Sound",
-                              iconColor: ColorManager.yellowIcon,
-                              trailing: SizedBox(
-                                height: 38,
-                                child: DropdownWithMap(
-                                  hintText: "Select Sound",
-                                  items: notificationSoundOptions,
-                                  initialSelection:
-                                      notificationSoundOptions[disconnectSound],
-                                  onSelected: (String? value) {
-                                    String key = notificationSoundOptions.keys
-                                        .firstWhere(
-                                          (k) =>
-                                              notificationSoundOptions[k] ==
-                                              value,
-                                          orElse: () => "Default",
-                                        );
-                                    prefs.setString("disconnectSound", key);
-                                    setState(() {});
-                                  },
-                                  width: 125,
-                                ),
-                              ),
-                              onTap: () {},
+                            _soundSelection(
+                              'Disconnect Sound',
+                              'disconnectSound',
+                              disconnectSound,
                             ),
-                            SettingsItem(
-                              assetName: "sound",
-                              title: "Threshold Sound",
-                              iconColor: ColorManager.yellowIcon,
-                              trailing: SizedBox(
-                                height: 38,
-                                child: DropdownWithMap(
-                                  hintText: "Select Sound",
-                                  items: notificationSoundOptions,
-                                  initialSelection:
-                                      notificationSoundOptions[thresholdSound],
-                                  onSelected: (String? value) {
-                                    String key = notificationSoundOptions.keys
-                                        .firstWhere(
-                                          (k) =>
-                                              notificationSoundOptions[k] ==
-                                              value,
-                                          orElse: () => "Default",
-                                        );
-                                    prefs.setString("thresholdSound", key);
-                                    setState(() {});
-                                  },
-                                  width: 125,
-                                ),
-                              ),
-                              onTap: () {},
+                            _soundSelection(
+                              'Threshold Sound',
+                              'thresholdSound',
+                              thresholdSound,
                             ),
                           ],
                         ),
@@ -262,7 +201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     applicationName: 'Jack Jack',
                                     children: [
                                       const Text(
-                                        'Bluetooth sound monitoring for your Pebble. Sound levels and alert history stay on your phone. For this test release, use TestFlight to view build details and send feedback.',
+                                        'Bluetooth sound monitoring for your Jack Jack. Sound levels and alert history stay on your phone. For this test release, use TestFlight to view build details and send feedback.',
                                       ),
                                     ],
                                   ),

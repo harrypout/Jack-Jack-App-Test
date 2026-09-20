@@ -9,7 +9,7 @@ import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 Widget gauge(
   Stream<int>? stream, {
-  String? deviceId = 'pebble-a',
+  String? deviceId = 'jack-jack-a',
   String name = 'Nursery',
   int? threshold = 75,
   bool reduceMotion = false,
@@ -236,7 +236,7 @@ void main() {
       await tester.pumpWidget(gauge(input.stream));
       input.add(90);
       await flushFrame(tester);
-      await tester.pumpWidget(gauge(input.stream, deviceId: 'pebble-b'));
+      await tester.pumpWidget(gauge(input.stream, deviceId: 'jack-jack-b'));
       expect(find.text('90'), findsNothing);
       expect(find.text('Waiting for reading'), findsOneWidget);
       input.add(43);

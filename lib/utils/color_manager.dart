@@ -43,7 +43,7 @@ class ColorManager {
   static const yellowTint10 = Color(0x1AF4D35E);
   static const yellowTint20 = Color(0x33F4D35E);
 
-  // Pebble-blob gradient stops
+  // Jack Jack-blob gradient stops
   static const sageGradStart = Color(0xFFA6C7BA);
   static const sageGradEnd = Color(0xFF6E9E8D);
   static const coralGradStart = Color(0xFFF0C3BA);

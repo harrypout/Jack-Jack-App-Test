@@ -1,17 +1,17 @@
 import 'package:jackjack/utils/status_colors.dart';
 import 'package:flutter/material.dart';
 
-/// The design system's organic "pebble" shape: an asymmetric-elliptical
+/// The design system's organic device shape: an asymmetric-elliptical
 /// border radius over an accent gradient. CSS fraction order is
 /// horizontal TL,TR,BR,BL then vertical TL,TR,BR,BL — never rotate it.
-const pebbleFractionsStandard = [.40, .60, .70, .30, .40, .50, .60, .50];
-const pebbleFractionsAlt = [.60, .40, .30, .70, .60, .30, .70, .40];
-const pebbleFractionsOnboarding = [.46, .54, .52, .48, .56, .50, .50, .44];
+const deviceShapeFractionsStandard = [.40, .60, .70, .30, .40, .50, .60, .50];
+const deviceShapeFractionsAlt = [.60, .40, .30, .70, .60, .30, .70, .40];
+const deviceShapeFractionsOnboarding = [.46, .54, .52, .48, .56, .50, .50, .44];
 
-BorderRadius pebbleBorderRadius(
+BorderRadius deviceShapeBorderRadius(
   double width,
   double height, [
-  List<double> fractions = pebbleFractionsStandard,
+  List<double> fractions = deviceShapeFractionsStandard,
 ]) {
   return BorderRadius.only(
     topLeft: Radius.elliptical(width * fractions[0], height * fractions[4]),
@@ -21,17 +21,17 @@ BorderRadius pebbleBorderRadius(
   );
 }
 
-class BLEPebble extends StatelessWidget {
+class BLEDeviceShape extends StatelessWidget {
   final double size;
   final DeviceTone tone;
   final List<double> fractions;
   final List<BoxShadow>? shadow;
 
-  const BLEPebble({
+  const BLEDeviceShape({
     super.key,
     required this.size,
     this.tone = DeviceTone.sage,
-    this.fractions = pebbleFractionsStandard,
+    this.fractions = deviceShapeFractionsStandard,
     this.shadow,
   });
 
@@ -42,7 +42,7 @@ class BLEPebble extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         gradient: tone.gradient,
-        borderRadius: pebbleBorderRadius(size, size, fractions),
+        borderRadius: deviceShapeBorderRadius(size, size, fractions),
         boxShadow: shadow,
       ),
     );

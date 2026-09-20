@@ -1,6 +1,6 @@
 # Monitoring ownership and verification
 
-The foreground app owns one `DeviceConnection` per desired Pebble. Its phase reaches monitoring only after service setup. Recovery closes the old session and constructs fresh services; a generation check rejects late setup completions. Discovery never owns a second connection and never removes a paired device merely because it is absent from a scan.
+The foreground app owns one `DeviceConnection` per desired Jack Jack. Its phase reaches monitoring only after service setup. Recovery closes the old session and constructs fresh services; a generation check rejects late setup completions. Discovery never owns a second connection and never removes a paired device merely because it is absent from a scan.
 
 On iOS, that foreground engine retains its Core Bluetooth central when the app is backgrounded. The `bluetooth-central` capability supports event-driven wakeups. Dart polling timers are best effort, and this implementation does not promise continuous execution or restoration after termination/force-quit. The old no-op BGProcessingTask callbacks and audio background mode have been removed. [Apple's Core Bluetooth background guide](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html) describes the platform model; hardware acceptance must establish the app's actual performance.
 

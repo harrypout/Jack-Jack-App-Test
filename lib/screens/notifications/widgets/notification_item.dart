@@ -1,3 +1,4 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'package:jackjack/models/notification_sf.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/widgets/ble_pill.dart';
@@ -89,8 +90,8 @@ class NotificationItem extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   item.kind == 'battery'
-                      ? '${item.device}: ${item.value}% remaining'
-                      : 'Sound alert detected by ${item.device}',
+                      ? '${displayDeviceName(item.device)}: ${item.value}% remaining'
+                      : 'Sound alert detected by ${displayDeviceName(item.device)}',
                   style: TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 12,

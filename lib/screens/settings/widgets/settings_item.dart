@@ -21,12 +21,7 @@ class SettingsItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: ThemeManager.rowLabel,
-      ),
+      title: Text(title, style: ThemeManager.rowLabel),
       leading: SvgPicture.asset(
         "assets/svgs/$assetName.svg",
         width: 18,

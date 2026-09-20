@@ -1,9 +1,9 @@
 import 'package:jackjack/utils/color_manager.dart';
-import 'package:jackjack/widgets/ble_pebble.dart';
+import 'package:jackjack/widgets/ble_device_shape.dart';
 import 'package:jackjack/widgets/ble_pulse_rings.dart';
 import 'package:flutter/material.dart';
 
-/// Page 1 hero: concentric pulse rings behind a sage disc and the Pebble.
+/// Page 1 hero: concentric pulse rings behind a sage disc and the Jack Jack.
 class OnboardingHeroWelcome extends StatelessWidget {
   const OnboardingHeroWelcome({super.key});
 
@@ -29,9 +29,9 @@ class OnboardingHeroWelcome extends StatelessWidget {
               color: ColorManager.sageTint10,
             ),
           ),
-          const BLEPebble(
+          const BLEDeviceShape(
             size: 92,
-            fractions: pebbleFractionsOnboarding,
+            fractions: deviceShapeFractionsOnboarding,
             shadow: [
               BoxShadow(
                 color: Color(0x664A5568),

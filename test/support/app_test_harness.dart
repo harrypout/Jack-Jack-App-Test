@@ -20,8 +20,8 @@ import 'package:jackjack/services/device_name_manager.dart';
 import 'package:jackjack/utils/notification_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const deviceA = 'test-pebble-a';
-const deviceB = 'test-pebble-b';
+const deviceA = 'test-jack-jack-a';
+const deviceB = 'test-jack-jack-b';
 const testServiceId = '00000000-0000-0000-0000-000000000001';
 const testCharacteristicId = '00000000-0000-0000-0000-000000000002';
 
@@ -57,7 +57,11 @@ class AppTestHarness {
         const MethodChannel('dexterous.com/flutter/local_notifications'),
         (call) async {
           notificationCalls.add(call);
-          return call.method == 'initialize' ? true : null;
+          if (call.method == 'initialize') {
+            // iOS reports false when initialization requests no permissions.
+            return defaultTargetPlatform == TargetPlatform.android;
+          }
+          return null;
         },
       );
       binding.defaultBinaryMessenger.setMockMethodCallHandler(

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:jackjack/utils/device_display_name.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jackjack/models/notification_sf.dart';
 import 'package:jackjack/services/notification_history.dart';
@@ -45,12 +46,13 @@ class AlertRecorder {
       preferences.getBool('forgotten_$id') != true;
   String _name(String id, String fallback) {
     try {
-      return (jsonDecode(preferences.getString('device_names') ?? '{}')
-                  as Map)[id]
-              as String? ??
-          fallback;
+      return displayDeviceName(
+        (jsonDecode(preferences.getString('device_names') ?? '{}') as Map)[id]
+                as String? ??
+            fallback,
+      );
     } on Object {
-      return fallback;
+      return displayDeviceName(fallback);
     }
   }
 

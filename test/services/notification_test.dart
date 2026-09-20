@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jackjack/main.dart' as app;
@@ -9,6 +10,21 @@ void main() {
   final harness = AppTestHarness()..install();
   Future<void> alert(String device) => NotificationManager.instance
       .showThresholdAlert(deviceId: device, deviceName: device, threshold: 1);
+
+  for (final result in [false, null]) {
+    test('Android still reports initialization failure for $result', () async {
+      AndroidFlutterLocalNotificationsPlugin.registerWith();
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      harness.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('dexterous.com/flutter/local_notifications'),
+        (_) async => result,
+      );
+      await expectLater(
+        NotificationManager.instance.initializePlugin(),
+        result == null ? throwsA(isA<TypeError>()) : throwsStateError,
+      );
+    });
+  }
 
   test(
     'rapid alerts get distinct IDs and cannot overwrite the background-service ID',

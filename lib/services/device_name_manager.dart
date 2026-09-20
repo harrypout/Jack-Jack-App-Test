@@ -1,3 +1,4 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,7 +50,7 @@ class DeviceNameManager {
   }
 
   String getDisplayName(String deviceId, String fallbackName) {
-    return getDeviceName(deviceId) ?? fallbackName;
+    return displayDeviceName(getDeviceName(deviceId) ?? fallbackName);
   }
 }
 
@@ -92,6 +93,6 @@ class DeviceNamesNotifier extends StateNotifier<Map<String, String>> {
   }
 
   String getDisplayName(String deviceId, String fallbackName) {
-    return state[deviceId] ?? fallbackName;
+    return displayDeviceName(state[deviceId] ?? fallbackName);
   }
 }

@@ -4,12 +4,12 @@
 // specific copy. Reuses Phone / StatusBar / AppIcon from frame.jsx.
 const Aio = (name, extra) => <window.AppIcon path={window.APP_P[name]} {...extra} />;
 
-// Organic "Pebble" device blob, reused across heroes.
-const Pebble = ({ size = 88 }) => (
+// Organic "Jack Jack" device blob, reused across heroes.
+const JackJackDevice = ({ size = 88 }) => (
   <span style={{ width: size, height: size, borderRadius: '46% 54% 52% 48% / 56% 50% 50% 44%', background: 'linear-gradient(150deg,#A6C7BA,#6E9E8D)', flexShrink: 0, boxShadow: '0 10px 22px -10px rgba(74,85,104,.4)', display: 'inline-block' }} />
 );
 
-// ---------- HERO 0 · brand moment: the Pebble, listening ----------
+// ---------- HERO 0 · brand moment: the Jack Jack, listening ----------
 function HeroWelcome() {
   return (
     <div style={{ position: 'relative', width: 200, height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -17,7 +17,7 @@ function HeroWelcome() {
         <span key={i} style={{ position: 'absolute', width: 96, height: 96, borderRadius: '50%', border: '2px solid var(--sage-20)', animation: `jjpulse 2.6s ease-out ${i * 0.85}s infinite` }} />
       ))}
       <span style={{ position: 'absolute', width: 150, height: 150, borderRadius: '50%', background: 'var(--sage-10)' }} />
-      <Pebble size={92} />
+      <JackJackDevice size={92} />
     </div>
   );
 }
@@ -30,11 +30,11 @@ function HeroConnect() {
         {Aio('bluetooth', { size: 26 })}
         <span style={{ position: 'absolute', inset: -6, borderRadius: '50%', border: '2px solid var(--sage-20)', animation: 'jjpulse 1.8s ease-out infinite' }} />
       </div>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--color-slate)' }}>Pebble found</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--color-slate)' }}>Jack Jack found</div>
       <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--color-bg)', border: '1px solid var(--border-card)', borderRadius: 'var(--radius-md)', padding: '9px 11px' }}>
-        <Pebble size={26} />
+        <JackJackDevice size={26} />
         <div style={{ flex: 1, textAlign: 'left' }}>
-          <div style={{ fontWeight: 700, fontSize: 11.5, color: 'var(--color-slate)' }}>The Pebble</div>
+          <div style={{ fontWeight: 700, fontSize: 11.5, color: 'var(--color-slate)' }}>The Jack Jack</div>
           <div style={{ fontSize: 9.5, color: 'var(--slate-60)' }}>Signal strong · 82%</div>
         </div>
         <span style={{ color: 'var(--color-sage)' }}>{Aio('check', { size: 16 })}</span>
@@ -71,9 +71,9 @@ const MiniCard = ({ children }) => (
 );
 
 const PAGES = [
-  { hero: HeroWelcome, title: 'Meet Jack Jack', body: 'Your Pebble listens to the room so you don\u2019t have to \u2014 real-time sound levels, live audio, and a gentle nudge only when it matters.' },
-  { hero: HeroConnect, title: 'Pairs in seconds', body: 'Hold your phone close and connect the Pebble over Bluetooth. No accounts, no cables \u2014 just tap and you\u2019re listening.' },
-  { hero: HeroMonitor, title: 'Listen in, anytime', body: 'Watch live sound, set a threshold that fits your home, and stream audio straight from the Pebble whenever you want to check in.' },
+  { hero: HeroWelcome, title: 'Meet Jack Jack', body: 'Your Jack Jack listens to the room so you don\u2019t have to \u2014 real-time sound levels, live audio, and a gentle nudge only when it matters.' },
+  { hero: HeroConnect, title: 'Pairs in seconds', body: 'Hold your phone close and connect the Jack Jack over Bluetooth. No accounts, no cables \u2014 just tap and you\u2019re listening.' },
+  { hero: HeroMonitor, title: 'Listen in, anytime', body: 'Watch live sound, set a threshold that fits your home, and stream audio straight from the Jack Jack whenever you want to check in.' },
 ];
 
 function OnboardingScreen({ onDone }) {
