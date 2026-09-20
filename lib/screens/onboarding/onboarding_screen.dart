@@ -17,13 +17,13 @@ class OnboardingScreen extends ConsumerWidget {
   static const String id = 'onboarding_screen';
   static const List<String> titles = [
     'Meet Jack Jack',
-    'Pairs in seconds',
-    'Listen in, anytime',
+    'Connect your Pebble',
+    'See the sound level',
   ];
   static const List<String> subtitles = [
-    'Your Pebble listens to the room so you don\'t have to — real-time sound levels, live audio, and a gentle nudge only when it matters.',
-    'Hold your phone close and connect the Pebble over Bluetooth. No accounts, no cables — just tap and you\'re listening.',
-    'Watch live sound, set a threshold that fits your home, and stream audio straight from the Pebble whenever you want to check in.',
+    'Your Pebble measures sound in the room and can alert your phone when the sound stays above your chosen threshold.',
+    'Turn on Bluetooth, keep your Pebble nearby, and connect it in the app. No account or internet connection is needed.',
+    'Watch the sound meter, set a threshold that fits your room, and review recorded sound alerts. Keep Bluetooth and phone notifications enabled.',
   ];
 
   const OnboardingScreen({super.key});

@@ -1,112 +1,79 @@
+import 'dart:async';
 import 'package:jackjack/main.dart';
 import 'package:jackjack/models/notification_sf.dart';
+import 'package:jackjack/services/notification_history.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'notifications_provider.g.dart';
 
+enum NotificationGroupType { today, yesterday, lastWeek, lastMonth }
 
-enum NotificationGroupType {
-  today,
-  yesterday,
-  lastWeek,
-  lastMonth,
-}
-
-Map<NotificationGroupType, String> notificationGroupTypeToString = {
-  NotificationGroupType.today: "Today",
-  NotificationGroupType.yesterday: "Yesterday",
-  NotificationGroupType.lastWeek: "Last Week",
-  NotificationGroupType.lastMonth: "Last Month",
+const notificationGroupTypeToString = {
+  NotificationGroupType.today: 'Today',
+  NotificationGroupType.yesterday: 'Yesterday',
+  NotificationGroupType.lastWeek: 'Last Week',
+  NotificationGroupType.lastMonth: 'Last Month',
 };
 
 @Riverpod(keepAlive: true)
 class Notifications extends _$Notifications {
   @override
-  List<NotificationGroupModel> build() => getNotifications();
-
-  List<NotificationGroupModel> getNotifications() {
-        List<String> notificationStrings =
-        prefs.getStringList("notifications") ?? [];
-    List<NotificationGroupModel> groups = [];
-        List<NotificationSF> notifications =  notificationStrings.reversed
-        .map((e) => NotificationSF.fromString(e))
-        .toList();
-    if(notificationStrings.isEmpty) return groups;
-    int i = 0;
-    while (i < notifications.length) {
-      final notification = notifications[i];
-      final createdAt = notification.createdAt;
-      final now = DateTime.now();
-      final difference = now.difference(createdAt);
-      NotificationGroupType type;
-      if (difference.inDays == 0) {
-        type = NotificationGroupType.today;
-      } else if (difference.inDays == 1) {
-        type = NotificationGroupType.yesterday;
-      } else if (difference.inDays < 7) {
-        type = NotificationGroupType.lastWeek;
-      } else {
-        type = NotificationGroupType.lastMonth;
-      }
-      int index = (){
-        final group = groups.firstWhere(
-        (g) => g.type == type,
-        orElse: () {
-          final newGroup = NotificationGroupModel(
-            notifications: [],
-            type: type,
-          );
-          groups.add(newGroup);
-          return newGroup;
-        },
-      );
-        return groups.indexWhere((indexedGroup) => indexedGroup == group);
-      }();
-      groups[index].notifications.add(notification);
-      i++;
-    }
-
-    return groups;
+  List<NotificationGroupModel> build() {
+    // Enforce storage retention on opening history as well as when adding events.
+    unawaited(NotificationHistory.prune(prefs).catchError((Object _) => false));
+    return getNotifications();
   }
 
-  void addNotification(NotificationSF notification) {
-    List<String> notificationStrings =
-        prefs.getStringList("notifications") ?? [];
-    notificationStrings.add(notification.toString());
-    prefs.setStringList("notifications", notificationStrings);
+  List<NotificationGroupModel> getNotifications() {
+    final groups = <NotificationGroupType, NotificationGroupModel>{};
+    final now = DateTime.now();
+    final today = DateTime.utc(now.year, now.month, now.day);
+    for (final item in NotificationHistory.read(prefs)) {
+      final date = item.createdAt.toLocal();
+      final days =
+          today
+              .difference(DateTime.utc(date.year, date.month, date.day))
+              .inDays;
+      final type =
+          days <= 0
+              ? NotificationGroupType.today
+              : days == 1
+              ? NotificationGroupType.yesterday
+              : days < 7
+              ? NotificationGroupType.lastWeek
+              : NotificationGroupType.lastMonth;
+      groups
+          .putIfAbsent(
+            type,
+            () => NotificationGroupModel(notifications: [], type: type),
+          )
+          .notifications
+          .add(item);
+    }
+    return groups.values.toList();
+  }
+
+  Future<void> reload() async {
+    await prefs.reload();
+    await NotificationHistory.prune(prefs);
     state = getNotifications();
   }
 
-  void clearAll() {
+  Future<void> addNotification(NotificationSF notification) async {
+    final write = NotificationHistory.add(prefs, notification);
+    state = getNotifications();
+    if (!await write) throw StateError('Could not save notification history');
+  }
+
+  Future<void> clearAll() async {
     state = [];
-    prefs.remove("notifications");
+    if (!await prefs.remove('notifications')) {
+      throw StateError('Could not clear history');
+    }
   }
 }
 
 class NotificationGroupModel {
   final List<NotificationSF> notifications;
   final NotificationGroupType type;
-
-  NotificationGroupModel({
-    required this.notifications,
-    required this.type,
-  });
-
-  @override
-  String toString() {
-    final buffer = StringBuffer();
-    buffer.write(
-        'NotificationGroupModel{type: $type, notificationsCount: ${notifications
-            .length}, ');
-
-    if (notifications.isNotEmpty) {
-      buffer.write('notifications: [');
-      for (var notification in notifications) {
-        buffer.write('${notification.toString()}, ');
-      }
-      buffer.write('], ');
-    }
-
-    buffer.write('}');
-    return buffer.toString();
-  }
+  NotificationGroupModel({required this.notifications, required this.type});
 }

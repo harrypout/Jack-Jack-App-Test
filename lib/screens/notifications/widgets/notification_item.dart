@@ -9,8 +9,11 @@ class NotificationItem extends StatelessWidget {
   final NotificationSF item;
   final DateTime readTime;
 
-  const NotificationItem({super.key, required this.item,
-    required this.readTime,});
+  const NotificationItem({
+    super.key,
+    required this.item,
+    required this.readTime,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +47,7 @@ class NotificationItem extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(
-            width: 12,
-          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +61,9 @@ class NotificationItem extends StatelessWidget {
                         spacing: 8,
                         children: [
                           Text(
-                            "Threshold Exceeded!",
+                            item.kind == 'battery'
+                                ? 'Low Battery'
+                                : 'Threshold Exceeded!',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -70,7 +73,6 @@ class NotificationItem extends StatelessWidget {
                           ),
                           if (readTime.isBefore(item.createdAt))
                             BLEPill(color: ColorManager.error),
-
                         ],
                       ),
                     ),
@@ -86,7 +88,9 @@ class NotificationItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Current Sound Level: ${item.value} dB, Detected by ${item.device} ",
+                  item.kind == 'battery'
+                      ? '${item.device}: ${item.value}% remaining'
+                      : 'Sound alert detected by ${item.device}',
                   style: TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 12,

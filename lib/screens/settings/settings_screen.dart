@@ -106,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               assetName: "help",
                               title: "Notification Timeout",
                               iconColor: ColorManager.sage,
-                              trailing: Container(
+                              trailing: SizedBox(
                                 height: 38,
                                 // width: 150,
                                 child: DropdownWithMap(
@@ -144,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               assetName: "sound",
                               title: "Connect Sound",
                               iconColor: ColorManager.yellowIcon,
-                              trailing: Container(
+                              trailing: SizedBox(
                                 height: 38,
                                 child: DropdownWithMap(
                                   hintText: "Select Sound",
@@ -171,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               assetName: "sound",
                               title: "Disconnect Sound",
                               iconColor: ColorManager.yellowIcon,
-                              trailing: Container(
+                              trailing: SizedBox(
                                 height: 38,
                                 child: DropdownWithMap(
                                   hintText: "Select Sound",
@@ -198,7 +198,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               assetName: "sound",
                               title: "Threshold Sound",
                               iconColor: ColorManager.yellowIcon,
-                              trailing: Container(
+                              trailing: SizedBox(
                                 height: 38,
                                 child: DropdownWithMap(
                                   hintText: "Select Sound",
@@ -237,7 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             SettingsItem(
                               assetName: "contact-us",
-                              title: "Contact Us",
+                              title: "TestFlight Feedback",
                               iconColor: ColorManager.coralIcon,
                               onTap: () {
                                 Navigator.pushNamed(
@@ -245,12 +245,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ContactUsScreen.id,
                                 );
                               },
-                            ),
-                            SettingsItem(
-                              assetName: "rate-app",
-                              title: "Rate App",
-                              iconColor: ColorManager.coralIcon,
-                              onTap: () {},
                             ),
                           ],
                         ),
@@ -262,7 +256,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               assetName: "app-info",
                               title: "App Info",
                               iconColor: ColorManager.sage,
-                              onTap: () {},
+                              onTap:
+                                  () => showAboutDialog(
+                                    context: context,
+                                    applicationName: 'Jack Jack',
+                                    children: [
+                                      const Text(
+                                        'Bluetooth sound monitoring for your Pebble. Sound levels and alert history stay on your phone. For this test release, use TestFlight to view build details and send feedback.',
+                                      ),
+                                    ],
+                                  ),
                             ),
                             // SettingsItem(
                             //   assetName: "share",

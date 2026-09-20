@@ -128,8 +128,7 @@ fastlane/readme.md
 .packages
 .pub/
 build/
-# If you're building an application, you may want to check-in your pubspec.lock
-pubspec.lock
+# Keep the application lockfile so CI and local tests resolve the same versions.
 
 # Directory created by dartdoc
 # If you don't generate documentation locally you can remove this line.
@@ -298,3 +297,9 @@ firebase_options.dart
 
 # FVM Version Cache
 .fvm/
+# Local validation output
+coverage/
+
+# Local Bundler configuration and cached gems
+.bundle/
+vendor/bundle/

@@ -1,105 +1,79 @@
 import 'dart:async';
-import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:jackjack/main.dart';
+import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/paired_devices.dart';
 import 'package:jackjack/services/background_service_manager.dart';
-import 'package:jackjack/utils/battery_optimization_manager.dart';
 import 'package:jackjack/utils/notification_manager.dart';
 import 'package:jackjack/utils/permission_manager.dart';
-import 'package:jackjack/utils/platform_channel_manager.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 part 'app_initializer.g.dart';
 
-enum InitPhase { pending, permissionsGranted, complete }
+enum InitPhase { pending, bluetoothDenied, notificationsDenied, complete }
+
+class ReadinessChecks {
+  final Future<bool> Function(bool request) bluetooth;
+  final Future<bool> Function(bool request) notifications;
+  final Future<void> Function() initialize;
+  ReadinessChecks({
+    required this.bluetooth,
+    required this.notifications,
+    required this.initialize,
+  });
+}
+
+final readinessChecksProvider = Provider<ReadinessChecks>(
+  (ref) => ReadinessChecks(
+    bluetooth: (request) => PermissionManager.check(request: request),
+    notifications:
+        (request) =>
+            request
+                ? NotificationManager.instance.requestPermission()
+                : Permission.notification.isGranted,
+    initialize: () async {
+      await NotificationManager.instance.initializePlugin();
+      await BackgroundServiceManager.initialize();
+    },
+  ),
+);
+bool canUseBluetooth(InitPhase? phase) =>
+    phase == InitPhase.complete || phase == InitPhase.notificationsDenied;
 
 @Riverpod(keepAlive: true)
 class AppInitializer extends _$AppInitializer {
   @override
-  Future<InitPhase> build() async {
-    return _runDeferredInit();
-  }
-
-  Future<InitPhase> _runDeferredInit() async {
-    // Step 1: Load paired device UUIDs (fast, needed before scan results arrive)
+  Future<InitPhase> build() => _run(true);
+  Future<InitPhase> _run(bool request) async {
     await PairedDevicesUUID.loadFromPrefs();
-
-    // Step 2: Request BLE permissions (gates BLE scanning but don't block remaining init)
-    final permissionsGranted = await PermissionManager.check();
-    if (!permissionsGranted) {
-      debugPrint('⚠️ BLE permissions were denied — scanning will be disabled');
-    }
-
-    // Step 3: Non-critical init — errors are caught individually
-    try {
-      await Future.wait([
-        NotificationManager.instance.initializePlugin(),
-        BackgroundServiceManager.initialize(),
-      ]);
-    } catch (e) {
-      debugPrint('⚠️ Non-critical init error (notifications/background): $e');
-    }
-
-    // Step 4: Request notification permission (may show dialog)
-    try {
-      await NotificationManager.instance.requestPermission();
-    } catch (e) {
-      debugPrint('⚠️ Notification permission request failed: $e');
-    }
-
-    // Step 5: Setup platform channel handler
-    PlatformChannelManager.setupBackgroundTaskHandler();
-
-    // Step 6: Start background service
-    try {
-      final backgroundEnabled = prefs.getBool("backgroundMonitoring") ?? true;
-      if (backgroundEnabled) {
-        await BackgroundServiceManager.startService();
-      }
-    } catch (e) {
-      debugPrint('⚠️ Background service start failed: $e');
-    }
-
-    // Step 7: Battery optimization (Android only, lowest priority)
-    if (Platform.isAndroid) {
-      try {
-        final isIgnoring =
-            await PlatformChannelManager.isIgnoringBatteryOptimizations();
-        if (!isIgnoring) {
-          await PlatformChannelManager.requestBatteryOptimizationExemption();
-        }
-        await BatteryOptimizationManager.check();
-      } catch (e) {
-        debugPrint('⚠️ Battery optimization check failed: $e');
-      }
-    }
-
-    debugPrint('✅ App initialization complete');
-    return InitPhase.complete;
+    final checks = ref.read(readinessChecksProvider);
+    final bluetooth = await checks.bluetooth(request);
+    await checks.initialize();
+    final notifications = await checks.notifications(request);
+    if (!bluetooth) return InitPhase.bluetoothDenied;
+    await BackgroundServiceManager.startService();
+    return notifications ? InitPhase.complete : InitPhase.notificationsDenied;
   }
 
-  /// Retry initialization from scratch (e.g., after permission denial)
-  Future<void> retry() async {
+  Future<void> retry({bool requestPermissions = true}) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _runDeferredInit());
+    state = await AsyncValue.guard(() => _run(requestPermissions));
   }
 }
 
-/// Monitors Bluetooth hardware power state.
-/// Emits BleStatus.ready when BT is on, BleStatus.poweredOff when off, etc.
 @Riverpod(keepAlive: true)
 class BleStatusNotifier extends _$BleStatusNotifier {
-  StreamSubscription<BleStatus>? _subscription;
-
   @override
   BleStatus build() {
-    final ble = FlutterReactiveBle();
-    _subscription = ble.statusStream.listen((status) {
-      state = status;
-    });
-    ref.onDispose(() => _subscription?.cancel());
-    return BleStatus.unknown;
+    final ble = ref.read(bleClientProvider);
+    final subscription = ble.statusStream.listen(
+      (status) {
+        state = status;
+      },
+      onError: (Object _) {
+        state = BleStatus.unknown;
+      },
+    );
+    ref.onDispose(subscription.cancel);
+    return ble.status;
   }
 }

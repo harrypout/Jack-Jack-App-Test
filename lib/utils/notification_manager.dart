@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../main.dart';
+import '../main.dart' as app;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationManager {
   static final NotificationManager _instance = NotificationManager._();
@@ -51,14 +52,18 @@ class NotificationManager {
           iOS: initializationSettingsIOS,
         );
 
-    await _notificationsPlugin.initialize(initializationSettings);
+    final initialized = await _notificationsPlugin.initialize(
+      initializationSettings,
+    );
+    if (initialized != true) {
+      throw StateError('Notification initialization failed');
+    }
     _initialized = true;
   }
 
   /// Request notification permission from the OS (may show dialog).
-  Future<void> requestPermission() async {
-    await Permission.notification.request();
-  }
+  Future<bool> requestPermission() async =>
+      (await Permission.notification.request()).isGranted;
 
   /// Full initialization (permission + plugin). Kept for backward compatibility.
   Future<void> initialize() async {
@@ -73,7 +78,7 @@ class NotificationManager {
   }) {
     final soundSuffix = playSound ? '_${soundName ?? "default"}' : '';
     final vibrationSuffix = enableVibration ? '_vibration' : '';
-    final channelId = 'alerts_channel${soundSuffix}$vibrationSuffix';
+    final channelId = 'alerts_channel$soundSuffix$vibrationSuffix';
     final channelName =
         'Alerts with ${playSound ? (soundName ?? "Default") : "No Sound"}'
         ' and ${enableVibration ? "Vibration" : "No Vibration"}';
@@ -101,12 +106,7 @@ class NotificationManager {
     String? soundName,
     String? soundFile,
   }) async {
-    if (!_initialized) {
-      debugPrint(
-        '⚠️ NotificationManager: plugin not initialized yet, skipping notification',
-      );
-      return;
-    }
+    if (!_initialized) await initializePlugin();
 
     DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -155,12 +155,17 @@ class NotificationManager {
     required String deviceId,
     required String deviceName,
     required int threshold,
+    SharedPreferences? preferences,
   }) async {
+    final prefs = preferences ?? app.prefs;
     final hasSound = prefs.getBool("${deviceId}s") ?? true;
     final hasVibration = prefs.getBool("${deviceId}v") ?? true;
+    if (!hasSound && !hasVibration) return;
     final soundKey = prefs.getString("thresholdSound") ?? "Default";
-    final soundName = soundKey == "Default" ? null : _soundNameFromKey(soundKey);
-    final soundFile = soundKey == "Default" ? null : _soundFileFromKey(soundKey);
+    final soundName =
+        soundKey == "Default" ? null : _soundNameFromKey(soundKey);
+    final soundFile =
+        soundKey == "Default" ? null : _soundFileFromKey(soundKey);
     debugPrint(
       "Threshold Alert:: Sound: $hasSound, Vibration: $hasVibration, Device ID: $deviceId, SoundName: $soundName",
     );
@@ -177,9 +182,12 @@ class NotificationManager {
   Future<void> showDisconnectionAlert({
     required String deviceId,
     required String deviceName,
+    SharedPreferences? preferences,
   }) async {
+    final prefs = preferences ?? app.prefs;
     final hasSound = prefs.getBool("${deviceId}s") ?? true;
     final hasVibration = prefs.getBool("${deviceId}v") ?? true;
+    if (!hasSound && !hasVibration) return;
     final soundKey = prefs.getString("disconnectSound") ?? "Default";
     final soundName =
         soundKey == "Default" ? null : _soundNameFromKey(soundKey);
@@ -201,9 +209,12 @@ class NotificationManager {
   Future<void> showConnectionAlert({
     required String deviceId,
     required String deviceName,
+    SharedPreferences? preferences,
   }) async {
+    final prefs = preferences ?? app.prefs;
     final hasSound = prefs.getBool("${deviceId}s") ?? true;
     final hasVibration = prefs.getBool("${deviceId}v") ?? true;
+    if (!hasSound && !hasVibration) return;
     final soundKey = prefs.getString("connectSound") ?? "Default";
     final soundName =
         soundKey == "Default" ? null : _soundNameFromKey(soundKey);
@@ -219,6 +230,24 @@ class NotificationManager {
       sound: hasSound,
       soundName: soundName,
       soundFile: soundFile,
+    );
+  }
+
+  Future<void> showLowBatteryAlert({
+    required String deviceId,
+    required String deviceName,
+    required int battery,
+    SharedPreferences? preferences,
+  }) async {
+    final prefs = preferences ?? app.prefs;
+    final sound = prefs.getBool('${deviceId}s') ?? true;
+    final vibration = prefs.getBool('${deviceId}v') ?? true;
+    if (!sound && !vibration) return;
+    await showNotification(
+      title: 'Low Battery',
+      body: '$deviceName has $battery% battery remaining',
+      vibration: vibration,
+      sound: sound,
     );
   }
 }

@@ -17,6 +17,7 @@ import 'package:jackjack/widgets/ble_toggle_row.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../main.dart';
+import 'package:jackjack/utils/toast_manager.dart';
 
 class HomeScreenDevice extends ConsumerStatefulWidget {
   final BLEDevice device;
@@ -91,12 +92,15 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
               ),
           ],
         ),
-        subtitle: Row(
-          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        subtitle: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runSpacing: 4,
           spacing: 6,
           children: [
             Text(
-              "${widget.device.getBattery.data}%",
+              widget.device.getBattery.data == null
+                  ? 'Battery unknown'
+                  : '${widget.device.getBattery.data}%',
               style: TextStyle(
                 fontWeight: FontWeight.w400,
                 fontSize: 11,
@@ -111,7 +115,10 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
               style: ThemeManager.meta,
             ),
             BLEPill(),
-            Text("$threshold dB", style: ThemeManager.meta),
+            Text(
+              threshold == null ? 'Threshold unknown' : '$threshold dB',
+              style: ThemeManager.meta,
+            ),
           ],
         ),
         // Default trailing chevron (styled slate) keeps the built-in
@@ -134,13 +141,15 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
         children: [
           BleToggleRow(
             "Connect",
-            value: isConnected,
+            value:
+                isConnected ||
+                ref.watch(connectionDesiredProvider(widget.device.device.id)),
             onChanged: (value) async {
               debugPrint("onToggle: $value");
-              await ref
+              final connected = await ref
                   .read(connectedDevicesProvider.notifier)
                   .connect(widget.device.device, shouldConnect: value);
-              if (value) {
+              if (value && connected) {
                 ref
                     .read(selectedDeviceProvider.notifier)
                     .setSelectedDevice(widget.device.device.id);
@@ -148,18 +157,24 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
               debugPrint("onToggle: $value");
             },
           ),
-          // BleToggleRow(
-          //   "Current Device",
-          //   value: widget.isSelected,
-          //   onChanged: (value) {
-          //     ref
-          //         .read(selectedDeviceProvider.notifier)
-          //         .setSelectedDevice(widget.device.device.id);
-          //   },
-          // ),
+          if (isConnected)
+            TextButton(
+              onPressed:
+                  widget.isSelected
+                      ? null
+                      : () => ref
+                          .read(selectedDeviceProvider.notifier)
+                          .setSelectedDevice(widget.device.device.id),
+              child: Text(
+                widget.isSelected ? 'Current device' : 'Show on meter',
+              ),
+            ),
+          if (ref.watch(connectionErrorProvider(widget.device.device.id)) !=
+              null)
+            const Text('Connection interrupted. Reconnecting when available.'),
           BleToggleRow(
             "Alerts",
-            value: sound && vibration,
+            value: sound || vibration,
             onChanged: (value) {
               setState(() {
                 sound = value;
@@ -190,24 +205,26 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
           //     prefs.setBool("${widget.device.device.id}v", value);
           //   },
           // ),
-          if (!(threshold == null ||
-              (threshold != null && (threshold < 30 || threshold > 120))))
+          if (isConnected &&
+              !(threshold == null || ((threshold < 30 || threshold > 120))))
             Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "Set Sound Threshold ",
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                        color: ColorManager.secondaryText,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                    Expanded(
+                      child: Text(
+                        "Set Sound Threshold ",
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(
+                          color: ColorManager.secondaryText,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     Text(
-                      "${threshold?.toInt()} dB",
+                      "${threshold.toInt()} dB",
                       style: TextStyle(
                         fontWeight: FontWeight.w400,
                         fontSize: 14,
@@ -217,7 +234,7 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                   ],
                 ),
                 Slider(
-                  value: threshold!.toDouble(),
+                  value: threshold.toDouble(),
                   max: 120,
                   min: 30,
                   activeColor: ColorManager.accent,
@@ -230,14 +247,27 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
                         )
                         .change(val.toInt());
                   },
-                  onChangeEnd: (value) {
-                    ref
-                        .read(
-                          deviceThresholdProvider(
-                            widget.device.device.id,
-                          ).notifier,
-                        )
-                        .saveToDevice(widget.device.device.id, value.toInt());
+                  onChangeEnd: (value) async {
+                    try {
+                      await ref
+                          .read(
+                            deviceThresholdProvider(
+                              widget.device.device.id,
+                            ).notifier,
+                          )
+                          .saveToDevice(widget.device.device.id, value.toInt());
+                      if (!mounted) return;
+                      final confirmed = ref.read(
+                        deviceThresholdProvider(widget.device.device.id),
+                      );
+                      if (confirmed != value.toInt()) {
+                        ToastManager.show('Device confirmed $confirmed dB');
+                      }
+                    } catch (_) {
+                      ToastManager.show(
+                        'Threshold could not be saved. Last confirmed value restored.',
+                      );
+                    }
                   },
                 ),
               ],

@@ -1,6 +1,7 @@
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
 import 'package:jackjack/services/app_initializer.dart';
 import 'package:flutter/material.dart';
+import 'package:jackjack/widgets/monitoring_readiness.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:jackjack/screens/pairing/widgets/bluetooth_device.dart';
 import 'package:jackjack/screens/pairing/widgets/device_section.dart';
@@ -41,44 +42,48 @@ class PairingScreen extends ConsumerWidget {
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  const MonitoringReadiness(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Connect Device", style: ThemeManager.displayTitle),
                       TextButton(
-                        onPressed: btOff
-                            ? null
-                            : () {
-                                ref.read(deviceManagerProvider.notifier).refreshScan();
-                              },
+                        onPressed:
+                            btOff
+                                ? null
+                                : () {
+                                  ref
+                                      .read(deviceManagerProvider.notifier)
+                                      .refreshScan();
+                                },
                         child: Text(
                           "Refresh",
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 13,
-                            color: btOff ? ColorManager.tertiaryText : ColorManager.accent,
+                            color:
+                                btOff
+                                    ? ColorManager.tertiaryText
+                                    : ColorManager.accent,
                           ),
                         ),
                       ),
                     ],
                   ),
 
-                  Scanner(
-                    asset: "bluetooth-search",
-                    animate: false,
-                  ),
+                  Scanner(asset: "bluetooth-search", animate: false),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     child: Column(
                       children: [
                         Text(
-                          btOff ? 'Bluetooth is turned off' : 'Scan Complete',
+                          btOff ? 'Bluetooth unavailable' : 'Nearby devices',
                           style: ThemeManager.displaySub,
                         ),
                         if (btOff) ...[
                           const SizedBox(height: 4),
                           Text(
-                            'Turn on Bluetooth to scan for and connect to devices',
+                            'Check the connection status above to start scanning',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
@@ -91,7 +96,6 @@ class PairingScreen extends ConsumerWidget {
                   ),
 
                   if (!btOff) ...[
-
                     // Paired Devices Section
                     if (bleDevices.paired.isNotEmpty)
                       DeviceSection(
@@ -135,7 +139,9 @@ class PairingScreen extends ConsumerWidget {
                                     await ref
                                         .read(connectedDevicesProvider.notifier)
                                         .connect(device);
-                                    ref.read(deviceManagerProvider.notifier).updateDeviceStreams();
+                                    ref
+                                        .read(deviceManagerProvider.notifier)
+                                        .updateDeviceStreams();
                                   },
                                 ),
                               );

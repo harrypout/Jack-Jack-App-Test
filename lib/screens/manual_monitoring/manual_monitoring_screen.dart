@@ -5,6 +5,7 @@ import 'package:jackjack/widgets/ble_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/providers/selected_device_provider.dart';
+import 'package:jackjack/providers/last_recorded_alert_provider.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/screens/manual_monitoring/providers/manual_monitoring_provider.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
@@ -51,6 +52,10 @@ class _ManualMonitoringScreenState
     final connectedDevices = ref.watch(connectedDevicesProvider);
     final selectedDevice = ref.watch(selectedDeviceProvider);
     final manualMonitoringPod = ref.watch(manualMonitoringProvider);
+    final soundData = connectedDevices[selectedDevice]?.getSoundLevel.data;
+    final lastAlert = selectedDevice == null
+        ? null
+        : ref.watch(lastRecordedAlertProvider(selectedDevice));
     return Scaffold(
       body: BLEBackground(
         child: SafeArea(
@@ -73,21 +78,19 @@ class _ManualMonitoringScreenState
                         Column(
                           children: [
                             BLEGauge(
+                              deviceId: selectedDevice,
+                              lastAlertAt: lastAlert,
                               selectedDevice:
                                   connectedDevices[selectedDevice]
                                       ?.device
                                       .name ??
                                   "No Device Selected",
                               valueStream:
-                                  connectedDevices[selectedDevice]
-                                      ?.getSoundLevel
-                                      .data,
-                              //todo:test
+                                  soundData is Stream<int> ? soundData : null,
                               selectedValue:
                                   connectedDevices[selectedDevice]
                                       ?.getThreshold
-                                      .data ??
-                                  0,
+                                      .data,
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 12),

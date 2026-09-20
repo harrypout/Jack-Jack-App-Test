@@ -1,12 +1,10 @@
+import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
-import 'package:jackjack/providers/paired_devices.dart';
 import 'package:jackjack/screens/pairing/pods/available_devices.dart';
-import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:jackjack/screens/pairing/widgets/rename_device_dialog.dart';
 import 'package:jackjack/services/device_name_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:jackjack/main.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/theme_manager.dart';
 import 'package:jackjack/widgets/ble_bottom_sheet.dart';
@@ -188,7 +186,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                   child: BLEOutlinedButton(
                     data: "Cancel",
                     onPressed: () {
-                      Navigator.pop(context);
+                      if (context.mounted) Navigator.pop(context);
                     },
                     maxButton: true,
                   ),
@@ -199,12 +197,6 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                     // Destructive action — no recommended-CTA glow.
                     glow: false,
                     onPressed: () async {
-                      await ref
-                          .read(connectedDevicesTrackerProvider.notifier)
-                          .disconnectDevice(device.id);
-                      await PairedDevicesUUID.removeFromPrefs(device.id);
-                      // Clean up user disconnect flag when forgetting device
-                      await prefs.remove("user_disconnected_${device.id}");
                       // Drop it from the device registry too, so the home
                       // screen's device list stops showing it (the selected-
                       // device provider re-selects automatically).
@@ -215,7 +207,7 @@ class PairedInfoBottomSheet extends ConsumerWidget {
                       ref
                           .read(deviceManagerProvider.notifier)
                           .updateDeviceStreams();
-                      Navigator.pop(context);
+                      if (context.mounted) Navigator.pop(context);
                     },
                     maxButton: true,
                   ),

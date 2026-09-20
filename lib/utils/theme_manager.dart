@@ -1,7 +1,6 @@
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class ThemeManager {
   static double horizontalPadding = 20;
@@ -66,23 +65,27 @@ class ThemeManager {
   // Display type: Fredoka for titles/gauge value; body stays Nunito Sans.
   // Fredoka is only imported at weights 400/500/600 — never request w700.
   // static final (not getters): gaugeValue sits on the gauge's ~15fps
-  // rebuild path, and a GoogleFonts call allocates per invocation.
-  static final TextStyle displayTitle = GoogleFonts.fredoka(
+  // rebuild path. Fonts are bundled for offline use.
+  static final TextStyle displayTitle = TextStyle(
+    fontFamily: 'Fredoka',
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: ColorManager.slate,
   );
-  static final TextStyle displaySub = GoogleFonts.fredoka(
+  static final TextStyle displaySub = TextStyle(
+    fontFamily: 'Fredoka',
     fontSize: 17,
     fontWeight: FontWeight.w600,
     color: ColorManager.slate,
   );
-  static final TextStyle displayOnboardingTitle = GoogleFonts.fredoka(
+  static final TextStyle displayOnboardingTitle = TextStyle(
+    fontFamily: 'Fredoka',
     fontSize: 23,
     fontWeight: FontWeight.w600,
     color: ColorManager.slate,
   );
-  static final TextStyle gaugeValue = GoogleFonts.fredoka(
+  static final TextStyle gaugeValue = TextStyle(
+    fontFamily: 'Fredoka',
     fontSize: 36,
     fontWeight: FontWeight.w500,
     color: ColorManager.slate,
@@ -103,9 +106,9 @@ class ThemeManager {
   );
   static const meta = TextStyle(fontSize: 11, color: ColorManager.slate60);
 
-  static appTheme(BuildContext context) {
+  static ThemeData appTheme(BuildContext context) {
     return ThemeData.light(useMaterial3: true).copyWith(
-      textTheme: GoogleFonts.nunitoSansTextTheme(Theme.of(context).textTheme),
+      textTheme: Theme.of(context).textTheme.apply(fontFamily: 'Nunito Sans'),
       colorScheme: ColorScheme.fromSeed(seedColor: ColorManager.accent),
       appBarTheme: const AppBarTheme(
         surfaceTintColor: ColorManager.transparent,

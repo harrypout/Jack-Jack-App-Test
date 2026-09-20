@@ -8,7 +8,7 @@ class EnvManager {
 
   static Future<EnvManager> getInstance() async {
     if (_instance == null) {
-      await dotenv.load();
+      if (!dotenv.isInitialized) await dotenv.load();
       _instance = EnvManager._internal();
     }
     return _instance!;
