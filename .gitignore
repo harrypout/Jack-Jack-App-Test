@@ -299,3 +299,7 @@ firebase_options.dart
 .fvm/
 # Local validation output
 coverage/
+
+# Local Bundler configuration and cached gems
+.bundle/
+vendor/bundle/

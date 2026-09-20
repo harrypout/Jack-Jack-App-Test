@@ -52,11 +52,16 @@ jobs:
       - run: cp test/fixtures/ble.env .env
       - run: flutter pub get --enforce-lockfile
       - run: dart run build_runner build --delete-conflicting-outputs
+      - name: Set up pinned Ruby and CocoaPods
+        uses: ruby/setup-ruby@a0102e0972be65f351c307e2d64b9314a57c8073 # v1
+        with:
+          ruby-version: '3.4.4'
+          bundler-cache: true
       - name: Preserve pinned native dependencies
         working-directory: ios
-        run: pod install --deployment
+        run: bundle exec pod install --deployment
       - name: Compile iOS without signing or distribution
-        run: flutter build ios --simulator --debug --no-pub
+        run: bundle exec flutter build ios --simulator --debug --no-pub
 
   android-build:
     runs-on: ubuntu-24.04

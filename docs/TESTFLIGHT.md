@@ -7,11 +7,11 @@ Prepared 20 September 2026 for the reliability and meter amendments.
 - Working folder: `/Users/Harry/Projects/jackjack`.
 - GitHub repository: `harrypout/Jack-Jack-App-Test`.
 - Branch: `codex/regression-test-baseline`.
-- Flutter: **3.41.4**; retain `pubspec.lock`, `ios/Podfile.lock` and the existing BLE/SwiftProtobuf pins.
+- Flutter: **3.41.4**; retain `pubspec.lock`, `ios/Podfile.lock`, `Gemfile.lock` and the existing BLE/SwiftProtobuf pins. Use Ruby 3.4.4 with the pinned CocoaPods/JSON tools through Bundler.
 - Full preflight: **106 tests pass** on 20 September; strict core analysis passes.
 - The local `.env` contains real BLE identifiers. All six active service/characteristic pairs match both supplied August firmware source variants. It is ignored by Git.
-- Current source version: **1.0.2+4**. Choose the next unused build only after inspecting App Store Connect.
-- App identity still requires App Store Connect verification: Git config uses `com.jackjack`; the previous local archive and historical handoff use `com.jackjack1234`. Local signing profiles exist for both under **Jack Jack Pty Ltd / L9MCWXCMY7**. The old project team setting must be aligned with the verified app before archiving.
+- Current source version: **1.0.2+5**, committed by Harry in `40e808d`. Confirm this build number is unused in the existing App Store Connect app before uploading.
+- App identity still requires App Store Connect verification: Git config uses `com.jackjack`; the previous local archive and historical handoff use `com.jackjack1234`. Local signing profiles exist for both under **Jack Jack Pty Ltd / L9MCWXCMY7**. The Release configuration now uses team **L9MCWXCMY7**; confirm the existing Apple app identity before archiving.
 - Physical iPhone/Pebble acceptance is **not run**. This TestFlight candidate will be used to perform it.
 
 ## 1. Confirm the existing Apple app
@@ -40,12 +40,14 @@ Commit and push the confirmed version/signing changes before making the final ar
 
 ## 4. Create the release archive
 
-From the project folder, using Flutter 3.41.4:
+From the project folder, using Flutter 3.41.4 and Ruby 3.4.4:
 
 ```bash
+bundle install
 flutter pub get --enforce-lockfile
 dart run build_runner build --delete-conflicting-outputs
-flutter build ipa --release --export-method app-store
+bundle exec pod install --deployment --project-directory=ios
+bundle exec flutter build ipa --release --export-method app-store
 ```
 
 This creates an archive in `build/ios/archive/` and, when export succeeds, an IPA in `build/ios/ipa/`. If signing/export fails, keep the log and resolve the exact reported issue; do not delete the dependency locks or create a different Apple app to bypass the error.

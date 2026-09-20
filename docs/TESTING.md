@@ -1,6 +1,6 @@
 # Testing Jack Jack
 
-Updated 13 September 2026. Current suite: **106 passing tests, zero failing**. The original 13 red regressions are fixed and remain in the default test run.
+Updated 20 September 2026. Current suite: **106 passing tests, zero failing**. The original 13 red regressions are fixed and remain in the default test run.
 
 ## Run the gate
 
@@ -35,12 +35,21 @@ Only platform boundaries are faked. These tests run production providers, BLE se
 
 ## Build checks
 
+On macOS, install the Ruby build tools from the committed `Gemfile.lock` using Ruby 3.4.4. Run both CocoaPods and Flutter through Bundler so any CocoaPods subprocess uses the same versions:
+
 ```sh
-flutter build ios --simulator --debug --no-pub
+bundle install
+bundle exec pod install --deployment --project-directory=ios
+bundle exec flutter build ios --simulator --debug --no-pub
+```
+
+Android compilation requires Java 17 and an Android SDK:
+
+```sh
 flutter build apk --debug --no-pub
 ```
 
-The iOS simulator compile and a startup smoke test have run locally. Android SDK/JDK are not installed on this Mac, so Android compilation has not run here. `.github/workflows/validate.yml` prepares Android compilation with Java 17, plus iOS compilation and the full test gate. The workflow has not been pushed or run on GitHub.
+The iOS simulator compile and a startup smoke test have run locally. Android SDK/JDK are not installed on this Mac, so Android compilation has not run here. `.github/workflows/validate.yml` prepares Android compilation with Java 17, plus iOS compilation and the full test gate. The first GitHub runs passed the test job and exposed two native setup errors: CocoaPods/checksum differences on iOS and an outdated Android Gradle plugin. The corrected workflow pins Ruby 3.4.4, CocoaPods 1.16.2 and JSON 2.9.1 through Bundler; Android uses AGP 8.11.1 with Gradle 8.13. `Gemfile.lock` also fixes the Ruby tool dependencies. Keep `--deployment` enabled and retain both application dependency locks. Check the latest candidate commit in [GitHub Actions](https://github.com/harrypout/Jack-Jack-App-Test/actions/workflows/validate.yml) for the current native build results.
 
 The clean-source check uses a new temporary folder containing tracked/candidate source files, dependency locks and font assets, without `build`, `.dart_tool`, Pods or the real `.env`. Generated providers and Flutter assets are recreated. This checks clean assembly with cached dependencies; it does not claim fresh network dependency downloads or a clean native Android build.
 

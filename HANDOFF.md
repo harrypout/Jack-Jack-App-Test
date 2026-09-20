@@ -9,10 +9,10 @@ Use [docs/TESTFLIGHT.md](docs/TESTFLIGHT.md) for the current upload walkthrough,
 ## Build baseline
 
 - Flutter **3.41.4** is pinned in `.fvmrc`.
-- Retain both Dart and CocoaPods dependency locks.
+- Retain Dart, CocoaPods and Ruby (`Gemfile.lock`) dependency locks. Use Ruby 3.4.4, `bundle install`, and `bundle exec` for CocoaPods and Flutter iOS build commands. CocoaPods 1.16.2 and JSON 2.9.1 match the native lockfile checksums.
 - Keep `flutter_reactive_ble: 5.4.0`, `reactive_ble_mobile: 5.4.0` and `SwiftProtobuf: 1.29.0` pinned. The historical native compatibility problem is documented in `pubspec.yaml` and `ios/Podfile`.
 - The real `.env` is ignored by Git. The test fixture uses synthetic identifiers and must not be used for a TestFlight archive.
-- Git currently declares **1.0.2+4**. Verify the latest uploaded build before incrementing it.
+- Git currently declares **1.0.2+5**, committed by Harry. Verify this build number is unused before uploading it.
 - Confirm the existing app's bundle ID in App Store Connect. The prior Documents archive uses **com.jackjack1234**, while the project config uses **com.jackjack**. Both have local signing profiles under **Jack Jack Pty Ltd / L9MCWXCMY7**; archive history alone does not resolve which Apple app to update.
 
 ## Agreed scope
