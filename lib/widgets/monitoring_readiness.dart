@@ -28,9 +28,9 @@ class MonitoringReadiness extends ConsumerWidget {
             ? 'Checking monitoring permissions…'
             : init.valueOrNull == InitPhase.bluetoothDenied ||
                 bluetooth == BleStatus.unauthorized
-            ? 'Bluetooth access is required to connect to your Pebble.'
+            ? 'Bluetooth access is required to connect to your Jack Jack.'
             : bluetooth == BleStatus.poweredOff
-            ? 'Turn on Bluetooth to connect to your Pebble.'
+            ? 'Turn on Bluetooth to connect to your Jack Jack.'
             : bluetooth == BleStatus.unsupported
             ? 'Bluetooth monitoring is unavailable on this phone.'
             : bluetooth != BleStatus.ready

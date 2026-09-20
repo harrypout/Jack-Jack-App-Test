@@ -1,3 +1,4 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/providers/last_recorded_alert_provider.dart';
 import 'package:jackjack/providers/connected_status_provider.dart';
@@ -26,10 +27,11 @@ class SelectedDeviceHomeWidget extends ConsumerWidget {
         deviceId == null
             ? null
             : ref.watch(lastRecordedAlertProvider(deviceId));
-    final displayName =
-        deviceNames[device?.device.id ?? ""] ??
-        device?.device.name ??
-        "No Device Connected";
+    final displayName = displayDeviceName(
+      deviceNames[device?.device.id ?? ""] ??
+          device?.device.name ??
+          "No Device Connected",
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,

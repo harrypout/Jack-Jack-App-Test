@@ -1,3 +1,4 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'package:jackjack/providers/loading_provider.dart';
 import 'package:jackjack/services/device_name_manager.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,9 @@ class BluetoothDeviceWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(loadingProvider(device.id));
     final deviceNames = ref.watch(deviceNamesProvider);
-    final displayName = deviceNames[device.id] ?? device.name;
+    final displayName = displayDeviceName(
+      deviceNames[device.id] ?? device.name,
+    );
     final tone = deviceTone(id: device.id, isPrimary: isPaired);
     final hasSignal = device.rssi < 0;
     final signal = hasSignal ? signalPercent(device.rssi) : 0;

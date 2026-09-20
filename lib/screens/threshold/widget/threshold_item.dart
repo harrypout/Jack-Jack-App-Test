@@ -1,3 +1,4 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
 import 'package:jackjack/utils/color_manager.dart';
@@ -40,7 +41,7 @@ class _ThresholdItemState extends ConsumerState<ThresholdItem> {
         ? Container()
         : ExpansionTile(
           title: Text(
-            widget.device.device.name,
+            displayDeviceName(widget.device.device.name),
             style: const TextStyle(
               color: ColorManager.primaryText,
               fontSize: 16,

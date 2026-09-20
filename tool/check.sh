@@ -35,6 +35,11 @@ meter_sources=(
   lib/utils/status_colors.dart
   lib/providers/last_recorded_alert_provider.dart
   lib/screens/home/widgets/selected_device_widget.dart
+  lib/screens/settings
+  lib/widgets/ble_bottom_bar.dart
+  lib/widgets/ble_dropdown.dart
+  lib/utils/notification_manager.dart
+  lib/utils/device_display_name.dart
 )
 dart format --output=none --set-exit-if-changed test lib/providers/alert_clock_provider.dart "${meter_sources[@]}"
 

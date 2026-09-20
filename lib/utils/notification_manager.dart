@@ -1,5 +1,6 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../main.dart' as app;
@@ -55,7 +56,12 @@ class NotificationManager {
     final initialized = await _notificationsPlugin.initialize(
       initializationSettings,
     );
-    if (initialized != true) {
+    // On iOS this result reports notification permission, not plugin setup.
+    // With permission prompts disabled above, the native plugin returns false
+    // after successful initialization. Permission is checked separately.
+    // Platform exceptions still propagate on both platforms.
+    if (defaultTargetPlatform == TargetPlatform.android &&
+        initialized != true) {
       throw StateError('Notification initialization failed');
     }
     _initialized = true;
@@ -171,7 +177,7 @@ class NotificationManager {
     );
     await showNotification(
       title: 'Sound Alert',
-      body: 'Sound level exceeded on $deviceName',
+      body: 'Sound level exceeded on ${displayDeviceName(deviceName)}',
       vibration: hasVibration,
       sound: hasSound,
       soundName: soundName,
@@ -198,7 +204,7 @@ class NotificationManager {
     );
     await showNotification(
       title: 'Device Alert',
-      body: '$deviceName was disconnected',
+      body: '${displayDeviceName(deviceName)} was disconnected',
       vibration: hasVibration,
       sound: hasSound,
       soundName: soundName,
@@ -225,7 +231,7 @@ class NotificationManager {
     );
     await showNotification(
       title: 'Device Alert',
-      body: '$deviceName was connected',
+      body: '${displayDeviceName(deviceName)} was connected',
       vibration: hasVibration,
       sound: hasSound,
       soundName: soundName,
@@ -245,7 +251,7 @@ class NotificationManager {
     if (!sound && !vibration) return;
     await showNotification(
       title: 'Low Battery',
-      body: '$deviceName has $battery% battery remaining',
+      body: '${displayDeviceName(deviceName)} has $battery% battery remaining',
       vibration: vibration,
       sound: sound,
     );

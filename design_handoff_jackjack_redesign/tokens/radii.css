@@ -1,12 +1,12 @@
 /* Jack Jack — Shape language & radii
-   The pebble — asymmetric, soft, organic — is the ownable primitive.
-   One pebble per surface. Alternate radii for adjacent pebble shapes.
-   Never rotate the pebble radius. Everything else uses standard rounding. */
+   The device shape — asymmetric, soft, organic — is the ownable primitive.
+   One device shape per surface. Alternate radii for adjacent device shape shapes.
+   Never rotate the device shape radius. Everything else uses standard rounding. */
 
 :root {
-  /* ---- Signature pebble radii ---- */
-  --radius-pebble:     40% 60% 70% 30% / 40% 50% 60% 50%;
-  --radius-pebble-alt: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  /* ---- Signature device shape radii ---- */
+  --radius-device:     40% 60% 70% 30% / 40% 50% 60% 50%;
+  --radius-device-alt: 60% 40% 30% 70% / 60% 30% 70% 40%;
 
   /* ---- Standard radii ---- */
   --radius-sm:   8px;    /* small inputs, tags */

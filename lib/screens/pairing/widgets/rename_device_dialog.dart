@@ -1,3 +1,4 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -29,7 +30,7 @@ class _RenameDeviceDialogState extends ConsumerState<RenameDeviceDialog> {
     final deviceNamesNotifier = ref.read(deviceNamesProvider.notifier);
     final currentName = deviceNamesNotifier.getDeviceName(widget.device.id);
     _nameController = TextEditingController(
-      text: currentName ?? widget.device.name,
+      text: displayDeviceName(currentName ?? widget.device.name),
     );
   }
 

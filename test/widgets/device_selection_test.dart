@@ -65,7 +65,7 @@ void main() {
   }
 
   testWidgets(
-    'JJ-13: users can select a second connected Pebble from its device card',
+    'JJ-13: users can select a second connected Jack Jack from its device card',
     (tester) async {
       final (container, _) = await home(tester);
       await tester.ensureVisible(find.text('Travel cot'));

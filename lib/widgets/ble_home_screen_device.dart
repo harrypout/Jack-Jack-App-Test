@@ -1,3 +1,4 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'package:jackjack/models/ble_device.dart';
 import 'package:jackjack/providers/connected_status_provider.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
@@ -8,7 +9,7 @@ import 'package:jackjack/services/device_name_manager.dart';
 import 'package:jackjack/utils/color_manager.dart';
 import 'package:jackjack/utils/status_colors.dart';
 import 'package:jackjack/utils/theme_manager.dart';
-import 'package:jackjack/widgets/ble_pebble.dart';
+import 'package:jackjack/widgets/ble_device_shape.dart';
 import 'package:jackjack/widgets/ble_pill.dart';
 import 'package:jackjack/widgets/ble_status_pill.dart';
 import 'package:flutter/material.dart';
@@ -56,13 +57,14 @@ class _HomeScreenDeviceState extends ConsumerState<HomeScreenDevice> {
       connectedStatusProvider(widget.device.device.id),
     );
     final deviceNames = ref.watch(deviceNamesProvider);
-    final displayName =
-        deviceNames[widget.device.device.id] ?? widget.device.device.name;
+    final displayName = displayDeviceName(
+      deviceNames[widget.device.device.id] ?? widget.device.device.name,
+    );
 
     return Skeletonizer(
       enabled: isLoading,
       child: ExpansionTile(
-        leading: BLEPebble(
+        leading: BLEDeviceShape(
           size: 34,
           tone: deviceTone(
             id: widget.device.device.id,

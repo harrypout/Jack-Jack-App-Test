@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:jackjack/providers/navigation_provider.dart';
 import 'package:jackjack/utils/platform_channel_manager.dart';
 import 'package:jackjack/screens/home/home_screen.dart';
@@ -29,37 +28,18 @@ class _BLEBottomBarState extends ConsumerState<BLEBottomBar> {
           PlatformChannelManager.moveToBackground();
         }
       },
-      child: Stack(
-      children: [
-        Scaffold(
-          resizeToAvoidBottomInset: false,
-          body:
-              <Widget>[
-                HomeScreen(),
-                // ThresholdScreen(),
-                PairingScreen(),
-                // ManualMonitoringScreen(),
-                SettingsScreen(),
-              ][selectedScreenIndex],
-          bottomNavigationBar: const SizedBox(height: 75, width: 1),
+      child: Scaffold(
+        body:
+            <Widget>[
+              const HomeScreen(),
+              const PairingScreen(),
+              const SettingsScreen(),
+            ][selectedScreenIndex],
+        bottomNavigationBar: const ColoredBox(
+          color: ColorManager.white,
+          child: SafeArea(top: false, child: CustomBottomNav()),
         ),
-        Positioned(
-          bottom: 0,
-          child: Column(
-            children: [
-              const CustomBottomNav(),
-              Platform.isIOS
-                  ? Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: 10,
-                    color: ColorManager.white,
-                  )
-                  : Container(),
-            ],
-          ),
-        ),
-      ],
-    ),
+      ),
     );
   }
 }
@@ -77,11 +57,12 @@ class CustomBottomNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
+    final extraLabelHeight = MediaQuery.textScalerOf(context).scale(12) - 12;
     var selectedScreenIndex = ref.watch(navigationProvider);
     return SizedBox(
       width: size.width,
-      height: _navHeight,
+      height: _navHeight + extraLabelHeight + 6,
       child: Stack(
         children: [
           Positioned(
@@ -89,19 +70,29 @@ class CustomBottomNav extends ConsumerWidget {
             left: 0,
             right: 0,
             child: Container(
-              height: _barHeight,
+              height: _barHeight + extraLabelHeight + 6,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: const BoxDecoration(
                 color: ColorManager.white,
-                border: Border(
-                  top: BorderSide(color: ColorManager.slate10),
-                ),
+                border: Border(top: BorderSide(color: ColorManager.slate10)),
               ),
               child: const Row(
                 children: [
-                  Expanded(child: NavBarButton(index: 0, title: "Home", icon: "home")),
+                  Expanded(
+                    child: NavBarButton(
+                      index: 1,
+                      title: "Connect",
+                      icon: "scanner",
+                    ),
+                  ),
                   SizedBox(width: 72),
-                  Expanded(child: NavBarButton(index: 2, title: "Settings", icon: "setting")),
+                  Expanded(
+                    child: NavBarButton(
+                      index: 2,
+                      title: "Settings",
+                      icon: "setting",
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -123,36 +114,63 @@ class CustomBottomNav extends ConsumerWidget {
                     width: _ringWidth,
                   ),
                   boxShadow:
-                      selectedScreenIndex == 1
+                      selectedScreenIndex == 0
                           ? ThemeManager.sageGlow
                           : ThemeManager.shadowMd,
                 ),
-                child: ElevatedButton(
-                  onPressed: () {
-                    ref.read(navigationProvider.notifier).toggle(1);
-                  },
-                  style: ButtonStyle(
-                    padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
-                    minimumSize: WidgetStateProperty.all(
-                      Size(_fabButtonSize, _fabButtonSize),
+                child: Semantics(
+                  label: 'Home',
+                  selected: selectedScreenIndex == 0,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ref.read(navigationProvider.notifier).toggle(0);
+                    },
+                    style: ButtonStyle(
+                      padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
+                      minimumSize: WidgetStateProperty.all(
+                        Size(_fabButtonSize, _fabButtonSize),
+                      ),
+                      backgroundColor: const WidgetStatePropertyAll<Color?>(
+                        ColorManager.transparent,
+                      ),
+                      shadowColor: const WidgetStatePropertyAll<Color?>(
+                        ColorManager.transparent,
+                      ),
+                      elevation: WidgetStateProperty.all(0.0),
+                      shape: WidgetStateProperty.all(const CircleBorder()),
                     ),
-                    backgroundColor: const WidgetStatePropertyAll<Color?>(
-                      ColorManager.transparent,
+                    child: SvgPicture.asset(
+                      "assets/svgs/home${selectedScreenIndex == 0 ? "_filled" : ""}.svg",
+                      width: 24,
+                      height: 24,
+                      colorFilter: const ColorFilter.mode(
+                        ColorManager.white,
+                        BlendMode.srcIn,
+                      ),
                     ),
-                    shadowColor: const WidgetStatePropertyAll<Color?>(
-                      ColorManager.transparent,
-                    ),
-                    elevation: WidgetStateProperty.all(0.0),
-                    shape: WidgetStateProperty.all(const CircleBorder()),
                   ),
-                  child: SvgPicture.asset(
-                    "assets/svgs/scanner${selectedScreenIndex == 1 ? "_filled" : ""}.svg",
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      ColorManager.white,
-                      BlendMode.srcIn,
-                    ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 8,
+            left: 0,
+            right: 0,
+            child: ExcludeSemantics(
+              child: Center(
+                child: Text(
+                  'Home',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight:
+                        selectedScreenIndex == 0
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                    color:
+                        selectedScreenIndex == 0
+                            ? ColorManager.accent
+                            : ColorManager.slate60,
                   ),
                 ),
               ),

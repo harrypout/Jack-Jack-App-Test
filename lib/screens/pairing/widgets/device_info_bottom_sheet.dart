@@ -1,3 +1,4 @@
+import 'package:jackjack/utils/device_display_name.dart';
 import 'package:jackjack/screens/pairing/pods/connected_device_tracker.dart';
 import 'package:jackjack/providers/connected_devices_provider.dart';
 import 'package:jackjack/providers/device_threshold_provider.dart';
@@ -25,7 +26,9 @@ class PairedInfoBottomSheet extends ConsumerWidget {
         .watch(connectedDevicesTrackerProvider.notifier)
         .isDeviceConnected(device.id);
     final deviceNames = ref.watch(deviceNamesProvider);
-    final displayName = deviceNames[device.id] ?? device.name;
+    final displayName = displayDeviceName(
+      deviceNames[device.id] ?? device.name,
+    );
 
     return BLEBottomSheet(
       child: Column(

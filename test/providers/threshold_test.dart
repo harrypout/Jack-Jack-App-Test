@@ -47,7 +47,7 @@ void main() {
   });
 
   test(
-    'threshold state and writes remain isolated between two Pebbles',
+    'threshold state and writes remain isolated between two Jack Jack devices',
     () async {
       final writeA = FakeService();
       final writeB = FakeService();

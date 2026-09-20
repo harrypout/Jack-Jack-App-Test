@@ -50,11 +50,11 @@ void main() {
   test('legacy records without a timestamp can still be read', () {
     final record = NotificationSF.fromJson({
       'id': 'old',
-      'device': 'Pebble',
+      'device': 'Jack Jack',
       'value': 1,
     });
     expect(record.id, 'old');
-    expect(record.device, 'Pebble');
+    expect(record.device, 'Jack Jack');
     expect(record.createdAt, isA<DateTime>());
   });
   test('JJ-14: one malformed record does not hide valid history', () async {

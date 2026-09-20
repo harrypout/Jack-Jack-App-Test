@@ -302,7 +302,7 @@ class BackgroundServiceManager {
                   if (!requested.contains(old)) await remove(old);
                 }
                 for (final next in requested) {
-                  connect(next, names[next] ?? 'Pebble');
+                  connect(next, names[next] ?? 'Jack Jack');
                 }
               case 'release':
                 await release();

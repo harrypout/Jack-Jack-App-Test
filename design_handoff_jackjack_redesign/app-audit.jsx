@@ -162,15 +162,15 @@ function HomeScreen() {
           </button>
         </div>
         <div style={{ padding: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Gauge name="The Pebble" value={42} threshold={85} />
+          <Gauge name="The Jack Jack" value={42} threshold={85} />
           <div style={{ display: 'flex', gap: 12 }}>
             <Indicator title="Battery" value="82%" icon="battery" />
             <Indicator title="Status" value="Connected" icon="status" />
           </div>
           <Eyebrow>Devices</Eyebrow>
-          {[['The Pebble', true, 82, 'Connected', '85', 'sage'], ['Nursery Pod', false, 24, 'Idle', '70', 'coral']].map(([nm, cur, bat, st, th, tone]) => (
+          {[['The Jack Jack', true, 82, 'Connected', '85', 'sage'], ['Nursery Pod', false, 24, 'Idle', '70', 'coral']].map(([nm, cur, bat, st, th, tone]) => (
             <div key={nm} style={{ ...cardBase, padding: '13px 15px', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ width: 34, height: 34, borderRadius: 'var(--radius-pebble)', background: (rich && tone === 'coral') ? 'linear-gradient(150deg,#F0C3BA,#D98A7C)' : 'linear-gradient(150deg,#A6C7BA,#6E9E8D)', flexShrink: 0 }} />
+              <span style={{ width: 34, height: 34, borderRadius: 'var(--radius-device)', background: (rich && tone === 'coral') ? 'linear-gradient(150deg,#F0C3BA,#D98A7C)' : 'linear-gradient(150deg,#A6C7BA,#6E9E8D)', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-slate)', whiteSpace: 'nowrap' }}>{nm}</span>
@@ -210,7 +210,7 @@ function ConnectScreen() {
         </div>
         <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Eyebrow>Paired Devices</Eyebrow>
-          <DeviceRow name="The Pebble" meta="Signal strong · 82%" paired tone="sage" />
+          <DeviceRow name="The Jack Jack" meta="Signal strong · 82%" paired tone="sage" />
           <Eyebrow>Available Devices</Eyebrow>
           <DeviceRow name="Nursery Pod" meta="Signal 61%" tone="coral" />
           <DeviceRow name="JJ-4471" meta="Signal 44%" tone="yellow" />
@@ -250,7 +250,7 @@ function ManualScreen() {
       </div>
       <ScreenScroll>
         <div style={{ padding: '18px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-          <Gauge name="The Pebble" value={88} threshold={85} />
+          <Gauge name="The Jack Jack" value={88} threshold={85} />
           <Pill tone="coral"><Dot color="#C77A6C" />Streaming · 00:01:23</Pill>
           <div style={{ display: 'flex', gap: 12, width: '100%' }}>
             <Indicator title="Battery" value="82%" icon="battery" />

@@ -6,13 +6,13 @@ Prepared 20 September 2026 for the reliability and meter amendments.
 
 - Working folder: `/Users/Harry/Projects/jackjack`.
 - GitHub repository: `harrypout/Jack-Jack-App-Test`.
-- Branch: `codex/regression-test-baseline`.
+- Branch: `codex/ios-discovery-settings`.
 - Flutter: **3.41.4**; retain `pubspec.lock`, `ios/Podfile.lock`, `Gemfile.lock` and the existing BLE/SwiftProtobuf pins. Use Ruby 3.4.4 with the pinned CocoaPods/JSON tools through Bundler.
-- Full preflight: **106 tests pass** on 20 September; strict core analysis passes.
+- Full preflight: **119 Dart tests and one native iOS test pass** on 20 September; strict core analysis passes.
 - The local `.env` contains real BLE identifiers. All six active service/characteristic pairs match both supplied August firmware source variants. It is ignored by Git.
-- Current source version: **1.0.2+5**, committed by Harry in `40e808d`. Confirm this build number is unused in the existing App Store Connect app before uploading.
+- Current source version: **1.0.2+6**. Harry confirmed build 5 uploaded, then found the iOS discovery-startup regression. Build 6 includes its fix and the requested UI/naming changes; verify 6 is unused before uploading.
 - App identity still requires App Store Connect verification: Git config uses `com.jackjack`; the previous local archive and historical handoff use `com.jackjack1234`. Local signing profiles exist for both under **Jack Jack Pty Ltd / L9MCWXCMY7**. The Release configuration now uses team **L9MCWXCMY7**; confirm the existing Apple app identity before archiving.
-- Physical iPhone/Pebble acceptance is **not run**. This TestFlight candidate will be used to perform it.
+- Physical acceptance **failed initial discovery in build 5**. Retest connection and alerts with build 6 before completing the longer acceptance checks.
 
 ## 1. Confirm the existing Apple app
 
@@ -32,7 +32,7 @@ Build the TestFlight archive from this working folder with the real `.env`. Pres
 
 ## 3. Set the version and signing
 
-Update `version:` in `pubspec.yaml` after confirming Apple's build history. For example, **1.0.2+5** is suitable only if **1.0.2 (4)** is the latest build and build 5 has not been used. If Apple already has a later marketing version, use that version or the next intended version instead.
+Update `version:` in `pubspec.yaml` after confirming Apple's build history. For example, **1.0.2+6** is suitable only if **1.0.2 (5)** is the latest build and build 6 has not been used. If Apple already has a later marketing version, use that version or the next intended version instead.
 
 Open `/Users/Harry/Projects/jackjack/ios/Runner.xcworkspace` in Xcode. Select the **Runner app target → Signing & Capabilities**, enable automatic signing, and use the verified bundle ID and **Jack Jack Pty Ltd** team for the app's build configurations. Resolve any account sign-in prompt in Xcode's **Settings → Accounts**. Keep credentials out of the repository and chat.
 
@@ -68,17 +68,17 @@ Add the build to the intended existing tester group and add the notes below. Ext
 
 ## What to Test
 
-This build improves Bluetooth reconnection, threshold saving, alert controls, battery warnings, notification history and the sound-level meter. Fonts are bundled for offline use. Live listening is hidden in this milestone.
+This build fixes iOS setup failing before Bluetooth discovery. It also improves Settings selectors, makes Home the green centre action, moves Connect to the left and uses Jack Jack naming. The prior reconnection, threshold, alert, battery, history and meter improvements are retained. Fonts are bundled for offline use. Live listening is hidden in this milestone.
 
 Please check:
 
-1. Connect a Pebble, save a threshold and confirm it remains after a device power cycle.
+1. Connect a Jack Jack, save a threshold and confirm it remains after a device power cycle.
 2. Trigger sound alerts with the app visible, the screen locked and another app open; check notification history and repeat timing.
 3. Move out of Bluetooth range and back, then turn Bluetooth off and on; confirm monitoring and alerts recover.
 4. Turn Alerts off; confirm phone banners, sound and vibration stop while history continues. Turn Alerts back on.
 5. Check meter rise/fall, missing-reading state, battery refresh and two-device selection where hardware is available.
 
-Record the app build, iPhone/iOS version, Pebble microphone and exact installed firmware, together with actual results, in [DEVICE_ACCEPTANCE.md](DEVICE_ACCEPTANCE.md). Complete its longer overnight, permission and interruption checks before broader release sign-off.
+Record the app build, iPhone/iOS version, Jack Jack microphone and exact installed firmware, together with actual results, in [DEVICE_ACCEPTANCE.md](DEVICE_ACCEPTANCE.md). Complete its longer overnight, permission and interruption checks before broader release sign-off.
 
 ## References
 

@@ -46,7 +46,7 @@ class DeviceManager extends _$DeviceManager {
           ref.read(connectedDevicesProvider)[id]?.device ??
           DiscoveredDevice(
             id: id,
-            name: prefs.getString('advertised_name_$id') ?? 'Pebble',
+            name: prefs.getString('advertised_name_$id') ?? 'Jack Jack',
             serviceData: {},
             serviceUuids: [],
             manufacturerData: Uint8List(0),
